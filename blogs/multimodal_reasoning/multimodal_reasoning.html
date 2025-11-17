@@ -1,0 +1,849 @@
+<!DOCTYPE HTML>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+<head>
+    <title>Evolution of Multimodal Reasoning - STARC INSTITUTE</title>
+    <meta name="description"
+          content="From grounded thinking to agentic AI: A technical journey through six groundbreaking research papers on multimodal reasoning published in 2025."/>
+    <meta name="keywords"
+          content="multimodal reasoning, visual AI, grounded reasoning, video generation, agentic AI, machine learning, computer vision"/>
+    <meta charset="utf-8"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
+    <link rel="manifest" href="../../favicon/site.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+    <link rel="stylesheet" href="../../assets/css/main.css"/>
+    <link rel="stylesheet" href="../blogStyle.css"/>
+    <noscript>
+        <link rel="stylesheet" href="../../assets/css/noscript.css"/>
+    </noscript>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Header -->
+    <header id="header" class="alt">
+        <a href="../../index.html" class="logo"><strong>STARC INSTITUTE</strong></a>
+        <a href="../../cn/index.html" style="text-decoration: none; font-size: 0.4em;">简体中文</a>
+        <nav>
+            <a href="#menu">Menu</a>
+        </nav>
+    </header>
+
+    <!-- Menu -->
+    <nav id="menu">
+        <ul class="links">
+            <li><a href="../../index.html">Home</a></li>
+            <li><a href="../../mission.html">Mission</a></li>
+            <li><a href="../../resources.html">Resources</a></li>
+            <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+        <ul class="actions stacked">
+            <li><a href="https://forms.gle/9kHxzd7byt3BKD2k9" class="button fit">Apply</a></li>
+        </ul>
+    </nav>
+
+    <!-- Banner -->
+    <section id="intro" class="style2">
+        <div class="inner">
+            <header class="major">
+                <h1>Evolution of Multimodal Reasoning</h1>
+            </header>
+            <div class="content">
+                <p>From Grounded Thinking to Agentic AI: A Technical Journey</p>
+                <p><strong>by <a href="../../index.html">Starc Institute</a></strong>, follow us at X (Twitter) <strong><a href="https://x.com/Starc_Institute">@Starc_institute</a></strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main -->
+    <div id="main">
+
+        <!-- Introduction -->
+        <section id="introduction">
+            <div class="inner">
+                <header class="major">
+                    <h2>Introduction</h2>
+                </header>
+                <p>
+                    Recent advances in artificial intelligence have shown that multimodal models—systems that can process both text and images—are becoming increasingly sophisticated. However, a fundamental question remains: <strong>Can these models truly "think" with images, or are they simply describing what they see?</strong>
+                </p>
+                <p>
+                    This blog explores six groundbreaking research papers published in late 2025 that collectively address this question. These papers represent a paradigm shift from simple image understanding to genuine visual reasoning, where models actively interact with images, generate visual content, and use multiple tools to solve complex problems.
+                </p>
+                
+                <div class="insight-box">
+                    <strong>Key Evolution:</strong> The field has progressed from static image description to dynamic visual reasoning, culminating in agentic systems that autonomously select and combine multiple tools to solve complex multimodal problems.
+                </div>
+            </div>
+        </section>
+
+        <!-- Paper 1: GRIT -->
+        <section id="grit" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>1. GRIT: Teaching Models to Think with Images</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> GRIT: Teaching MLLMs to Think with Images</p>
+                    <p><strong>Authors:</strong> Yue Fan, Xuehai He, et al.</p>
+                    <p><strong>Link:</strong> <a href="https://grounded-reasoning.github.io" target="_blank">https://grounded-reasoning.github.io</a></p>
+                </div>
+
+                <h3>The Core Problem</h3>
+                <p>
+                    Traditional multimodal models primarily use images as <em>input</em>, generating only text responses. This raises a critical question: Are these models truly performing visual reasoning, or are they merely describing images verbally?
+                </p>
+
+                <div class="consensus-box">
+                    <h3>Key Innovation: Grounded Reasoning</h3>
+                    <p>
+                        GRIT introduces <strong>grounded reasoning</strong>, where the model's thought process is anchored in visual evidence through explicit bounding boxes. Instead of purely textual reasoning, the model:
+                    </p>
+                    <ul>
+                        <li>Identifies relevant visual regions with bounding boxes</li>
+                        <li>Performs reasoning steps that reference these regions</li>
+                        <li>Produces verifiable, evidence-based conclusions</li>
+                    </ul>
+                </div>
+
+                <h3>Technical Approach</h3>
+
+                <h4>1. Three-Stage Training Pipeline</h4>
+                <ul>
+                    <li><strong>Stage 1 - Grounding:</strong> Learn to identify visual evidence (40K examples)</li>
+                    <li><strong>Stage 2 - Thinking:</strong> Develop reasoning with grounded evidence (20K examples)</li>
+                    <li><strong>Stage 3 - Integration:</strong> Combine both capabilities</li>
+                </ul>
+
+                <h4>2. Data Synthesis Strategy</h4>
+                <p>
+                    Rather than manual annotation, GRIT uses GPT-4V to generate training data by:
+                </p>
+                <ol>
+                    <li>Solving problems independently</li>
+                    <li>Analyzing their reasoning process</li>
+                    <li>Identifying which visual regions support each reasoning step</li>
+                    <li>Converting image coordinates to bounding boxes</li>
+                </ol>
+
+                <div class="insight-box">
+                    <h3>Critical Insight: Data Efficiency</h3>
+                    <p>
+                        GRIT achieves strong performance with just <strong>20K grounded reasoning examples</strong>, demonstrating that targeted, high-quality data can be more effective than massive datasets.
+                    </p>
+                </div>
+
+                <h3>Results and Validation</h3>
+                <p>
+                    On spatial reasoning benchmarks, GRIT-enhanced models show substantial improvements:
+                </p>
+                <ul>
+                    <li>VSR: 62.5% → 69.4% accuracy</li>
+                    <li>BLINK: 47.3% → 52.4% accuracy</li>
+                    <li>CV-Bench: Consistent gains across perception tasks</li>
+                </ul>
+
+                <div class="consensus-box">
+                    <h3>Why This Matters</h3>
+                    <p>
+                        GRIT establishes that <strong>multimodal reasoning should be grounded in visual evidence</strong>, not just textual descriptions. This principle becomes foundational for all subsequent work in this area.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Paper 2: Video Models -->
+        <section id="video-models" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>2. Video Models as Zero-Shot Learners</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> Video models are zero-shot learners and reasoners</p>
+                    <p><strong>Authors:</strong> Thaddäus Wiedemer, Yuxuan Li, Paul Vicol, et al. (Google DeepMind)</p>
+                    <p><strong>Link:</strong> <a href="https://video-zero-shot.github.io" target="_blank">https://video-zero-shot.github.io</a>
+                </div>
+
+                <h3>The Paradigm Shift</h3>
+                <p>
+                    This paper proposes a radical idea: <strong>video generation models (like Veo 3) can function as zero-shot visual reasoners</strong> without any task-specific training.
+                </p>
+
+                <div class="consensus-box">
+                    <h3>Core Insight: Video as Output</h3>
+                    <p>
+                        Instead of generating text descriptions, use the model's ability to generate <em>video sequences</em> to demonstrate understanding. This allows evaluation across four capability dimensions:
+                    </p>
+                    <ul>
+                        <li><strong>Perception:</strong> Recognizing objects, actions, and relationships</li>
+                        <li><strong>Modeling:</strong> Predicting future states and dynamics</li>
+                        <li><strong>Manipulation:</strong> Transforming visual content</li>
+                        <li><strong>Reasoning:</strong> Drawing conclusions from visual evidence</li>
+                    </ul>
+                </div>
+
+                <h3>Key Experiments</h3>
+
+                <h4>1. Visual Question Answering</h4>
+                <p>
+                    Rather than answering "What color is the car?" with text, the model generates a video showing the car's color through visual transformation.
+                </p>
+
+                <h4>2. Future Prediction</h4>
+                <p>
+                    Given initial frames, the model generates plausible continuations, demonstrating understanding of physics and dynamics.
+                </p>
+
+                <h4>3. Visual Reasoning</h4>
+                <p>
+                    For problems requiring inference (e.g., "Which way will the object fall?"), the model generates video sequences showing the outcome.
+                </p>
+
+                <div class="insight-box">
+                    <h3>Emergent Capabilities</h3>
+                    <p>
+                        Video models trained solely on generation naturally acquire reasoning abilities. This suggests <strong>video generation is a more general form of visual understanding</strong> than static image analysis.
+                    </p>
+                </div>
+
+                <h3>Limitations and Challenges</h3>
+                <ul>
+                    <li><strong>Computational Cost:</strong> Video generation is significantly more expensive than text generation</li>
+                    <li><strong>Evaluation Ambiguity:</strong> Multiple valid videos can answer the same question</li>
+                    <li><strong>Fine-Grained Control:</strong> Difficult to specify exact reasoning paths</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 3: ThinkMorph -->
+        <section id="thinkmorph" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>3. ThinkMorph: Emergent Properties in Interleaved Reasoning</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> ThinkMorph: Emergent Properties in Multimodal Interleaved Chain-of-Thought Reasoning</p>
+                    <p><strong>Authors:</strong> Jiawei Gu, Yunzhuo Hao, Huichen Will Wang, et al.</p>
+                    <p><strong>Link:</strong> <a href="https://thinkmorph.github.io" target="_blank">https://thinkmorph.github.io</a>
+                </div>
+
+                <h3>The Key Question</h3>
+                <p>
+                    How should text and images be combined during reasoning? Should images simply illustrate textual reasoning, or should they provide distinct, complementary information?
+                </p>
+
+                <div class="consensus-box">
+                    <h3>Core Principle: Complementarity</h3>
+                    <p>
+                        ThinkMorph establishes that effective multimodal reasoning requires:
+                    </p>
+                    <ul>
+                        <li><strong>Text:</strong> High-level conceptual reasoning and symbolic manipulation</li>
+                        <li><strong>Images:</strong> Spatial relationships, visual patterns, and intermediate visual states</li>
+                        <li><strong>Interleaving:</strong> Each modality addresses aspects the other cannot easily express</li>
+                    </ul>
+                </div>
+
+                <h3>Data Evolution Process</h3>
+                <p>
+                    ThinkMorph introduces a systematic approach to creating high-quality training data:
+                </p>
+
+                <h4>Stage 1: Seed Generation</h4>
+                <p>
+                    Human-designed prompts → GPT-4 generates text-only reasoning chains
+                </p>
+
+                <h4>Stage 2: Visual Injection</h4>
+                <p>
+                    GPT-4V identifies where visual reasoning would be beneficial and inserts image generation prompts at strategic points
+                </p>
+
+                <h4>Stage 3: Image Generation</h4>
+                <p>
+                    DALL-E 3 generates images that complement textual reasoning
+                </p>
+
+                <h4>Stage 4: Filtering</h4>
+                <p>
+                    Models are trained incrementally, and data that improves performance is retained for the next iteration
+                </p>
+
+                <div class="insight-box">
+                    <h3>Emergent Properties</h3>
+                    <p>
+                        When trained on appropriately designed interleaved data, models exhibit:
+                    </p>
+                    <ul>
+                        <li><strong>Adaptive Modality Selection:</strong> Choosing the right modality for each reasoning step</li>
+                        <li><strong>Visual Abstraction:</strong> Using images to represent abstract concepts geometrically</li>
+                        <li><strong>Error Correction:</strong> Using visual evidence to verify or correct textual reasoning</li>
+                    </ul>
+                </div>
+
+                <h3>Experimental Results</h3>
+                <p>
+                    ThinkMorph models show superior performance on:
+                </p>
+                <ul>
+                    <li><strong>Geometry:</strong> 12% improvement over text-only reasoning</li>
+                    <li><strong>Graph Theory:</strong> 18% improvement through visual graph representations</li>
+                    <li><strong>Complex Problem Solving:</strong> Sustained accuracy on multi-step problems</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 4: V-Thinker -->
+        <section id="vthinker" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>4. V-Thinker: Interactive Visual Thinking</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> V-Thinker: Interactive Thinking with Images</p>
+                    <p><strong>Authors:</strong> Runqi Qiao, Qiuna Tan, Minghan Yang, et al.</p>
+                    <p><strong>Link:</strong> <a href="https://github.com/We-Math/V-Thinker" target="_blank">https://github.com/We-Math/V-Thinker</a>
+                </div>
+
+                <h3>The Critical Distinction</h3>
+                <p>
+                    Previous approaches generated images as part of reasoning chains, but couldn't <em>interact</em> with them. V-Thinker introduces <strong>fully interactive visual thinking</strong> through end-to-end reinforcement learning.
+                </p>
+
+                <div class="consensus-box">
+                    <h3>Interactive Visual Thinking</h3>
+                    <p>
+                        V-Thinker enables models to:
+                    </p>
+                    <ul>
+                        <li>Generate images as intermediate reasoning steps</li>
+                        <li><strong>Observe and analyze</strong> the generated images</li>
+                        <li><strong>Adjust subsequent reasoning</strong> based on visual feedback</li>
+                        <li>Iterate through multiple cycles of generation and analysis</li>
+                    </ul>
+                </div>
+
+                <h3>Technical Architecture</h3>
+
+                <h4>1. Two-Module System</h4>
+                <ul>
+                    <li><strong>Thought Generator:</strong> Language model decides when and what images to generate</li>
+                    <li><strong>Image Generator:</strong> Stable Diffusion XL creates visual content from text prompts</li>
+                </ul>
+
+                <h4>2. End-to-End Reinforcement Learning</h4>
+                <p>
+                    Unlike supervised learning, V-Thinker uses Direct Policy Optimization (DPO) where:
+                </p>
+                <ul>
+                    <li><strong>Reward:</strong> Correctness of final answer</li>
+                    <li><strong>Positive Examples:</strong> Trajectories leading to correct answers</li>
+                    <li><strong>Negative Examples:</strong> Trajectories leading to incorrect answers</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>Why Reinforcement Learning?</h3>
+                    <p>
+                        Supervised learning can teach <em>when</em> to generate images, but RL teaches <em>how</em> to use them effectively. The model learns through trial and error which visual representations lead to correct reasoning.
+                    </p>
+                </div>
+
+                <h3>Progressive Training Curriculum</h3>
+                <p>
+                    V-Thinker uses a carefully designed progression:
+                </p>
+                <ol>
+                    <li><strong>Stage 1:</strong> Simple visual reasoning (geometry basics)</li>
+                    <li><strong>Stage 2:</strong> Multi-step problems (spatial transformations)</li>
+                    <li><strong>Stage 3:</strong> Complex integration (combining multiple visual concepts)</li>
+                </ol>
+
+                <h3>Benchmark: VSTaR</h3>
+                <p>
+                    The paper introduces VSTaR (Visual Self-Teaching through Reinforcement), evaluating:
+                </p>
+                <ul>
+                    <li><strong>Visual Necessity:</strong> Can the problem be solved without images?</li>
+                    <li><strong>Reasoning Depth:</strong> Number of visual steps required</li>
+                    <li><strong>Feedback Utilization:</strong> Does the model adjust based on generated images?</li>
+                </ul>
+
+                <h3>Results</h3>
+                <ul>
+                    <li><strong>Geometry:</strong> 23% improvement over text-only models</li>
+                    <li><strong>Multi-step Reasoning:</strong> 35% improvement on complex problems</li>
+                    <li><strong>Efficiency:</strong> Fewer reasoning steps to reach correct answers</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 5: Thinking with Video -->
+        <section id="thinking-video" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>5. Thinking with Video: A Unified Paradigm</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> Thinking with Video: Video Generation as a Promising Multimodal Reasoning Paradigm</p>
+                    <p><strong>Authors:</strong> Jingqi Tong, Yurong Mou, Hangcheng Li, et al. (Fudan University, OpenMOSS)</p>
+                    <p><strong>Link:</strong> <a href="https://thinking-with-video.github.io" target="_blank">https://thinking-with-video.github.io</a>
+                </div>
+
+                <h3>The Unifying Framework</h3>
+                <p>
+                    This paper synthesizes previous insights into a single paradigm: <strong>video generation as the natural medium for multimodal reasoning</strong>.
+                </p>
+
+                <div class="consensus-box">
+                    <h3>Chain-of-Frames ≈ Chain-of-Thought</h3>
+                    <p>
+                        Just as chain-of-thought breaks text reasoning into steps, <strong>chain-of-frames</strong> breaks visual reasoning into temporal sequences:
+                    </p>
+                    <ul>
+                        <li>Each frame represents an intermediate reasoning state</li>
+                        <li>Frame transitions show reasoning progress</li>
+                        <li>Final frames represent conclusions</li>
+                    </ul>
+                </div>
+
+                <h3>Vision-Centric vs. Text-Centric Reasoning</h3>
+
+                <h4>Vision-Centric Tasks</h4>
+                <p><strong>Example:</strong> "What will happen if this ball rolls down the ramp?"</p>
+                <ul>
+                    <li>Generate video showing the physical simulation</li>
+                    <li>Visual representation is the reasoning process</li>
+                    <li>Answer is implicit in the video content</li>
+                </ul>
+
+                <h4>Text-Centric Tasks</h4>
+                <p><strong>Example:</strong> "Solve: 3x + 5 = 14"</p>
+                <ul>
+                    <li>Generate video showing step-by-step algebraic manipulation</li>
+                    <li>Visual representation supplements textual reasoning</li>
+                    <li>Each frame shows mathematical transformations</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>Key Advantage: Universal Interface</h3>
+                    <p>
+                        Video generation provides a <strong>single paradigm</strong> that naturally handles both purely visual reasoning and text-heavy reasoning with visual aids. This eliminates the need for task-specific architectures.
+                    </p>
+                </div>
+
+                <h3>Technical Implementation</h3>
+
+                <h4>1. Training Data Construction</h4>
+                <ul>
+                    <li>40K video sequences with reasoning annotations</li>
+                    <li>Mix of vision-centric (physics, spatial) and text-centric (math, logic) tasks</li>
+                    <li>Verifiable ground truth for objective evaluation</li>
+                </ul>
+
+                <h4>2. Model Architecture</h4>
+                <ul>
+                    <li><strong>Base:</strong> Diffusion-based video generator (CogVideoX)</li>
+                    <li><strong>Enhancement:</strong> Added reasoning-aware conditioning</li>
+                    <li><strong>Output:</strong> 4-8 frame sequences showing reasoning progression</li>
+                </ul>
+
+                <h3>Experimental Validation</h3>
+                <p>
+                    The paper introduces comprehensive benchmarks covering:
+                </p>
+                <ul>
+                    <li><strong>Physics Reasoning:</strong> Predicting motion and collisions</li>
+                    <li><strong>Spatial Reasoning:</strong> Object relationships and transformations</li>
+                    <li><strong>Mathematical Reasoning:</strong> Visual representation of equations</li>
+                    <li><strong>Logical Reasoning:</strong> Diagram-based problem solving</li>
+                </ul>
+
+                <h3>Results Across Modalities</h3>
+                <ul>
+                    <li><strong>Vision-Centric:</strong> 45% improvement over text-only approaches</li>
+                    <li><strong>Text-Centric:</strong> 12% improvement through visual scaffolding</li>
+                    <li><strong>Cross-Domain:</strong> Single model handles diverse reasoning types</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 6: DeepEyesV2 -->
+        <section id="deepeyesv2" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>6. DeepEyesV2: Toward Agentic Multimodal Intelligence</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> DeepEyesV2: Toward Agentic Multimodal Model</p>
+                    <p><strong>Authors:</strong> Jack Hong, Chenxiao Zhao, ChengLin Zhu, et al. (Xiaohongshu Inc.)</p>
+                </div>
+
+                <h3>The Final Frontier: Agentic AI</h3>
+                <p>
+                    DeepEyesV2 represents the culmination of this research trajectory: a system that <strong>autonomously integrates multiple tools</strong> within its reasoning process.
+                </p>
+
+                <div class="consensus-box">
+                    <h3>What Makes It "Agentic"?</h3>
+                    <p>
+                        Unlike previous systems that use predefined reasoning patterns, DeepEyesV2:
+                    </p>
+                    <ul>
+                        <li><strong>Autonomously decides</strong> when to use which tools</li>
+                        <li><strong>Combines tools</strong> in novel, unscripted ways</li>
+                        <li><strong>Adapts strategies</strong> based on intermediate results</li>
+                        <li><strong>Learns from experience</strong> which tool combinations work</li>
+                    </ul>
+                </div>
+
+                <h3>Multi-Tool Integration</h3>
+
+                <h4>Available Tools</h4>
+                <ol>
+                    <li><strong>Code Execution:</strong> Python interpreter for calculations, data analysis</li>
+                    <li><strong>Web Search:</strong> Real-time information retrieval</li>
+                    <li><strong>Image Operations:</strong> Cropping, filtering, transformations</li>
+                </ol>
+
+                <h4>Integration Challenge</h4>
+                <p>
+                    How do you train a model to use multiple tools effectively without providing exhaustive examples of every possible combination?
+                </p>
+
+                <div class="insight-box">
+                    <h3>Critical Discovery: Cold-Start Necessity</h3>
+                    <p>
+                        The paper reveals that <strong>direct reinforcement learning fails</strong> for multi-tool systems. Models must first learn basic tool use through supervised fine-tuning (SFT) before RL can refine behaviors.
+                    </p>
+                    <p>
+                        <strong>Why?</strong> Without initial guidance, RL explores randomly and never discovers effective tool-use patterns. The action space is too large, and meaningful rewards are too sparse.
+                    </p>
+                </div>
+
+                <h3>Two-Phase Training</h3>
+
+                <h4>Phase 1: Cold-Start SFT</h4>
+                <ul>
+                    <li><strong>Data:</strong> 40K expert trajectories showing correct tool usage</li>
+                    <li><strong>Goal:</strong> Teach the model <em>that</em> tools exist and <em>how</em> to invoke them</li>
+                    <li><strong>Coverage:</strong> Basic patterns for each tool individually</li>
+                </ul>
+
+                <h4>Phase 2: Reinforcement Learning</h4>
+                <ul>
+                    <li><strong>Reward:</strong> Simple correctness signal (binary: right/wrong answer)</li>
+                    <li><strong>Discovery:</strong> Model learns <em>when</em> and <em>which</em> tools to use</li>
+                    <li><strong>Emergence:</strong> Novel tool combinations not in training data</li>
+                </ul>
+
+                <h3>Emergent Agentic Behaviors</h3>
+
+                <h4>1. Task-Adaptive Tool Invocation</h4>
+                <ul>
+                    <li>Perception tasks → Image operations (e.g., cropping)</li>
+                    <li>Reasoning tasks → Numerical analysis</li>
+                </ul>
+
+                <h4>2. Complex Tool Combinations</h4>
+                <p>
+                    RL enables spontaneous behaviors not present in training data, such as:
+                </p>
+                <ul>
+                    <li>Using web search to find current information</li>
+                    <li>Executing code to analyze the retrieved data</li>
+                    <li>Generating visualizations of the analysis</li>
+                </ul>
+
+                <h4>3. Context-Aware Decision Making</h4>
+                <p>
+                    Model learns to selectively invoke tools based on problem context, reflecting autonomous, agentic reasoning.
+                </p>
+
+                <div class="debate-box">
+                    <h3>Agentic Intelligence</h3>
+                    <p>
+                        DeepEyesV2 demonstrates that true agentic behavior—autonomous tool selection, complex combinations, and adaptive reasoning—can emerge from properly designed training that combines supervised cold-start with reinforcement learning.
+                    </p>
+                </div>
+
+                <h3>Benchmark: MA-Eval</h3>
+                <p>
+                    The paper introduces MA-Eval (Multi-tool Agentic Evaluation) measuring:
+                </p>
+                <ul>
+                    <li><strong>Tool Selection Accuracy:</strong> Does the model choose appropriate tools?</li>
+                    <li><strong>Combination Efficiency:</strong> Are tool combinations minimal and effective?</li>
+                    <li><strong>Error Recovery:</strong> Can the model adapt when initial tool use fails?</li>
+                    <li><strong>Final Performance:</strong> Overall task success rate</li>
+                </ul>
+
+                <h3>Results</h3>
+                <ul>
+                    <li><strong>Multi-Step Reasoning:</strong> 34% improvement over single-tool models</li>
+                    <li><strong>Complex Integration:</strong> Successfully combines 3+ tools in 68% of appropriate cases</li>
+                    <li><strong>Emergent Behaviors:</strong> 23% of successful strategies were not in training data</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- How Papers Connect -->
+        <section id="connections" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>How These Papers Connect</h2>
+                </header>
+                
+                <h3>The Research Trajectory</h3>
+                
+                <div class="consensus-box">
+                    <p><strong>Foundation: Grounded Reasoning (GRIT)</strong></p>
+                    <p>
+                        GRIT establishes the fundamental principle that reasoning should be <em>grounded</em> in visual evidence through explicit bounding boxes, proving this can be learned efficiently with minimal data.
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ Extension: From Images to Video (Veo 3)</strong></p>
+                    <p>
+                        Video models paper demonstrates that video generation naturally extends grounded reasoning by adding temporal dynamics, showing zero-shot capabilities across perception, modeling, manipulation, and reasoning.
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ Refinement: Complementary Modalities (ThinkMorph)</strong></p>
+                    <p>
+                        ThinkMorph clarifies that text and images should be complementary (not redundant), introduces systematic data evolution, and identifies emergent properties from interleaved reasoning.
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ Interaction: End-to-End Learning (V-Thinker)</strong></p>
+                    <p>
+                        V-Thinker enables fully interactive thinking through end-to-end RL, introduces progressive training curriculum, and creates specialized benchmarks for evaluation.
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ Unification: Video as Paradigm (Thinking with Video)</strong></p>
+                    <p>
+                        Establishes video generation as a unified framework that naturally handles both vision-centric and text-centric reasoning, demonstrating chain-of-frames as parallel to chain-of-thought.
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ Integration: Agentic Capabilities (DeepEyesV2)</strong></p>
+                    <p>
+                        DeepEyesV2 integrates multiple tools (code execution + web search) within reasoning loops, reveals the necessity of cold-start training, and demonstrates emergent agentic behaviors.
+                    </p>
+                </div>
+
+                <h3>Common Themes</h3>
+                <ul>
+                    <li><strong>Data Efficiency:</strong> All approaches emphasize learning from limited high-quality data</li>
+                    <li><strong>Reinforcement Learning:</strong> Most use RL to refine tool use and reasoning behaviors</li>
+                    <li><strong>Emergent Properties:</strong> Complex behaviors emerge from relatively simple training setups</li>
+                    <li><strong>Tool Integration:</strong> Progressive movement toward integrated, multi-tool systems</li>
+                    <li><strong>Evaluation Innovation:</strong> Each introduces new benchmarks to measure novel capabilities</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Key Takeaways -->
+        <section id="takeaways" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>Key Takeaways for Practitioners</h2>
+                </header>
+                
+                <h3>1. Choose the Right Paradigm</h3>
+                <ul>
+                    <li>For <strong>static visual reasoning</strong>: Start with grounded reasoning (GRIT-style)</li>
+                    <li>For <strong>dynamic processes</strong>: Consider video generation approaches</li>
+                    <li>For <strong>complex tool integration</strong>: Build agentic systems (DeepEyesV2-style)</li>
+                </ul>
+
+                <h3>2. Training Strategy Matters</h3>
+                <div class="insight-box">
+                    <strong>Critical Insight:</strong> Don't skip the cold-start phase! Direct RL without supervised initialization fails to produce reliable tool use.
+                </div>
+                
+                <p>Recommended pipeline:</p>
+                <ol>
+                    <li><strong>Cold-start SFT:</strong> Establish basic tool-use patterns with high-quality trajectories</li>
+                    <li><strong>Reinforcement Learning:</strong> Refine and enhance behaviors with simple rewards</li>
+                </ol>
+
+                <h3>3. Data Quality Over Quantity</h3>
+                <p>All papers demonstrate success with relatively small datasets (20-40K samples), emphasizing:</p>
+                <ul>
+                    <li>Appropriate difficulty (not too easy, not impossible)</li>
+                    <li>Diversity across tasks and visual distributions</li>
+                    <li>Verifiable formats for objective evaluation</li>
+                    <li>Evidence that tool use improves performance</li>
+                </ul>
+
+                <h3>4. Complementary, Not Redundant</h3>
+                <p>
+                    When designing multimodal systems, ensure text and visual reasoning provide <strong>different, complementary information</strong> rather than describing the same content in different modalities.
+                </p>
+
+                <h3>5. Evaluation Must Evolve</h3>
+                <p>
+                    Traditional benchmarks measuring single capabilities are insufficient. New systems require:
+                </p>
+                <ul>
+                    <li>Cross-capability integration tests</li>
+                    <li>Real-world scenarios combining perception, search, and reasoning</li>
+                    <li>Evaluation of tool-use effectiveness, not just final answers</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Future Directions -->
+        <section id="future" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>Future Directions</h2>
+                </header>
+                
+                <h3>Open Challenges</h3>
+                <ul>
+                    <li><strong>Generalization:</strong> Models trained with limited data still struggle with out-of-distribution scenarios</li>
+                    <li><strong>Tool Reliability:</strong> Preventing reward hacking and ensuring consistent, meaningful tool use</li>
+                    <li><strong>Computational Cost:</strong> Video generation and multi-tool reasoning are expensive</li>
+                    <li><strong>Safety and Alignment:</strong> Agentic models with tool access raise new safety concerns</li>
+                </ul>
+
+                <h3>Promising Research Directions</h3>
+                <ul>
+                    <li><strong>Better Rewards:</strong> Designing reward functions that encourage genuine reasoning without hacking</li>
+                    <li><strong>Efficiency:</strong> Reducing computational requirements for video-based reasoning</li>
+                    <li><strong>Tool Expansion:</strong> Integrating more diverse tools (e.g., 3D rendering, simulation)</li>
+                    <li><strong>Test-Time Scaling:</strong> Exploring self-consistency and ensemble methods in multimodal settings</li>
+                    <li><strong>Human-AI Collaboration:</strong> Designing interfaces for interactive multimodal reasoning</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- References -->
+        <section id="references">
+            <div class="inner">
+                <header class="major">
+                    <h2>References</h2>
+                </header>
+                
+                <ol class="source-list">
+                    <li>
+                        <strong>GRIT: Teaching MLLMs to Think with Images</strong><br>
+                        Yue Fan, Xuehai He, et al.<br>
+                        arXiv:2505.15879v1 [cs.CV] 21 May 2025<br>
+                        <a href="https://grounded-reasoning.github.io" target="_blank">https://grounded-reasoning.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>Video models are zero-shot learners and reasoners</strong><br>
+                        Thaddäus Wiedemer, Yuxuan Li, Paul Vicol, et al. (Google DeepMind)<br>
+                        arXiv:2509.20328v2 [cs.LG] 29 Sep 2025<br>
+                        <a href="https://video-zero-shot.github.io" target="_blank">https://video-zero-shot.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>ThinkMorph: Emergent Properties in Multimodal Interleaved Chain-of-Thought Reasoning</strong><br>
+                        Jiawei Gu, Yunzhuo Hao, Huichen Will Wang, et al.<br>
+                        arXiv:2510.27492v2 [cs.CV] 4 Nov 2025<br>
+                        <a href="https://thinkmorph.github.io" target="_blank">https://thinkmorph.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>V-Thinker: Interactive Thinking with Images</strong><br>
+                        Runqi Qiao, Qiuna Tan, Minghan Yang, et al.<br>
+                        arXiv:2511.04460v1 [cs.CV] 6 Nov 2025<br>
+                        <a href="https://github.com/We-Math/V-Thinker" target="_blank">https://github.com/We-Math/V-Thinker</a>
+                    </li>
+                    
+                    <li>
+                        <strong>Thinking with Video: Video Generation as a Promising Multimodal Reasoning Paradigm</strong><br>
+                        Jingqi Tong, Yurong Mou, Hangcheng Li, et al. (Fudan University, OpenMOSS)<br>
+                        arXiv:2511.04570v1 [cs.CV] 6 Nov 2025<br>
+                        <a href="https://thinking-with-video.github.io" target="_blank">https://thinking-with-video.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>DeepEyesV2: Toward Agentic Multimodal Model</strong><br>
+                        Jack Hong, Chenxiao Zhao, ChengLin Zhu, et al. (Xiaohongshu Inc.)<br>
+                        arXiv:2511.05271v2 [cs.CV] 10 Nov 2025
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- About -->
+        <section id="about">
+            <div class="inner">
+                <header class="major">
+                    <h2>About This Blog</h2>
+                </header>
+                <p>
+                    This technical blog summarizes research papers on multimodal reasoning, published. The blog is published by Starc Institute. For latest research discussions, follow our X (twitter) at <a href="https://x.com/Starc_Institute">@Starc_institute</a>
+                </p>
+                <p>
+                    All references, figures, and technical details are drawn directly from the cited papers. For complete technical specifications, experimental details, and additional results, please refer to the original papers.
+                </p>
+
+                <p class="profile-intro" style="text-align: center; margin-top: 3em;">
+                    Starc Institute<br>
+                    Last updated: November 2025
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="inner">
+            <ul class="icons">
+                <li><a href="https://x.com/Starc_Institute" class="icon brands alt fa-twitter"><span
+                        class="label">Twitter</span></a></li>
+                <li><a href="mailto:info@starc.institute" class="icon solid alt fa-envelope"><span
+                        class="label">Email</span></a></li>
+            </ul>
+            <ul class="copyright">
+                <li>STARC Institute 2025</li>
+            </ul>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+</html>

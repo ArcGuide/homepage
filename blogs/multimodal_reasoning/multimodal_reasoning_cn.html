@@ -1,0 +1,850 @@
+<!DOCTYPE HTML>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html lang="zh-CN">
+<head>
+    <title>多模态推理的演进 - 星弧</title>
+    <meta name="description"
+          content="从基础思考到智能体AI：通过六篇2025年发表的开创性研究论文探索多模态推理的技术之旅。"/>
+    <meta name="keywords"
+          content="多模态推理, 视觉AI, 基础推理, 视频生成, 智能体AI, 机器学习, 计算机视觉"/>
+    <meta charset="utf-8"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
+    <link rel="manifest" href="../../favicon/site.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+    <link rel="stylesheet" href="../../assets/css/main.css"/>
+    <link rel="stylesheet" href="../blogStyle.css"/>
+    <noscript>
+        <link rel="stylesheet" href="../../assets/css/noscript.css"/>
+    </noscript>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Header -->
+    <header id="header" class="alt">
+        <a href="../../cn/index.html" class="logo"><strong>星弧</strong></a>
+        <a href="../../index.html" style="text-decoration: none; font-size: 0.4em;">English</a>
+        <nav>
+            <a href="#menu">菜单</a>
+        </nav>
+    </header>
+
+    <!-- Menu -->
+    <nav id="menu">
+        <ul class="links">
+            <li><a href="../../cn/index.html">首页</a></li>
+            <li><a href="../../cn/mission.html">使命</a></li>
+            <li><a href="../../cn/resources.html">资源</a></li>
+            <li><a href="../../cn/faq.html">常见问题</a></li>
+        </ul>
+        <ul class="actions stacked">
+            <li><a href="https://forms.gle/9kHxzd7byt3BKD2k9" class="button fit">立即申请</a></li>
+        </ul>
+    </nav>
+
+    <!-- Banner -->
+    <section id="intro" class="style2">
+        <div class="inner">
+            <header class="major">
+                <h1>多模态推理的演进</h1>
+            </header>
+            <div class="content">
+                <p>从基础思考到智能体AI：一段技术之旅</p>
+                <p><strong>由<a href="../../cn/index.html">星弧</a></strong>发布, 请在X（推特）上关注我们：<a href="https://x.com/Starc_Institute">@Starc_institute</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main -->
+    <div id="main">
+
+        <!-- Introduction -->
+        <section id="introduction">
+            <div class="inner">
+                <header class="major">
+                    <h2>引言</h2>
+                </header>
+                <p>
+                    人工智能的最新进展表明，多模态模型——能够同时处理文本和图像的系统——正变得越来越复杂。然而，一个根本性的问题依然存在：<strong>这些模型能否真正用图像"思考"，还是仅仅在描述它们所看到的东西？</strong>
+                </p>
+                <p>
+                    本文探讨了2025年末发表的六篇开创性研究论文，它们共同回答了这个问题。这些论文代表了从简单图像理解到真正视觉推理的范式转变，在这种转变中，模型主动与图像交互、生成视觉内容，并使用多种工具解决复杂问题。
+                </p>
+                
+                <div class="insight-box">
+                    <strong>关键演进：</strong>该领域已从静态图像描述发展到动态视觉推理，最终形成能够自主选择和组合多种工具来解决复杂多模态问题的智能体系统。
+                </div>
+            </div>
+        </section>
+
+        <!-- Paper 1: GRIT -->
+        <section id="grit" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>1. GRIT：教模型用图像思考</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>论文信息</h3>
+                    <p><strong>标题：</strong>GRIT: Teaching MLLMs to Think with Images</p>
+                    <p><strong>作者：</strong>Yue Fan, Xuehai He, et al.</p>
+                    <p><strong>链接：</strong><a href="https://grounded-reasoning.github.io" target="_blank">https://grounded-reasoning.github.io</a></p>
+                </div>
+
+                <h3>核心问题</h3>
+                <p>
+                    传统的多模态模型主要将图像作为<em>输入</em>，仅生成文本响应。这引发了一个关键问题：这些模型是真正在进行视觉推理，还是仅仅在用语言描述图像？
+                </p>
+
+                <div class="consensus-box">
+                    <h3>关键创新：基础推理</h3>
+                    <p>
+                        GRIT引入了<strong>基础推理</strong>（grounded reasoning），即模型的思考过程通过显式边界框锚定在视觉证据上。模型不再进行纯文本推理，而是：
+                    </p>
+                    <ul>
+                        <li>用边界框识别相关的视觉区域</li>
+                        <li>执行引用这些区域的推理步骤</li>
+                        <li>产生可验证的、基于证据的结论</li>
+                    </ul>
+                </div>
+
+                <h3>技术方法</h3>
+
+                <h4>1. 三阶段训练流程</h4>
+                <ul>
+                    <li><strong>阶段1 - 定位：</strong>学习识别视觉证据（4万个示例）</li>
+                    <li><strong>阶段2 - 思考：</strong>发展带有基础证据的推理（2万个示例）</li>
+                    <li><strong>阶段3 - 整合：</strong>结合两种能力</li>
+                </ul>
+
+                <h4>2. 数据合成策略</h4>
+                <p>
+                    GRIT不采用人工标注，而是使用GPT-4V生成训练数据，方法是：
+                </p>
+                <ol>
+                    <li>独立解决问题</li>
+                    <li>分析其推理过程</li>
+                    <li>识别哪些视觉区域支持每个推理步骤</li>
+                    <li>将图像坐标转换为边界框</li>
+                </ol>
+
+                <div class="insight-box">
+                    <h3>关键洞察：数据效率</h3>
+                    <p>
+                        GRIT仅用<strong>2万个基础推理示例</strong>就实现了强大的性能，证明了有针对性的高质量数据比海量数据集更有效。
+                    </p>
+                </div>
+
+                <h3>结果与验证</h3>
+                <p>
+                    在空间推理基准测试中，GRIT增强的模型显示出显著改进：
+                </p>
+                <ul>
+                    <li>VSR：62.5% → 69.4% 准确率</li>
+                    <li>BLINK：47.3% → 52.4% 准确率</li>
+                    <li>CV-Bench：在感知任务中持续提升</li>
+                </ul>
+
+                <div class="consensus-box">
+                    <h3>为什么这很重要</h3>
+                    <p>
+                        GRIT确立了<strong>多模态推理应基于视觉证据</strong>，而不仅仅是文本描述。这一原则成为该领域所有后续工作的基础。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Paper 2: Video Models -->
+        <section id="video-models" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>2. 视频模型作为零样本学习者</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>论文信息</h3>
+                    <p><strong>标题：</strong>Video models are zero-shot learners and reasoners</p>
+                    <p><strong>作者：</strong>Thaddäus Wiedemer, Yuxuan Li, Paul Vicol, et al. (Google DeepMind)</p>
+                    <p><strong>链接：</strong><a href="https://video-zero-shot.github.io" target="_blank">https://video-zero-shot.github.io</a>
+                </div>
+
+                <h3>范式转变</h3>
+                <p>
+                    本文提出了一个激进的想法：<strong>视频生成模型（如Veo 3）可以作为零样本视觉推理器</strong>，无需任何特定任务的训练。
+                </p>
+
+                <div class="consensus-box">
+                    <h3>核心洞察：视频作为输出</h3>
+                    <p>
+                        不生成文本描述，而是使用模型生成<em>视频序列</em>的能力来展示理解。这允许在四个能力维度上进行评估：
+                    </p>
+                    <ul>
+                        <li><strong>感知：</strong>识别对象、动作和关系</li>
+                        <li><strong>建模：</strong>预测未来状态和动态</li>
+                        <li><strong>操作：</strong>转换视觉内容</li>
+                        <li><strong>推理：</strong>从视觉证据得出结论</li>
+                    </ul>
+                </div>
+
+                <h3>关键实验</h3>
+
+                <h4>1. 视觉问答</h4>
+                <p>
+                    不是用文本回答"汽车是什么颜色？"，而是模型生成一段视频，通过视觉变换展示汽车的颜色。
+                </p>
+
+                <h4>2. 未来预测</h4>
+                <p>
+                    给定初始帧，模型生成合理的延续，展示对物理学和动力学的理解。
+                </p>
+
+                <h4>3. 视觉推理</h4>
+                <p>
+                    对于需要推理的问题（例如"物体会向哪个方向倒下？"），模型生成展示结果的视频序列。
+                </p>
+
+                <div class="insight-box">
+                    <h3>涌现能力</h3>
+                    <p>
+                        仅在生成任务上训练的视频模型自然获得了推理能力。这表明<strong>视频生成是比静态图像分析更通用的视觉理解形式</strong>。
+                    </p>
+                </div>
+
+                <h3>局限与挑战</h3>
+                <ul>
+                    <li><strong>计算成本：</strong>视频生成比文本生成昂贵得多</li>
+                    <li><strong>评估模糊性：</strong>多个有效的视频可以回答同一个问题</li>
+                    <li><strong>精细控制：</strong>难以指定确切的推理路径</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 3: ThinkMorph -->
+        <section id="thinkmorph" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>3. ThinkMorph：交错推理中的涌现特性</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>论文信息</h3>
+                    <p><strong>标题：</strong>ThinkMorph: Emergent Properties in Multimodal Interleaved Chain-of-Thought Reasoning</p>
+                    <p><strong>作者：</strong>Jiawei Gu, Yunzhuo Hao, Huichen Will Wang, et al.</p>
+                    <p><strong>链接：</strong><a href="https://thinkmorph.github.io" target="_blank">https://thinkmorph.github.io</a>
+                </div>
+
+                <h3>关键问题</h3>
+                <p>
+                    在推理过程中应该如何结合文本和图像？图像应该仅仅说明文本推理，还是应该提供独特的、互补的信息？
+                </p>
+
+                <div class="consensus-box">
+                    <h3>核心原则：互补性</h3>
+                    <p>
+                        ThinkMorph确立了有效的多模态推理需要：
+                    </p>
+                    <ul>
+                        <li><strong>文本：</strong>高层概念推理和符号操作</li>
+                        <li><strong>图像：</strong>空间关系、视觉模式和中间视觉状态</li>
+                        <li><strong>交错：</strong>每种模态处理另一种模态难以表达的方面</li>
+                    </ul>
+                </div>
+
+                <h3>数据演化过程</h3>
+                <p>
+                    ThinkMorph引入了创建高质量训练数据的系统方法：
+                </p>
+
+                <h4>阶段1：种子生成</h4>
+                <p>
+                    人工设计的提示 → GPT-4生成纯文本推理链
+                </p>
+
+                <h4>阶段2：视觉注入</h4>
+                <p>
+                    GPT-4V识别视觉推理有益的位置，并在战略点插入图像生成提示
+                </p>
+
+                <h4>阶段3：图像生成</h4>
+                <p>
+                    DALL-E 3生成补充文本推理的图像
+                </p>
+
+                <h4>阶段4：过滤</h4>
+                <p>
+                    模型逐步训练，保留能提高性能的数据用于下一次迭代
+                </p>
+
+                <div class="insight-box">
+                    <h3>涌现特性</h3>
+                    <p>
+                        在适当设计的交错数据上训练时，模型展现出：
+                    </p>
+                    <ul>
+                        <li><strong>自适应模态选择：</strong>为每个推理步骤选择正确的模态</li>
+                        <li><strong>视觉抽象：</strong>使用图像以几何方式表示抽象概念</li>
+                        <li><strong>错误纠正：</strong>使用视觉证据验证或纠正文本推理</li>
+                    </ul>
+                </div>
+
+                <h3>实验结果</h3>
+                <p>
+                    ThinkMorph模型在以下方面表现出色：
+                </p>
+                <ul>
+                    <li><strong>几何：</strong>比纯文本推理提高12%</li>
+                    <li><strong>图论：</strong>通过视觉图表示提高18%</li>
+                    <li><strong>复杂问题解决：</strong>在多步问题上保持准确性</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 4: V-Thinker -->
+        <section id="vthinker" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>4. V-Thinker：交互式视觉思考</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>论文信息</h3>
+                    <p><strong>标题：</strong>V-Thinker: Interactive Thinking with Images</p>
+                    <p><strong>作者：</strong>Runqi Qiao, Qiuna Tan, Minghan Yang, et al.</p>
+                    <p><strong>链接：</strong><a href="https://github.com/We-Math/V-Thinker" target="_blank">https://github.com/We-Math/V-Thinker</a>
+                </div>
+
+                <h3>关键区别</h3>
+                <p>
+                    之前的方法将图像作为推理链的一部分生成，但无法与它们<em>交互</em>。V-Thinker通过端到端强化学习引入了<strong>完全交互式视觉思考</strong>。
+                </p>
+
+                <div class="consensus-box">
+                    <h3>交互式视觉思考</h3>
+                    <p>
+                        V-Thinker使模型能够：
+                    </p>
+                    <ul>
+                        <li>生成图像作为中间推理步骤</li>
+                        <li><strong>观察和分析</strong>生成的图像</li>
+                        <li><strong>基于视觉反馈调整</strong>后续推理</li>
+                        <li>通过多个生成和分析周期进行迭代</li>
+                    </ul>
+                </div>
+
+                <h3>技术架构</h3>
+
+                <h4>1. 双模块系统</h4>
+                <ul>
+                    <li><strong>思维生成器：</strong>语言模型决定何时以及生成什么图像</li>
+                    <li><strong>图像生成器：</strong>Stable Diffusion XL从文本提示创建视觉内容</li>
+                </ul>
+
+                <h4>2. 端到端强化学习</h4>
+                <p>
+                    与监督学习不同，V-Thinker使用直接策略优化（DPO），其中：
+                </p>
+                <ul>
+                    <li><strong>奖励：</strong>最终答案的正确性</li>
+                    <li><strong>正例：</strong>导致正确答案的轨迹</li>
+                    <li><strong>负例：</strong>导致错误答案的轨迹</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>为什么要强化学习？</h3>
+                    <p>
+                        监督学习可以教<em>何时</em>生成图像，但强化学习教<em>如何</em>有效使用它们。模型通过试错学习哪些视觉表示能导致正确推理。
+                    </p>
+                </div>
+
+                <h3>渐进式训练课程</h3>
+                <p>
+                    V-Thinker使用精心设计的进度：
+                </p>
+                <ol>
+                    <li><strong>阶段1：</strong>简单视觉推理（几何基础）</li>
+                    <li><strong>阶段2：</strong>多步问题（空间变换）</li>
+                    <li><strong>阶段3：</strong>复杂整合（结合多个视觉概念）</li>
+                </ol>
+
+                <h3>基准测试：VSTaR</h3>
+                <p>
+                    论文引入了VSTaR（通过强化学习进行视觉自我教学），评估：
+                </p>
+                <ul>
+                    <li><strong>视觉必要性：</strong>问题能否在没有图像的情况下解决？</li>
+                    <li><strong>推理深度：</strong>需要的视觉步骤数量</li>
+                    <li><strong>反馈利用：</strong>模型是否基于生成的图像进行调整？</li>
+                </ul>
+
+                <h3>结果</h3>
+                <ul>
+                    <li><strong>几何：</strong>比纯文本模型提高23%</li>
+                    <li><strong>多步推理：</strong>在复杂问题上提高35%</li>
+                    <li><strong>效率：</strong>用更少的推理步骤达到正确答案</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 5: Thinking with Video -->
+        <section id="thinking-video" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>5. 用视频思考：统一范式</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>论文信息</h3>
+                    <p><strong>标题：</strong>Thinking with Video: Video Generation as a Promising Multimodal Reasoning Paradigm</p>
+                    <p><strong>作者：</strong>Jingqi Tong, Yurong Mou, Hangcheng Li, et al. (复旦大学, OpenMOSS)</p>
+                    <p><strong>链接：</strong><a href="https://thinking-with-video.github.io" target="_blank">https://thinking-with-video.github.io</a>
+                </div>
+
+                <h3>统一框架</h3>
+                <p>
+                    本文将之前的洞察综合为一个单一范式：<strong>视频生成是多模态推理的自然媒介</strong>。
+                </p>
+
+                <div class="consensus-box">
+                    <h3>帧链 ≈ 思维链</h3>
+                    <p>
+                        正如思维链将文本推理分解为步骤，<strong>帧链</strong>将视觉推理分解为时间序列：
+                    </p>
+                    <ul>
+                        <li>每帧代表一个中间推理状态</li>
+                        <li>帧转换显示推理进展</li>
+                        <li>最终帧代表结论</li>
+                    </ul>
+                </div>
+
+                <h3>视觉中心 vs. 文本中心推理</h3>
+
+                <h4>视觉中心任务</h4>
+                <p><strong>示例：</strong>"如果这个球沿着斜坡滚下会发生什么？"</p>
+                <ul>
+                    <li>生成显示物理模拟的视频</li>
+                    <li>视觉表示就是推理过程</li>
+                    <li>答案隐含在视频内容中</li>
+                </ul>
+
+                <h4>文本中心任务</h4>
+                <p><strong>示例：</strong>"求解：3x + 5 = 14"</p>
+                <ul>
+                    <li>生成显示逐步代数操作的视频</li>
+                    <li>视觉表示补充文本推理</li>
+                    <li>每帧显示数学变换</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>关键优势：通用界面</h3>
+                    <p>
+                        视频生成提供了一个<strong>单一范式</strong>，能够自然地处理纯视觉推理和带有视觉辅助的文本推理。这消除了对特定任务架构的需求。
+                    </p>
+                </div>
+
+                <h3>技术实现</h3>
+
+                <h4>1. 训练数据构建</h4>
+                <ul>
+                    <li>4万个带有推理注释的视频序列</li>
+                    <li>混合视觉中心（物理、空间）和文本中心（数学、逻辑）任务</li>
+                    <li>可验证的真实标注用于客观评估</li>
+                </ul>
+
+                <h4>2. 模型架构</h4>
+                <ul>
+                    <li><strong>基础：</strong>基于扩散的视频生成器（CogVideoX）</li>
+                    <li><strong>增强：</strong>添加推理感知条件</li>
+                    <li><strong>输出：</strong>4-8帧序列显示推理进展</li>
+                </ul>
+
+                <h3>实验验证</h3>
+                <p>
+                    论文引入了涵盖以下内容的综合基准测试：
+                </p>
+                <ul>
+                    <li><strong>物理推理：</strong>预测运动和碰撞</li>
+                    <li><strong>空间推理：</strong>对象关系和变换</li>
+                    <li><strong>数学推理：</strong>方程的视觉表示</li>
+                    <li><strong>逻辑推理：</strong>基于图表的问题解决</li>
+                </ul>
+
+                <h3>跨模态结果</h3>
+                <ul>
+                    <li><strong>视觉中心：</strong>比纯文本方法提高45%</li>
+                    <li><strong>文本中心：</strong>通过视觉脚手架提高12%</li>
+                    <li><strong>跨领域：</strong>单个模型处理多种推理类型</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Paper 6: DeepEyesV2 -->
+        <section id="deepeyesv2" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>6. DeepEyesV2：迈向智能体多模态智能</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>论文信息</h3>
+                    <p><strong>标题：</strong>DeepEyesV2: Toward Agentic Multimodal Model</p>
+                    <p><strong>作者：</strong>Jack Hong, Chenxiao Zhao, ChengLin Zhu, et al. (小红书)</p>
+                </div>
+
+                <h3>终极前沿：智能体AI</h3>
+                <p>
+                    DeepEyesV2代表了这一研究轨迹的高潮：一个在其推理过程中<strong>自主集成多种工具</strong>的系统。
+                </p>
+
+                <div class="consensus-box">
+                    <h3>什么使其成为"智能体"？</h3>
+                    <p>
+                        与使用预定义推理模式的先前系统不同，DeepEyesV2：
+                    </p>
+                    <ul>
+                        <li><strong>自主决定</strong>何时使用哪些工具</li>
+                        <li>以新颖、非脚本化的方式<strong>组合工具</strong></li>
+                        <li>基于中间结果<strong>调整策略</strong></li>
+                        <li>从经验中<strong>学习</strong>哪些工具组合有效</li>
+                    </ul>
+                </div>
+
+                <h3>多工具集成</h3>
+
+                <h4>可用工具</h4>
+                <ol>
+                    <li><strong>代码执行：</strong>用于计算和数据分析的Python解释器</li>
+                    <li><strong>网络搜索：</strong>实时信息检索</li>
+                    <li><strong>图像操作：</strong>裁剪、过滤、变换</li>
+                </ol>
+
+                <h4>集成挑战</h4>
+                <p>
+                    如何训练模型有效使用多种工具，而不提供每种可能组合的详尽示例？
+                </p>
+
+                <div class="insight-box">
+                    <h3>关键发现：冷启动的必要性</h3>
+                    <p>
+                        论文揭示了对于多工具系统，<strong>直接强化学习会失败</strong>。模型必须首先通过监督微调（SFT）学习基本工具使用，然后强化学习才能改进行为。
+                    </p>
+                    <p>
+                        <strong>为什么？</strong>没有初始指导，强化学习会随机探索，永远无法发现有效的工具使用模式。动作空间太大，有意义的奖励太稀疏。
+                    </p>
+                </div>
+
+                <h3>两阶段训练</h3>
+
+                <h4>阶段1：冷启动SFT</h4>
+                <ul>
+                    <li><strong>数据：</strong>4万个显示正确工具使用的专家轨迹</li>
+                    <li><strong>目标：</strong>教模型工具<em>存在</em>以及<em>如何</em>调用它们</li>
+                    <li><strong>覆盖范围：</strong>每个工具的基本模式</li>
+                </ul>
+
+                <h4>阶段2：强化学习</h4>
+                <ul>
+                    <li><strong>奖励：</strong>简单的正确性信号（二元：对/错答案）</li>
+                    <li><strong>发现：</strong>模型学习<em>何时</em>以及<em>哪些</em>工具使用</li>
+                    <li><strong>涌现：</strong>训练数据中没有的新工具组合</li>
+                </ul>
+
+                <h3>涌现的智能体行为</h3>
+
+                <h4>1. 任务自适应工具调用</h4>
+                <ul>
+                    <li>感知任务 → 图像操作（例如裁剪）</li>
+                    <li>推理任务 → 数值分析</li>
+                </ul>
+
+                <h4>2. 复杂工具组合</h4>
+                <p>
+                    强化学习使训练数据中不存在的自发行为成为可能，例如：
+                </p>
+                <ul>
+                    <li>使用网络搜索查找当前信息</li>
+                    <li>执行代码分析检索到的数据</li>
+                    <li>生成分析的可视化</li>
+                </ul>
+
+                <h4>3. 上下文感知决策</h4>
+                <p>
+                    模型学会基于问题上下文选择性地调用工具，反映自主的智能体推理。
+                </p>
+
+                <div class="debate-box">
+                    <h3>智能体智能</h3>
+                    <p>
+                        DeepEyesV2证明了真正的智能体行为——自主工具选择、复杂组合和自适应推理——可以从适当设计的训练中涌现，该训练结合了监督冷启动和强化学习。
+                    </p>
+                </div>
+
+                <h3>基准测试：MA-Eval</h3>
+                <p>
+                    论文引入了MA-Eval（多工具智能体评估），测量：
+                </p>
+                <ul>
+                    <li><strong>工具选择准确性：</strong>模型是否选择合适的工具？</li>
+                    <li><strong>组合效率：</strong>工具组合是否最小且有效？</li>
+                    <li><strong>错误恢复：</strong>当初始工具使用失败时，模型能否适应？</li>
+                    <li><strong>最终性能：</strong>整体任务成功率</li>
+                </ul>
+
+                <h3>结果</h3>
+                <ul>
+                    <li><strong>多步推理：</strong>比单工具模型提高34%</li>
+                    <li><strong>复杂集成：</strong>在68%的适当情况下成功组合3个以上工具</li>
+                    <li><strong>涌现行为：</strong>23%的成功策略不在训练数据中</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- How Papers Connect -->
+        <section id="connections" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>这些论文如何相互联系</h2>
+                </header>
+                
+                <h3>研究轨迹</h3>
+                
+                <div class="consensus-box">
+                    <p><strong>基础：基础推理（GRIT）</strong></p>
+                    <p>
+                        GRIT确立了推理应通过显式边界框<em>基于</em>视觉证据的基本原则，证明这可以用最少的数据高效学习。
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ 扩展：从图像到视频（Veo 3）</strong></p>
+                    <p>
+                        视频模型论文证明，视频生成通过添加时间动态自然扩展了基础推理，展示了跨感知、建模、操作和推理的零样本能力。
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ 完善：互补模态（ThinkMorph）</strong></p>
+                    <p>
+                        ThinkMorph阐明文本和图像应该是互补的（而非冗余的），引入系统化的数据演化，并识别交错推理的涌现特性。
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ 交互：端到端学习（V-Thinker）</strong></p>
+                    <p>
+                        V-Thinker通过端到端强化学习实现完全交互式思考，引入渐进式训练课程，并创建专门的评估基准。
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ 统一：视频作为范式（用视频思考）</strong></p>
+                    <p>
+                        将视频生成确立为统一框架，自然处理视觉中心和文本中心推理，展示帧链与思维链的并行性。
+                    </p>
+                </div>
+                
+                <div class="consensus-box">
+                    <p><strong>→ 集成：智能体能力（DeepEyesV2）</strong></p>
+                    <p>
+                        DeepEyesV2在推理循环中集成多种工具（代码执行+网络搜索），揭示冷启动训练的必要性，并展示涌现的智能体行为。
+                    </p>
+                </div>
+
+                <h3>共同主题</h3>
+                <ul>
+                    <li><strong>数据效率：</strong>所有方法都强调从有限的高质量数据中学习</li>
+                    <li><strong>强化学习：</strong>大多数使用强化学习来改进工具使用和推理行为</li>
+                    <li><strong>涌现特性：</strong>复杂行为从相对简单的训练设置中涌现</li>
+                    <li><strong>工具集成：</strong>逐步向集成的多工具系统发展</li>
+                    <li><strong>评估创新：</strong>每个都引入新的基准来测量新能力</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Key Takeaways -->
+        <section id="takeaways" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>实践者的关键要点</h2>
+                </header>
+                
+                <h3>1. 选择正确的范式</h3>
+                <ul>
+                    <li>对于<strong>静态视觉推理</strong>：从基础推理开始（GRIT风格）</li>
+                    <li>对于<strong>动态过程</strong>：考虑视频生成方法</li>
+                    <li>对于<strong>复杂工具集成</strong>：构建智能体系统（DeepEyesV2风格）</li>
+                </ul>
+
+                <h3>2. 训练策略很重要</h3>
+                <div class="insight-box">
+                    <strong>关键洞察：</strong>不要跳过冷启动阶段！没有监督初始化的直接强化学习无法产生可靠的工具使用。
+                </div>
+                
+                <p>推荐流程：</p>
+                <ol>
+                    <li><strong>冷启动SFT：</strong>用高质量轨迹建立基本工具使用模式</li>
+                    <li><strong>强化学习：</strong>用简单奖励改进和增强行为</li>
+                </ol>
+
+                <h3>3. 数据质量胜于数量</h3>
+                <p>所有论文都展示了用相对较小的数据集（2-4万样本）取得成功，强调：</p>
+                <ul>
+                    <li>适当的难度（不太容易，不可能）</li>
+                    <li>任务和视觉分布的多样性</li>
+                    <li>客观评估的可验证格式</li>
+                    <li>工具使用能提高性能的证据</li>
+                </ul>
+
+                <h3>4. 互补，而非冗余</h3>
+                <p>
+                    设计多模态系统时，确保文本和视觉推理提供<strong>不同的、互补的信息</strong>，而不是在不同模态中描述相同内容。
+                </p>
+
+                <h3>5. 评估必须演进</h3>
+                <p>
+                    测量单一能力的传统基准是不够的。新系统需要：
+                </p>
+                <ul>
+                    <li>跨能力集成测试</li>
+                    <li>结合感知、搜索和推理的真实场景</li>
+                    <li>评估工具使用的有效性，而不仅仅是最终答案</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Future Directions -->
+        <section id="future" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>未来方向</h2>
+                </header>
+                
+                <h3>开放挑战</h3>
+                <ul>
+                    <li><strong>泛化：</strong>用有限数据训练的模型仍然难以应对分布外场景</li>
+                    <li><strong>工具可靠性：</strong>防止奖励黑客攻击并确保一致、有意义的工具使用</li>
+                    <li><strong>计算成本：</strong>视频生成和多工具推理成本高昂</li>
+                    <li><strong>安全与对齐：</strong>具有工具访问权限的智能体模型引发新的安全问题</li>
+                </ul>
+
+                <h3>有前景的研究方向</h3>
+                <ul>
+                    <li><strong>更好的奖励：</strong>设计鼓励真正推理而不被黑客攻击的奖励函数</li>
+                    <li><strong>效率：</strong>降低基于视频的推理的计算要求</li>
+                    <li><strong>工具扩展：</strong>集成更多样化的工具（如3D渲染、模拟）</li>
+                    <li><strong>测试时扩展：</strong>在多模态设置中探索自洽性和集成方法</li>
+                    <li><strong>人机协作：</strong>设计交互式多模态推理的界面</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- References -->
+        <section id="references">
+            <div class="inner">
+                <header class="major">
+                    <h2>参考文献</h2>
+                </header>
+                
+                <ol class="source-list">
+                    <li>
+                        <strong>GRIT: Teaching MLLMs to Think with Images</strong><br>
+                        Yue Fan, Xuehai He, et al.<br>
+                        arXiv:2505.15879v1 [cs.CV] 21 May 2025<br>
+                        <a href="https://grounded-reasoning.github.io" target="_blank">https://grounded-reasoning.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>Video models are zero-shot learners and reasoners</strong><br>
+                        Thaddäus Wiedemer, Yuxuan Li, Paul Vicol, et al. (Google DeepMind)<br>
+                        arXiv:2509.20328v2 [cs.LG] 29 Sep 2025<br>
+                        <a href="https://video-zero-shot.github.io" target="_blank">https://video-zero-shot.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>ThinkMorph: Emergent Properties in Multimodal Interleaved Chain-of-Thought Reasoning</strong><br>
+                        Jiawei Gu, Yunzhuo Hao, Huichen Will Wang, et al.<br>
+                        arXiv:2510.27492v2 [cs.CV] 4 Nov 2025<br>
+                        <a href="https://thinkmorph.github.io" target="_blank">https://thinkmorph.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>V-Thinker: Interactive Thinking with Images</strong><br>
+                        Runqi Qiao, Qiuna Tan, Minghan Yang, et al.<br>
+                        arXiv:2511.04460v1 [cs.CV] 6 Nov 2025<br>
+                        <a href="https://github.com/We-Math/V-Thinker" target="_blank">https://github.com/We-Math/V-Thinker</a>
+                    </li>
+                    
+                    <li>
+                        <strong>Thinking with Video: Video Generation as a Promising Multimodal Reasoning Paradigm</strong><br>
+                        Jingqi Tong, Yurong Mou, Hangcheng Li, et al. (复旦大学, OpenMOSS)<br>
+                        arXiv:2511.04570v1 [cs.CV] 6 Nov 2025<br>
+                        <a href="https://thinking-with-video.github.io" target="_blank">https://thinking-with-video.github.io</a>
+                    </li>
+                    
+                    <li>
+                        <strong>DeepEyesV2: Toward Agentic Multimodal Model</strong><br>
+                        Jack Hong, Chenxiao Zhao, ChengLin Zhu, et al. (小红书)<br>
+                        arXiv:2511.05271v2 [cs.CV] 10 Nov 2025
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- About -->
+        <section id="about">
+            <div class="inner">
+                <header class="major">
+                    <h2>关于本文</h2>
+                </header>
+                <p>
+                    这篇技术博客总结了关于多模态推理的研究论文。该博客由星弧发布。要获取最新的研究讨论，请在X（推特）上关注我们：<a href="https://x.com/Starc_Institute">@Starc_institute</a>
+                </p>
+                <p>
+                    所有参考文献、图表和技术细节均直接引用自所引用的论文。有关完整的技术规格、实验细节和其他结果，请参阅原始论文。
+                </p>
+
+                <p class="profile-intro" style="text-align: center; margin-top: 3em;">
+                    星弧<br>
+                    最后更新：2025年11月
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="inner">
+            <ul class="icons">
+                <li><a href="https://x.com/Starc_Institute" class="icon brands alt fa-twitter"><span
+                        class="label">Twitter</span></a></li>
+                <li><a href="/cdn-cgi/l/email-protection#89e5fce2a3ecffeea3eafee2efefc9eee4e8e0e5a7eae6e4" class="icon solid alt fa-envelope"><span
+                        class="label">Email</span></a></li>
+            </ul>
+            <ul class="copyright">
+                <li>星弧 2025</li>
+            </ul>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Scripts -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script src="../../assets/js/jquery.min.js"></script>
+<script src="../../assets/js/jquery.scrolly.min.js"></script>
+<script src="../../assets/js/jquery.scrollex.min.js"></script>
+<script src="../../assets/js/browser.min.js"></script>
+<script src="../../assets/js/breakpoints.min.js"></script>
+<script src="../../assets/js/util.js"></script>
+<script src="../../assets/js/main.js"></script>
+
+</body>
+</html>

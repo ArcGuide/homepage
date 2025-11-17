@@ -275,6 +275,78 @@
 
 		};
 
+        // Spotlights.
+		var $spotlights = $('.spotlight');
+
+		$spotlights
+			._parallax()
+			.each(function() {
+
+				var $this = $(this),
+					on, off;
+
+				on = function() {
+
+					var top, bottom, mode;
+
+					// Use main <img>'s src as this spotlight's background.
+						$this.css('background-image', 'url("' + $this.find('.image.main > img').attr('src') + '")');
+
+					// Side-specific scrollex tweaks.
+						if ($this.hasClass('top')) {
+
+							mode = 'top';
+							top = '-20%';
+							bottom = 0;
+
+						}
+						else if ($this.hasClass('bottom')) {
+
+							mode = 'bottom-only';
+							top = 0;
+							bottom = '20%';
+
+						}
+						else {
+
+							mode = 'middle';
+							top = 0;
+							bottom = 0;
+
+						}
+
+					// Add scrollex.
+						$this.scrollex({
+							mode:		mode,
+							top:		top,
+							bottom:		bottom,
+							initialize:	function(t) { $this.addClass('inactive'); },
+							terminate:	function(t) { $this.removeClass('inactive'); },
+							enter:		function(t) { $this.removeClass('inactive'); },
+
+							// Uncomment the line below to "rewind" when this spotlight scrolls out of view.
+
+							//leave:	function(t) { $this.addClass('inactive'); },
+
+						});
+
+				};
+
+				off = function() {
+
+					// Clear spotlight's background.
+						$this.css('background-image', '');
+
+					// Remove scrollex.
+						$this.unscrollex();
+
+				};
+
+				breakpoints.on('<=medium', off);
+				breakpoints.on('>medium', on);
+
+			});
+
 		$menuInner
 			.on('click', function(event) {
 				event.stopPropagation();

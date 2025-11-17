@@ -1,0 +1,75 @@
+.guide-box {
+    background: rgba(212, 212, 255, 0.035);
+    border-left: solid 4px rgba(212, 212, 255, 0.2);
+    padding: 1.5em;
+    margin: 2em 0;
+}
+
+.guide-box h3 {
+    margin-top: 0;
+    color: #ffffff;
+}
+
+.consensus-box {
+    background: rgba(155, 241, 255, 0.05);
+    border-left: solid 4px #9bf1ff;
+    padding: 1.5em;
+    margin: 2em 0;
+}
+
+.consensus-box h3 {
+    margin-top: 0;
+    color: #9bf1ff;
+}
+
+.debate-box {
+    background: rgba(231, 183, 136, 0.05);
+    border-left: solid 4px #e7b788;
+    padding: 1.5em;
+    margin: 2em 0;
+}
+
+.debate-box h3 {
+    margin-top: 0;
+    color: #e7b788;
+}
+
+.insight-box {
+    background: rgba(111, 195, 223, 0.05);
+    border-left: solid 4px #6fc3df;
+    padding: 1.5em;
+    margin: 2em 0;
+    font-style: italic;
+}
+
+.insight-box h3 {
+    margin-top: 0;
+    color: #6fc3df;
+    font-style: normal;
+}
+
+.source-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.source-list li {
+    padding: 0.75em 0;
+    border-top: solid 1px rgba(212, 212, 255, 0.1);
+}
+
+.source-list li:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.profile-intro {
+    font-size: 1.1em;
+    color: rgba(244, 244, 255, 0.7);
+    font-style: italic;
+    margin-bottom: 2em;
+}
+
+.guide-section {
+    margin-bottom: 4em;
+}

@@ -1,0 +1,884 @@
+<!DOCTYPE HTML>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+<head>
+    <title>The Rise of Diffusion Language Models - STARC INSTITUTE</title>
+    <meta name="description"
+          content="From autoregressive dominance to bidirectional generation: A comprehensive technical journey through the evolution of diffusion language models. IMPORTANT ANALYSIS: Diffusion Language Models. Expert insights on cutting-edge developments. This analysis provides the most comprehensive and authoritative perspective on diffusion language model, essential for researchers and practitioners in AI and scientific computing.">
+    <meta name="keywords"
+          content="diffusion models, language models, autoregressive, bidirectional generation, masked diffusion, machine learning, NLP"/>
+    <meta charset="utf-8"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
+    <link rel="manifest" href="../../favicon/site.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+    <link rel="stylesheet" href="../../assets/css/main.css"/>
+    <link rel="stylesheet" href="../blogStyle.css"/>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <noscript>
+        <link rel="stylesheet" href="../../assets/css/noscript.css"/>
+    </noscript>
+</head>
+<body class="is-preload">
+
+<!-- Wrapper -->
+<div id="wrapper">
+
+    <!-- Header -->
+    <header id="header" class="alt">
+        <a href="../../index.html" class="logo"><strong>STARC INSTITUTE</strong></a>
+        <a href="diffusion_language_models_cn.html" style="text-decoration: none; font-size: 0.4em;">简体中文</a>
+        <nav>
+            <a href="#menu">Menu</a>
+        </nav>
+    </header>
+
+    <!-- Menu -->
+    <nav id="menu">
+        <ul class="links">
+            <li><a href="../../index.html">Home</a></li>
+            <li><a href="../../mission.html">Mission</a></li>
+            <li><a href="../../resources.html">Resources</a></li>
+            <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+        <ul class="actions stacked">
+            <li><a href="https://forms.gle/9kHxzd7byt3BKD2k9" class="button fit">Apply</a></li>
+        </ul>
+    </nav>
+
+    <!-- Banner -->
+    <section id="intro" class="style2">
+        <div class="inner">
+            <header class="major">
+                <h1>The Rise of Diffusion Language Models</h1>
+            </header>
+            <div class="content">
+                <p>A New Paradigm for Text Generation</p>
+                <p><strong>by <a href="../../index.html">Starc Institute</a></strong>, follow us at X (Twitter) <strong><a href="https://x.com/Starc_Institute">@Starc_institute</a></strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main -->
+    <div id="main">
+
+        <!-- Introduction -->
+        <section id="introduction">
+            <div class="inner">
+                <header class="major">
+                    <h2>Introduction</h2>
+                </header>
+                <p>
+                    For decades, the story of language modeling has been written left-to-right, one token at a time. Autoregressive models—from n-grams to GPT-4—have dominated by predicting the next word given all previous words. But what if we could generate text differently? What if, instead of building sentences sequentially, we could refine entire sequences in parallel, seeing the whole picture at once?
+                </p>
+                <p>
+                    This blog explores the evolution of <strong>diffusion language models</strong>, from their pioneering foundations in 2022 to state-of-the-art systems in 2025. These papers represent a paradigm shift from sequential, unidirectional generation to parallel, bidirectional refinement—challenging the autoregressive hegemony that has defined modern NLP.
+                </p>
+                
+                <div class="insight-box">
+                    <strong>Key Evolution:</strong> The field has progressed from small-scale controllable generation to billion-parameter models that match autoregressive LLMs on complex reasoning tasks, with specialized variants for multimodal and code generation domains.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: AR Hegemony -->
+        <section id="ar-hegemony" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>1. The Autoregressive Hegemony and Its Discontents</h2>
+                </header>
+
+                <h3>The Dominant Paradigm</h3>
+                <p>
+                    The success of large language models (LLMs) like GPT-3, LLaMA, and Claude has been nothing short of revolutionary. These models generate text autoregressively—predicting one token at a time from left to right, with each prediction conditioned on all previous tokens. Mathematically, they model the probability:
+                </p>
+
+                <div class="guide-box">
+                    <h3>Autoregressive Factorization</h3>
+                    <p>
+                        $$p_{\theta}(x) = p_{\theta}(x_1) \prod_{i=2}^{N} p_{\theta}(x_i \mid x_{1:i-1})$$
+                    </p>
+                    <p>
+                        This left-to-right decomposition has been the foundation of virtually all modern LLMs.
+                    </p>
+                </div>
+
+                <h3>Fundamental Limitations</h3>
+                <p>
+                    But this paradigm, despite its empirical success, comes with fundamental limitations:
+                </p>
+
+                <ul>
+                    <li><strong>Sequential Generation Bottleneck:</strong> Tokens must be generated one at a time, making parallelization impossible and inference slow</li>
+                    <li><strong>Unidirectional Context:</strong> Each token can only see what came before, limiting global coherence and planning</li>
+                    <li><strong>Difficulty with Constraints:</strong> Enforcing complex structural or semantic constraints (like syntax trees, JSON schemas, or bidirectional reasoning) requires awkward workarounds</li>
+                    <li><strong>The Reversal Curse:</strong> AR models struggle with tasks that require processing information in reverse order—they can tell you "Tom Cruise's mother is Mary Lee Pfeiffer" but fail when asked "Who is Mary Lee Pfeiffer's son?"</li>
+                </ul>
+
+                <div class="debate-box">
+                    <h3>A Fundamental Question</h3>
+                    <p>
+                        Is the autoregressive paradigm truly the only path to language modeling capabilities? Or is it simply the first successful approach we found, with fundamental architectural limitations we've learned to work around?
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Enter Diffusion -->
+        <section id="diffusion-intro" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>2. Enter Diffusion: From Images to Words</h2>
+                </header>
+
+                <h3>Diffusion's Success in Vision</h3>
+                <p>
+                    While autoregressive models dominated text, a different paradigm was achieving remarkable success in computer vision. <strong>Diffusion models</strong>—which generate images by iteratively denoising random noise—produced stunning results with DALL-E 2, Stable Diffusion, and Midjourney. The key insight: instead of generating pixels sequentially, diffusion models refine the entire image in parallel through multiple denoising steps.
+                </p>
+
+                <div class="consensus-box">
+                    <h3>The Core Insight of Diffusion</h3>
+                    <p>
+                        Diffusion models work through two processes:
+                    </p>
+                    <ul>
+                        <li><strong>Forward Process:</strong> Gradually corrupt clean data into noise by adding Gaussian noise (for images) or masking tokens (for text)</li>
+                        <li><strong>Reverse Process:</strong> Learn to denoise, recovering the original data step by step</li>
+                    </ul>
+                    <p>
+                        This bidirectional view of generation enables global planning and iterative refinement—capabilities difficult to achieve with left-to-right generation.
+                    </p>
+                </div>
+
+                <h3>The Discrete Challenge</h3>
+                <p>
+                    But adapting diffusion to text wasn't straightforward. Text is inherently <em>discrete</em>—individual tokens from a fixed vocabulary—while diffusion was designed for <em>continuous</em> domains. The breakthrough came with <strong>discrete diffusion models</strong> and the masked diffusion framework.
+                </p>
+
+                <h3>The Masked Diffusion Breakthrough (2021-2022)</h3>
+                <p>
+                    Instead of adding Gaussian noise, discrete diffusion for text uses a masking process: gradually replace tokens with special <code>[MASK]</code> tokens until the entire sequence is masked. The model then learns to predict the original tokens given the partially masked sequence.
+                </p>
+
+                <div class="guide-box">
+                    <h3>Discrete Diffusion Objective</h3>
+                    <p>
+                        The training objective becomes a weighted cross-entropy loss:
+                    </p>
+                    <p>
+                        $$\mathcal{L}(\theta) = \mathbb{E}_{x_0,t,x_t} \left[ w(t) \sum_{n=1}^{N} \mathbb{1}[x_t^n = \text{MASK}] \log p_{\theta}(x_0^n \mid x_t) \right]$$
+                    </p>
+                    <p>
+                        Where \(w(t)\) weights different noise levels, typically emphasizing cleaner sequences (smaller \(t\)) to improve sample quality.
+                    </p>
+                </div>
+
+                <blockquote>
+                    <a href="#" class="image fit"><img src="imgs/fig1.png" alt=""/></a>
+                    <strong>Figure 1:</strong> Forward masking process and reverse denoising in discrete diffusion<br>
+                </blockquote>
+            </div>
+        </section>
+
+        <!-- Section 3: Diffusion-LM -->
+        <section id="diffusion-lm" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>3. The Pioneer: Diffusion-LM (2022)</h2>
+                </header>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> Diffusion-LM Improves Controllable Text Generation</p>
+                    <p><strong>Authors:</strong> Li et al., 2022</p>
+                    <p><strong>Link:</strong> <a href="https://arxiv.org/abs/2205.14217" target="_blank">arXiv:2205.14217</a></p>
+                </div>
+
+                <h3>Core Innovations</h3>
+                <p>
+                    The seminal work by Li et al. introduced <strong>Diffusion-LM</strong>, demonstrating that continuous diffusion could work for text generation—not by operating on discrete tokens directly, but by diffusing in the space of <em>word embeddings</em>. This required several innovations:
+                </p>
+
+                <ul>
+                    <li><strong>Embedding Space Diffusion:</strong> Map words to continuous vectors, apply Gaussian diffusion, then round back to discrete tokens</li>
+                    <li><strong>End-to-End Training:</strong> Learn embeddings jointly with the diffusion model to minimize rounding errors</li>
+                    <li><strong>Clamping Trick:</strong> Force intermediate predictions to commit to specific word embeddings during sampling</li>
+                </ul>
+
+                <h3>Gradient-Based Control</h3>
+                <p>
+                    But the real breakthrough was in <strong>controllable generation</strong>. Because diffusion operates on continuous latent variables, gradient-based control becomes natural:
+                </p>
+
+                <div class="insight-box">
+                    <h3>Gradient-Based Control in Diffusion-LM</h3>
+                    <p>
+                        At each denoising step, update the latent variables to maximize both fluency (the diffusion model) and control (a classifier):
+                    </p>
+                    <p>
+                        $$\nabla_{x_{t-1}} \log p(x_{t-1} \mid x_t, c) = \nabla_{x_{t-1}} \log p(x_{t-1} \mid x_t) + \nabla_{x_{t-1}} \log p(c \mid x_{t-1})$$
+                    </p>
+                    <p>
+                        This enables complex controls like syntactic structure, semantic content, and even composing multiple constraints—something extremely difficult for autoregressive models.
+                    </p>
+                </div>
+
+                <h3>Results</h3>
+                <p>
+                    Diffusion-LM showed impressive results on fine-grained control tasks (syntax trees, semantic constraints), nearly doubling the success rate of plug-and-play autoregressive methods like PPLM. But it was trained only on small datasets and remained far from the scale of modern LLMs.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 4: Scaling Up -->
+        <section id="scaling" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>4. Scaling Up: The Path to Billion-Parameter Models</h2>
+                </header>
+
+                <p>
+                    The next challenge was clear: could diffusion models scale to billions of parameters and trillions of tokens, matching the capabilities of autoregressive LLMs? Three parallel efforts in 2024-2025 tackled this from different angles.
+                </p>
+
+                <h3>DiffuLLaMA (2024): Adaptation from Autoregressive Models</h3>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> Scaling Diffusion Language Models via Adaptation from Autoregressive Models</p>
+                    <p><strong>Authors:</strong> Gong et al., 2024</p>
+                    <p><strong>Link:</strong> <a href="https://arxiv.org/abs/2410.17891" target="_blank">arXiv:2410.17891</a></p>
+                </div>
+
+                <p>
+                    Rather than training from scratch, Gong et al. proposed a clever shortcut: <strong>adapt existing autoregressive models into diffusion models</strong>. The key insight was recognizing similarities between AR and diffusion objectives:
+                </p>
+
+                <div class="consensus-box">
+                    <h3>Connecting AR and Diffusion</h3>
+                    <p>
+                        Both AR and masked diffusion use cross-entropy losses on token predictions. The main differences:
+                    </p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>Autoregressive</th>
+                                    <th>Masked Diffusion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Context</strong></td>
+                                    <td>Unidirectional (causal masking)</td>
+                                    <td>Bidirectional (full attention)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Input</strong></td>
+                                    <td>Clean tokens</td>
+                                    <td>Partially masked tokens</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Loss Weight</strong></td>
+                                    <td>Uniform (1.0)</td>
+                                    <td>Time-dependent \(w(t)\)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h4>Adaptation Process</h4>
+                <p>
+                    DiffuLLaMA converts AR models through three key techniques:
+                </p>
+
+                <ol>
+                    <li><strong>Attention Mask Annealing:</strong> Gradually transition from causal (AR) to full (diffusion) attention masks during training</li>
+                    <li><strong>Shift Operation:</strong> Align AR's next-token prediction with diffusion's masked-token prediction by shifting input sequences</li>
+                    <li><strong>Time-Embedding-Free:</strong> Remove explicit time conditioning, letting the model infer noise levels from the input itself</li>
+                </ol>
+
+                <div class="insight-box">
+                    <h3>Key Advantage: Efficiency</h3>
+                    <p>
+                        By starting from pretrained AR models (LLaMA 2), DiffuLLaMA reaches 7B parameters with <strong>less than 200B tokens</strong> of training—orders of magnitude less than training from scratch.
+                    </p>
+                </div>
+
+                <blockquote>
+                    <a href="#" class="image fit"><img src="imgs/fig2.png" alt=""/></a>
+                    <strong>Figure 2:</strong> DiffuLLaMA adaptation process from AR to diffusion<br>
+                </blockquote>
+
+                <h3>LLaDA (2025): Training from Scratch</h3>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> Large Language Diffusion Models</p>
+                    <p><strong>Authors:</strong> Nie et al., 2025</p>
+                    <p><strong>Link:</strong> <a href="https://arxiv.org/abs/2501.04625" target="_blank">arXiv:2501.04625</a></p>
+                </div>
+
+                <p>
+                    Taking a different approach, Nie et al. trained diffusion models <em>from scratch</em> at scale. Their key innovations:
+                </p>
+
+                <h4>1. Complementary Masking</h4>
+                <p>
+                    Traditional masked diffusion wastes data: when 30% of tokens are masked, the other 70% aren't used for training. LLaDA introduces <strong>complementary masking</strong>:
+                </p>
+
+                <ul>
+                    <li>Sample a random mask \(M\)</li>
+                    <li>Train on both \(M\) (30% masked) and \(\neg M\) (70% masked)</li>
+                    <li>Result: <strong>100% token coverage</strong> per training example</li>
+                </ul>
+
+                <h4>2. Prefix Diffusion LM (Prefix-DLM)</h4>
+                <p>
+                    Standard diffusion generates entire sequences from scratch. Prefix-DLM enables <strong>conditional generation</strong>:
+                </p>
+
+                <ul>
+                    <li>Keep a prefix of tokens unmasked (e.g., instruction or context)</li>
+                    <li>Apply diffusion only to the suffix (response)</li>
+                    <li>Result: <strong>3.9× speedup</strong> on instruction-following tasks</li>
+                </ul>
+
+                <div class="consensus-box">
+                    <h3>Training at Scale</h3>
+                    <p>
+                        LLaDA trains on <strong>2.3 trillion tokens</strong> (comparable to modern AR LLMs) and reaches:
+                    </p>
+                    <ul>
+                        <li>127M to 7B parameters</li>
+                        <li>Competitive with AR models on standard benchmarks</li>
+                        <li>Superior controllability on constrained generation tasks</li>
+                    </ul>
+                </div>
+
+                <blockquote>
+                    <a href="#" class="image fit"><img src="imgs/fig3.png" alt=""/></a>
+                    <strong>Figure 3:</strong> LLaDA complementary masking and Prefix-DLM architecture<br>
+                </blockquote>
+
+                <h3>Dream-7B (2025): Context-Adaptive Noise Rescheduling</h3>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> Dream 7B: Diffusion Large Language Models</p>
+                    <p><strong>Authors:</strong> Ye et al., 2025</p>
+                    <p><strong>Link:</strong> <a href="https://arxiv.org/abs/2501.14571" target="_blank">arXiv:2501.14571</a></p>
+                </div>
+
+                <p>
+                    The most recent breakthrough, Dream-7B, achieves <strong>state-of-the-art diffusion LLM performance</strong> through a single key innovation: <strong>Context-Adaptive token-level noise Rescheduling with Time weighting (CART)</strong>.
+                </p>
+
+                <h4>The CART Mechanism</h4>
+                <p>
+                    Traditional masked diffusion applies uniform noise schedules. CART adapts noise <em>per token</em> based on:
+                </p>
+
+                <ul>
+                    <li><strong>Token difficulty:</strong> Hard tokens (rare, ambiguous) get gentler noise schedules</li>
+                    <li><strong>Context importance:</strong> Critical tokens for downstream reasoning receive more training emphasis</li>
+                    <li><strong>Time-dependent weighting:</strong> Adjusts \(w(t, x_t, n)\) for each token \(n\) at each timestep \(t\)</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>Why It Works</h3>
+                    <p>
+                        By adapting noise per token, CART:
+                    </p>
+                    <ul>
+                        <li>Reduces wasted computation on trivial tokens</li>
+                        <li>Focuses model capacity on challenging predictions</li>
+                        <li>Improves multi-step reasoning where early errors cascade</li>
+                    </ul>
+                </div>
+
+                <blockquote>
+                    <a href="#" class="image fit"><img src="imgs/fig4.png" alt=""/></a>
+                    <strong>Figure 4:</strong> CART mechanism showing adaptive token-level noise rescheduling<br>
+                </blockquote>
+
+                <h4>Benchmark Results</h4>
+                <p>
+                    Dream-7B achieves:
+                </p>
+
+                <ul>
+                    <li><strong>Matches Qwen2.5-7B (AR) on MMLU:</strong> 58.3% vs 58.4%</li>
+                    <li><strong>Exceeds AR on complex reasoning:</strong> 78% vs 50% on Countdown (24-step arithmetic)</li>
+                    <li><strong>Superior controllability:</strong> +15% on constrained generation benchmarks</li>
+                </ul>
+
+                <blockquote>
+                    <a href="#" class="image fit"><img src="imgs/fig5.png" alt=""/></a>
+                    <strong>Figure 5:</strong> Dream-7B performance comparison with AR baselines<br>
+                </blockquote>
+            </div>
+        </section>
+
+        <!-- Section 5: Specialized Domains -->
+        <section id="specialized" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>5. Specialized Domains: Multimodal and Code</h2>
+                </header>
+
+                <h3>LaViDa (2025): Multimodal Diffusion</h3>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> LaViDa: A Large Diffusion Language Model for Multimodal Understanding</p>
+                    <p><strong>Authors:</strong> Li et al., 2025</p>
+                    <p><strong>Link:</strong> <a href="https://arxiv.org/abs/2501.15309" target="_blank">arXiv:2501.15309</a></p>
+                </div>
+
+                <p>
+                    While most work focused on text-only generation, LaViDa extends diffusion to <strong>vision-language</strong> tasks. The key challenge: how to efficiently incorporate visual information into the diffusion process?
+                </p>
+
+                <h4>Vision Caching Strategy</h4>
+                <p>
+                    Processing images through vision encoders at every diffusion step is prohibitively expensive. LaViDa introduces <strong>vision caching</strong>:
+                </p>
+
+                <ul>
+                    <li>Encode image once with frozen vision encoder (e.g., CLIP)</li>
+                    <li>Cache visual features</li>
+                    <li>Reuse cached features across all diffusion steps</li>
+                    <li>Result: <strong>1.92× speedup</strong> with minimal quality loss</li>
+                </ul>
+
+                <h4>Results</h4>
+                <p>
+                    On multimodal benchmarks:
+                </p>
+
+                <ul>
+                    <li><strong>COCO Captioning:</strong> +4.1 CIDEr over AR baselines</li>
+                    <li><strong>VQA:</strong> Competitive with specialized vision-language models</li>
+                    <li><strong>Image-Text Retrieval:</strong> Superior bidirectional understanding</li>
+                </ul>
+
+                <blockquote>
+                    <a href="#" class="image fit"><img src="imgs/fig6.png" alt=""/></a>
+                    <strong>Figure 6:</strong> LaViDa architecture and performance on multimodal tasks<br>
+                </blockquote>
+
+                <h3>DiffuCoder (2025): Code Generation</h3>
+
+                <div class="guide-box">
+                    <h3>Paper Information</h3>
+                    <p><strong>Title:</strong> DiffuCoder: Understanding and Improving Masked Diffusion Models for Code Generation</p>
+                    <p><strong>Authors:</strong> Gong et al., 2025</p>
+                    <p><strong>Link:</strong> <a href="https://arxiv.org/abs/2501.13528" target="_blank">arXiv:2501.13528</a></p>
+                </div>
+
+                <p>
+                    Code generation poses unique challenges for diffusion models: strict syntax requirements, long-range dependencies, and the need for executable correctness. DiffuCoder addresses these through <strong>Coupled Group Relative Policy Optimization (Coupled-GRPO)</strong>.
+                </p>
+
+                <h4>Why Code Is Hard for Diffusion</h4>
+                <ul>
+                    <li><strong>Decoding Patterns:</strong> Should the model fill in blanks (infilling) or refine entire programs (denoising)?</li>
+                    <li><strong>Syntax Sensitivity:</strong> A single wrong token can break execution</li>
+                    <li><strong>Long Dependencies:</strong> Variable definitions may be far from their usage</li>
+                </ul>
+
+                <h4>Coupled-GRPO Training</h4>
+                <p>
+                    Standard RLHF for code uses execution correctness as reward. DiffuCoder adds <strong>coupling</strong> between:
+                </p>
+
+                <ul>
+                    <li><strong>Diffusion steps:</strong> Earlier denoising steps affect later ones</li>
+                    <li><strong>Token groups:</strong> Syntactic units (functions, loops) are rewarded jointly</li>
+                    <li><strong>Multiple samples:</strong> Credit assignment across diverse rollouts</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>Key Discovery</h3>
+                    <p>
+                        With only <strong>21K code samples</strong> and Coupled-GRPO training, DiffuCoder achieves:
+                    </p>
+                    <ul>
+                        <li><strong>+4.4% on EvalPlus</strong> over AR baselines</li>
+                        <li><strong>Better infilling:</strong> 12% improvement on middle-out generation</li>
+                        <li><strong>Robustness:</strong> More graceful degradation with partial specifications</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Timeline -->
+        <section id="timeline" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>6. The Evolution Timeline: Three Waves</h2>
+                </header>
+
+                <div class="consensus-box">
+                    <h3>Wave 1: Foundation (2022)</h3>
+                    <p><strong>Diffusion-LM</strong> establishes the core paradigm:</p>
+                    <ul>
+                        <li>Embedding-space diffusion for text</li>
+                        <li>Gradient-based controllable generation</li>
+                        <li>Proof of concept on small datasets</li>
+                    </ul>
+                </div>
+
+                <div class="consensus-box">
+                    <h3>Wave 2: Scaling (2024)</h3>
+                    <p><strong>DiffuLLaMA</strong> demonstrates efficient scaling:</p>
+                    <ul>
+                        <li>Adaptation from AR models (7B parameters)</li>
+                        <li>Less than 200B tokens training</li>
+                        <li>Attention mask annealing and shift operations</li>
+                    </ul>
+                </div>
+
+                <div class="consensus-box">
+                    <h3>Wave 3: Maturity and Specialization (2025)</h3>
+                    <p>Multiple breakthroughs in parallel:</p>
+                    <ul>
+                        <li><strong>LLaDA:</strong> Training from scratch at 2.3T tokens with complementary masking</li>
+                        <li><strong>Dream-7B:</strong> State-of-the-art with context-adaptive noise rescheduling</li>
+                        <li><strong>LaViDa:</strong> Multimodal extension with vision caching</li>
+                        <li><strong>DiffuCoder:</strong> Code generation with Coupled-GRPO</li>
+                    </ul>
+                </div>
+
+                <div class="insight-box">
+                    <h3>The Trajectory</h3>
+                    <p>
+                        In just three years, diffusion language models evolved from small-scale experiments to billion-parameter systems that:
+                    </p>
+                    <ul>
+                        <li>Match AR models on standard benchmarks</li>
+                        <li>Exceed AR on complex reasoning and controllability</li>
+                        <li>Extend naturally to multimodal and code domains</li>
+                        <li>Require similar (or less) training data and compute</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Key Advantages -->
+        <section id="advantages" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>7. Key Advantages of Diffusion Language Models</h2>
+                </header>
+
+                <div class="consensus-box">
+                    <h3>1. Bidirectional Context and Global Planning</h3>
+                    <p>
+                        Unlike AR models that only see left context, diffusion models access <strong>full bidirectional context</strong> at every step. This enables:
+                    </p>
+                    <ul>
+                        <li>Better long-range coherence</li>
+                        <li>Resolution of the reversal curse</li>
+                        <li>Natural handling of fill-in-the-middle tasks</li>
+                    </ul>
+                </div>
+
+                <div class="consensus-box">
+                    <h3>2. Flexible Speed-Quality Tradeoffs</h3>
+                    <p>
+                        AR models must generate every token sequentially. Diffusion models can:
+                    </p>
+                    <ul>
+                        <li>Use fewer denoising steps for faster (but lower quality) generation</li>
+                        <li>Use more steps for higher quality when time permits</li>
+                        <li>Trade compute at test time for performance (test-time scaling)</li>
+                    </ul>
+                </div>
+
+                <div class="consensus-box">
+                    <h3>3. Superior Controllability</h3>
+                    <p>
+                        Gradient-based control in continuous latent space enables:
+                    </p>
+                    <ul>
+                        <li>Precise constraint satisfaction (syntax, format, style)</li>
+                        <li>Composing multiple controls simultaneously</li>
+                        <li>Fine-grained guidance at every step</li>
+                    </ul>
+                    <p>
+                        Dream-7B achieves +15% on constrained generation vs. AR models.
+                    </p>
+                </div>
+
+                <div class="consensus-box">
+                    <h3>4. Iterative Refinement</h3>
+                    <p>
+                        Diffusion naturally implements iterative refinement:
+                    </p>
+                    <ul>
+                        <li>Start with a rough draft (high noise)</li>
+                        <li>Progressively refine details (low noise)</li>
+                        <li>Self-correction through multiple denoising passes</li>
+                    </ul>
+                    <p>
+                        This aligns well with human writing processes and agentic reasoning.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: Open Challenges -->
+        <section id="challenges" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>8. Open Challenges and Future Directions</h2>
+                </header>
+
+                <div class="debate-box">
+                    <h3>1. Inference Efficiency</h3>
+                    <p>
+                        The elephant in the room: diffusion models require <strong>10-256 denoising steps</strong> vs. AR's single forward pass. Even with optimizations:
+                    </p>
+                    <ul>
+                        <li>Dream-7B uses ~10 steps but remains slower than AR</li>
+                        <li>Distillation can reduce steps but adds training complexity</li>
+                        <li>Hardware acceleration for parallel diffusion steps is still developing</li>
+                    </ul>
+                    <p>
+                        <strong>Open question:</strong> Can we achieve single-step diffusion without sacrificing quality?
+                    </p>
+                </div>
+
+                <div class="debate-box">
+                    <h3>2. Training Efficiency</h3>
+                    <p>
+                        While models like LLaDA match AR training costs, questions remain:
+                    </p>
+                    <ul>
+                        <li>Can we improve data efficiency further beyond complementary masking?</li>
+                        <li>Are there better noise schedules or masking strategies?</li>
+                        <li>How to optimally initialize from AR models vs. train from scratch?</li>
+                    </ul>
+                </div>
+
+                <div class="debate-box">
+                    <h3>3. Post-Training Methods</h3>
+                    <p>
+                        AR models benefit from mature RLHF/DPO/PPO techniques. Diffusion models need diffusion-native approaches:
+                    </p>
+                    <ul>
+                        <li>Coupled-GRPO shows promise but is still early-stage</li>
+                        <li>How to best leverage the richer rollout diversity from non-AR generation?</li>
+                        <li>Can we develop better reward models that consider entire sequences?</li>
+                    </ul>
+                </div>
+
+                <div class="debate-box">
+                    <h3>4. Scaling Laws</h3>
+                    <p>
+                        AR models have well-studied scaling laws (Chinchilla, etc.). For diffusion:
+                    </p>
+                    <ul>
+                        <li>What's the optimal compute allocation between model size, data, and diffusion steps?</li>
+                        <li>How do scaling properties differ from AR models?</li>
+                        <li>Can we predict diffusion LLM performance at scale?</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Broader Implications -->
+        <section id="implications" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>9. The Broader Implications</h2>
+                </header>
+
+                <p>
+                    The rise of diffusion language models represents more than just a new technical approach—it challenges fundamental assumptions about how language models should work.
+                </p>
+
+                <div class="insight-box">
+                    <h3>Rethinking Core Capabilities</h3>
+                    <p>
+                        For years, we've assumed that LLM capabilities—in-context learning, instruction following, emergent reasoning—were intrinsically linked to autoregressive architecture. The success of diffusion models proves otherwise. These capabilities arise from:
+                    </p>
+                    <ul>
+                        <li><strong>Generative modeling principles</strong> (maximum likelihood, compression)</li>
+                        <li><strong>Scale</strong> (parameters, data, compute)</li>
+                        <li><strong>Transformer architectures</strong></li>
+                    </ul>
+                    <p>
+                        Not from the autoregressive formulation itself. This opens exciting possibilities for exploring alternative generation paradigms.
+                    </p>
+                </div>
+
+                <p>
+                    Moreover, diffusion models suggest different paths for future LLM development:
+                </p>
+
+                <ul>
+                    <li><strong>Hybrid Systems:</strong> Combine AR's efficiency for simple generation with diffusion's power for complex reasoning</li>
+                    <li><strong>Test-Time Scaling:</strong> Diffusion's flexible inference steps offer a natural knob for trading compute vs. quality at test time</li>
+                    <li><strong>Agentic Systems:</strong> Iterative refinement aligns well with agent planning and self-correction</li>
+                    <li><strong>Structured Generation:</strong> Applications requiring strict format adherence (code, JSON, formal languages) may favor diffusion's controllability</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 10: Conclusion -->
+        <section id="conclusion" class="guide-section">
+            <div class="inner">
+                <header class="major">
+                    <h2>10. Conclusion: A New Chapter, Not the Final Word</h2>
+                </header>
+
+                <p>
+                    The journey from Diffusion-LM's pioneering work in 2022 to Dream-7B's state-of-the-art results in 2025 tells a remarkable story of rapid progress. In just three years, diffusion language models have evolved from small-scale experiments to competitive alternatives to autoregressive LLMs at billion-parameter scales.
+                </p>
+
+                <p>
+                    Are diffusion models ready to replace autoregressive LLMs? Not yet. AR models still dominate in:
+                </p>
+
+                <ul>
+                    <li>Inference efficiency for simple generation</li>
+                    <li>Maturity of training techniques and infrastructure</li>
+                    <li>Ecosystem of tools, libraries, and optimization</li>
+                </ul>
+
+                <p>
+                    But diffusion models have proven they belong in the conversation. They offer unique advantages—bidirectional reasoning, controllability, flexible inference, iterative refinement—that make them compelling for specific applications and push the boundaries of what's possible in language generation.
+                </p>
+
+                <div class="insight-box">
+                    <h3>The Path Forward</h3>
+                    <p>
+                        The future likely isn't "diffusion vs. autoregressive" but rather a rich ecosystem of approaches, each excelling at different tasks:
+                    </p>
+                    <ul>
+                        <li>AR for efficient, straightforward generation</li>
+                        <li>Diffusion for complex reasoning, planning, and constrained generation</li>
+                        <li>Hybrid approaches combining strengths of both</li>
+                        <li>Novel paradigms we haven't imagined yet</li>
+                    </ul>
+                    <p>
+                        What's certain is that the autoregressive hegemony has been challenged, and language modeling has never been more exciting.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- References -->
+        <section id="references">
+            <div class="inner">
+                <header class="major">
+                    <h2>References</h2>
+                </header>
+                
+                <ol class="source-list">
+                    <li>
+                        <strong>Diffusion-LM Improves Controllable Text Generation</strong><br>
+                        Li et al., 2022<br>
+                        arXiv:2205.14217<br>
+                        The foundational work introducing continuous diffusion for text with gradient-based control
+                    </li>
+                    
+                    <li>
+                        <strong>Scaling Diffusion Language Models via Adaptation from Autoregressive Models</strong><br>
+                        Gong et al., 2024<br>
+                        arXiv:2410.17891<br>
+                        DiffuLLaMA - efficient adaptation approach reaching 7B parameters
+                    </li>
+                    
+                    <li>
+                        <strong>Large Language Diffusion Models</strong><br>
+                        Nie et al., 2025<br>
+                        arXiv:2501.04625<br>
+                        LLaDA - training from scratch with complementary masking and Prefix-DLM
+                    </li>
+                    
+                    <li>
+                        <strong>Dream 7B: Diffusion Large Language Models</strong><br>
+                        Ye et al., 2025<br>
+                        arXiv:2501.14571<br>
+                        Current state-of-the-art with context-adaptive noise rescheduling
+                    </li>
+                    
+                    <li>
+                        <strong>LaViDa: A Large Diffusion Language Model for Multimodal Understanding</strong><br>
+                        Li et al., 2025<br>
+                        arXiv:2501.15309<br>
+                        Extending diffusion to vision-language tasks
+                    </li>
+                    
+                    <li>
+                        <strong>DiffuCoder: Understanding and Improving Masked Diffusion Models for Code Generation</strong><br>
+                        Gong et al., 2025<br>
+                        arXiv:2501.13528<br>
+                        Specialized for code with Coupled-GRPO training
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- About -->
+        <section id="about">
+            <div class="inner">
+                <header class="major">
+                    <h2>About This Blog</h2>
+                </header>
+                <p>
+                    This technical blog synthesizes research papers on diffusion language models, published in 2022-2025. The blog is published by Starc Institute. For latest research discussions, follow our X (Twitter) at <a href="https://x.com/Starc_Institute">@Starc_institute</a>
+                </p>
+                <p>
+                    All references, mathematical formulations, and technical details are drawn directly from the cited papers. For complete experimental details and additional results, please refer to the original papers.
+                </p>
+
+                <p class="profile-intro" style="text-align: center; margin-top: 3em;">
+                    Starc Institute<br>
+                    Last updated: November 2025
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="inner">
+            <ul class="icons">
+                <li><a href="https://x.com/Starc_Institute" class="icon brands alt fa-twitter"><span
+                        class="label">Twitter</span></a></li>
+                <li><a href="mailto:info@starc.institute" class="icon solid alt fa-envelope"><span
+                        class="label">Email</span></a></li>
+            </ul>
+            <ul class="copyright">
+                <li>STARC Institute 2025</li>
+            </ul>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Scripts -->
+<script src="../../assets/js/jquery.min.js"></script>
+<script src="../../assets/js/jquery.scrolly.min.js"></script>
+<script src="../../assets/js/jquery.scrollex.min.js"></script>
+<script src="../../assets/js/browser.min.js"></script>
+<script src="../../assets/js/breakpoints.min.js"></script>
+<script src="../../assets/js/util.js"></script>
+<script src="../../assets/js/main.js"></script>
+
+</body>
+</html>

@@ -1,75 +1,44 @@
-<!DOCTYPE HTML>
-<!--
-	Forty by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>The Rise of Diffusion Language Models - STARC INSTITUTE</title>
-    <meta name="description"
-          content="From autoregressive dominance to bidirectional generation: A comprehensive technical journey through the evolution of diffusion language models. IMPORTANT ANALYSIS: Diffusion Language Models. Expert insights on cutting-edge developments. This analysis provides the most comprehensive and authoritative perspective on diffusion language model, essential for researchers and practitioners in AI and scientific computing.">
-    <meta name="keywords"
-          content="diffusion models, language models, autoregressive, bidirectional generation, masked diffusion, machine learning, NLP"/>
-    <meta charset="utf-8"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
-    <link rel="manifest" href="../../favicon/site.webmanifest">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
-    <link rel="stylesheet" href="../../assets/css/main.css"/>
-    <link rel="stylesheet" href="../blogStyle.css"/>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <noscript>
-        <link rel="stylesheet" href="../../assets/css/noscript.css"/>
-    </noscript>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Rise of Diffusion Language Models — STARC Institute</title>
+<meta name="description" content="How diffusion language models evolved from small controllable generators to billion-parameter systems that rival autoregressive LLMs — a guided reading of the key papers, 2022–2025.">
+<link rel="canonical" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models.html">
+<link rel="alternate" hreflang="en" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models.html">
+<link rel="alternate" hreflang="zh-CN" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models_cn.html">
+<link rel="alternate" hreflang="x-default" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="STARC Institute · 星弧">
+<meta property="og:title" content="The Rise of Diffusion Language Models — STARC Institute">
+<meta property="og:description" content="How diffusion language models evolved from small controllable generators to billion-parameter systems that rival autoregressive LLMs — a guided reading of the key papers, 2022–2025.">
+<meta property="og:url" content="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models.html">
+<meta property="og:image" content="https://starc.institute/images/og.jpg">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@Starc_Institute">
+<meta name="theme-color" content="#0a1230">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Rise of Diffusion Language Models", "description": "How diffusion language models evolved from small controllable generators to billion-parameter systems that rival autoregressive LLMs — a guided reading of the key papers, 2022–2025.", "datePublished": "2025-11", "inLanguage": "en", "author": {"@type": "Organization", "name": "STARC Institute"}, "publisher": {"@type": "Organization", "name": "STARC Institute", "url": "https://starc.institute/"}}</script>
+
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body class="is-preload">
-
-<!-- Wrapper -->
-<div id="wrapper">
-
-    <!-- Header -->
-    <header id="header" class="alt">
-        <a href="../../index.html" class="logo"><strong>STARC INSTITUTE</strong></a>
-        <a href="diffusion_language_models_cn.html" style="text-decoration: none; font-size: 0.4em;">简体中文</a>
-        <nav>
-            <a href="#menu">Menu</a>
-        </nav>
-    </header>
-
-    <!-- Menu -->
-    <nav id="menu">
-        <ul class="links">
-            <li><a href="../../index.html">Home</a></li>
-            <li><a href="../../research.html">Research Collaboration</a></li>
-            <li><a href="../../blogs.html">Technical Blogs</a></li>
-            <li><a href="../../resources.html">Academic Resources</a></li>
-            <li><a href="../../mission.html">Mission</a></li>
-            <li><a href="../../faq.html">FAQ</a></li>
-        </ul>
-        <ul class="actions stacked">
-            <li><a href="https://forms.gle/9kHxzd7byt3BKD2k9" class="button fit">Apply</a></li>
-        </ul>
-    </nav>
-
-    <!-- Banner -->
-    <section id="intro" class="style2">
-        <div class="inner">
-            <header class="major">
-                <h1>The Rise of Diffusion Language Models</h1>
-            </header>
-            <div class="content">
-                <p>A New Paradigm for Text Generation</p>
-                <p><strong>by <a href="../../index.html">Starc Institute</a></strong>, follow us at X (Twitter) <strong><a href="https://x.com/Starc_Institute">@Starc_institute</a></strong></p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main -->
-    <div id="main">
-
-        <!-- Introduction -->
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="lang-hint" id="lang-hint"><a href="/blogs/diffusion_language_model/diffusion_language_models_cn.html">这个页面有中文版 →</a></div><script>try{if(/^zh/i.test(navigator.language||""))document.getElementById("lang-hint").classList.add("show")}catch(e){}</script>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span></a>
+    <nav class="nav" aria-label="Main"><a href="/opc.html">OPC Cohort</a><a href="/research.html">Research</a><a href="/transparency.html">Transparency</a><a href="/blogs.html" aria-current="page">Writing</a><a href="/faq.html">FAQ</a><a class="lang" href="/blogs/diffusion_language_model/diffusion_language_models_cn.html" hreflang="zh-CN">中文</a><a class="btn" href="/opc.html#apply">Apply</a></nav>
+    <details class="menu"><summary>Menu</summary><div class="menu-panel"><a href="/opc.html">OPC Cohort</a><a href="/research.html">Research</a><a href="/transparency.html">Transparency</a><a href="/blogs.html" aria-current="page">Writing</a><a href="/faq.html">FAQ</a><a href="/blogs/diffusion_language_model/diffusion_language_models_cn.html">中文</a><a href="/opc.html#apply">Apply</a></div></details>
+  </div>
+</header>
+<main id="main"><section class="hero small"><svg class="arcs" viewBox="0 0 1600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M-80 590 Q760 650 1680 250" stroke="#5aa9ff" stroke-width="2" fill="none" opacity=".85"/><path d="M-80 540 Q820 600 1680 170" stroke="#5aa9ff" stroke-width="1" fill="none" opacity=".35"/><path d="M-80 470 Q900 520 1680 60" stroke="#8fbcff" stroke-width="1" fill="none" opacity=".18"/><path d="M-80 640 Q700 680 1680 350" stroke="#2f7bff" stroke-width="6" fill="none" opacity=".12"/></svg><div class="wrap"><div class="crumbs"><a href="/blogs.html">Writing</a> /</div><h1>The Rise of Diffusion Language Models</h1><p class="lead">A New Paradigm for Text Generation</p><p class="byline">by STARC Institute · 2025-11</p></div></section><article class="article"><div class="wrap">
         <section id="introduction">
             <div class="inner">
                 <header class="major">
@@ -87,8 +56,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 1: AR Hegemony -->
         <section id="ar-hegemony" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -130,8 +97,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 2: Enter Diffusion -->
         <section id="diffusion-intro" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -186,8 +151,6 @@
                 </blockquote>
             </div>
         </section>
-
-        <!-- Section 3: Diffusion-LM -->
         <section id="diffusion-lm" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -236,8 +199,6 @@
                 </p>
             </div>
         </section>
-
-        <!-- Section 4: Scaling Up -->
         <section id="scaling" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -429,8 +390,6 @@
                 </blockquote>
             </div>
         </section>
-
-        <!-- Section 5: Specialized Domains -->
         <section id="specialized" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -522,8 +481,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 6: Timeline -->
         <section id="timeline" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -575,8 +532,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 7: Key Advantages -->
         <section id="advantages" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -638,8 +593,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 8: Open Challenges -->
         <section id="challenges" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -698,8 +651,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 9: Broader Implications -->
         <section id="implications" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -737,8 +688,6 @@
                 </ul>
             </div>
         </section>
-
-        <!-- Section 10: Conclusion -->
         <section id="conclusion" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -780,8 +729,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- References -->
         <section id="references">
             <div class="inner">
                 <header class="major">
@@ -833,8 +780,6 @@
                 </ol>
             </div>
         </section>
-
-        <!-- About -->
         <section id="about">
             <div class="inner">
                 <header class="major">
@@ -854,33 +799,17 @@
             </div>
         </section>
 
+    </div></article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><a class="brand" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span></a><p style="margin-top:14px;max-width:26em">A small nonprofit helping students build real things — no tuition, a refundable deposit, everything in the open.</p></div>
+      <div><h4>Programs</h4><ul><li><a href="/opc.html">OPC Cohort</a></li><li><a href="/research.html">Research</a></li></ul><h4 style="margin-top:20px">Contact</h4><ul><li><a href="mailto:info@starc.institute">info@starc.institute</a></li><li><a href="https://x.com/Starc_Institute">X @Starc_Institute</a></li></ul></div>
+      <div><h4>About</h4><ul><li><a href="/mission.html">Why STARC</a></li><li><a href="/transparency.html">Transparency</a></li><li><a href="/blogs.html">Writing</a></li><li><a href="/faq.html">FAQ</a></li></ul></div>
     </div>
-
-    <!-- Footer -->
-    <footer id="footer">
-        <div class="inner">
-            <ul class="icons">
-                <li><a href="https://x.com/Starc_Institute" class="icon brands alt fa-twitter"><span
-                        class="label">Twitter</span></a></li>
-                <li><a href="mailto:info@starc.institute" class="icon solid alt fa-envelope"><span
-                        class="label">Email</span></a></li>
-            </ul>
-            <ul class="copyright">
-                <li>STARC Institute 2025</li>
-            </ul>
-        </div>
-    </footer>
-
-</div>
-
-<!-- Scripts -->
-<script src="../../assets/js/jquery.min.js"></script>
-<script src="../../assets/js/jquery.scrolly.min.js"></script>
-<script src="../../assets/js/jquery.scrollex.min.js"></script>
-<script src="../../assets/js/browser.min.js"></script>
-<script src="../../assets/js/breakpoints.min.js"></script>
-<script src="../../assets/js/util.js"></script>
-<script src="../../assets/js/main.js"></script>
-
+    <div class="fine">STARC Institute · 星弧 · Nonprofit · No tuition. We never charge before admission.</div>
+  </div>
+</footer>
 </body>
 </html>

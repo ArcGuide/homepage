@@ -1,75 +1,44 @@
-<!DOCTYPE HTML>
-<!--
-	Forty by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <title>扩散语言模型的崛起 - 星弧</title>
-    <meta name="description"
-          content="从自回归主导到双向生成：通过扩散语言模型演进的全面技术之旅。"/>
-    <meta name="keywords"
-          content="扩散模型, 语言模型, 自回归, 双向生成, 掩码扩散, 机器学习, 自然语言处理"/>
-    <meta charset="utf-8"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
-    <link rel="manifest" href="../../favicon/site.webmanifest">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
-    <link rel="stylesheet" href="../../assets/css/main.css"/>
-    <link rel="stylesheet" href="../blogStyle.css"/>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <noscript>
-        <link rel="stylesheet" href="../../assets/css/noscript.css"/>
-    </noscript>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>扩散语言模型的崛起｜星弧 STARC</title>
+<meta name="description" content="扩散语言模型如何从小规模可控生成，发展到可与自回归大模型比肩的十亿参数系统：2022–2025 年关键论文导读。">
+<link rel="canonical" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models_cn.html">
+<link rel="alternate" hreflang="en" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models.html">
+<link rel="alternate" hreflang="zh-CN" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models_cn.html">
+<link rel="alternate" hreflang="x-default" href="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="STARC Institute · 星弧">
+<meta property="og:title" content="扩散语言模型的崛起｜星弧 STARC">
+<meta property="og:description" content="扩散语言模型如何从小规模可控生成，发展到可与自回归大模型比肩的十亿参数系统：2022–2025 年关键论文导读。">
+<meta property="og:url" content="https://starc.institute/blogs/diffusion_language_model/diffusion_language_models_cn.html">
+<meta property="og:image" content="https://starc.institute/images/og.jpg">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@Starc_Institute">
+<meta name="theme-color" content="#0a1230">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "扩散语言模型的崛起", "description": "扩散语言模型如何从小规模可控生成，发展到可与自回归大模型比肩的十亿参数系统：2022–2025 年关键论文导读。", "datePublished": "2025-11", "inLanguage": "zh-CN", "author": {"@type": "Organization", "name": "STARC Institute"}, "publisher": {"@type": "Organization", "name": "STARC Institute", "url": "https://starc.institute/"}}</script>
+
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body class="is-preload">
+<body>
+<a class="skip" href="#main">跳到正文</a>
 
-<!-- Wrapper -->
-<div id="wrapper">
-
-    <!-- Header -->
-    <header id="header" class="alt">
-        <a href="../../cn/index.html" class="logo"><strong>星弧</strong></a>
-        <a href="diffusion_language_models.html" style="text-decoration: none; font-size: 0.4em;">English</a>
-        <nav>
-            <a href="#menu">菜单</a>
-        </nav>
-    </header>
-
-    <!-- Menu -->
-    <nav id="menu">
-        <ul class="links">
-            <li><a href="../../cn/index.html">首页</a></li>
-            <li><a href="../../cn/research.html">科研合作</a></li>
-            <li><a href="../../cn/blogs.html">技术博客</a></li>
-            <li><a href="../../cn/resources.html">学术资源</a></li>
-            <li><a href="../../cn/mission.html">使命宣言</a></li>
-            <li><a href="../../cn/faq.html">常见问题</a></li>
-        </ul>
-        <ul class="actions stacked">
-            <li><a href="https://forms.gle/9kHxzd7byt3BKD2k9" class="button fit">立即申请</a></li>
-        </ul>
-    </nav>
-
-    <!-- Banner -->
-    <section id="intro" class="style2">
-        <div class="inner">
-            <header class="major">
-                <h1>扩散语言模型的崛起</h1>
-            </header>
-            <div class="content">
-                <p>文本生成的新范式</p>
-                <p><strong>由<a href="../../cn/index.html">星弧</a></strong>发布, 请在X（推特）上关注我们：<a href="https://x.com/Starc_Institute">@Starc_institute</a></p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main -->
-    <div id="main">
-
-        <!-- Introduction -->
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/cn/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span><span class="brand-sub">星弧</span></a>
+    <nav class="nav" aria-label="Main"><a href="/cn/opc.html">一人公司计划</a><a href="/cn/research.html">科研合作</a><a href="/cn/transparency.html">透明度</a><a href="/cn/blogs.html" aria-current="page">文章</a><a href="/cn/faq.html">常见问题</a><a class="lang" href="/blogs/diffusion_language_model/diffusion_language_models.html" hreflang="en">EN</a><a class="btn" href="/cn/opc.html#apply">申请</a></nav>
+    <details class="menu"><summary>菜单</summary><div class="menu-panel"><a href="/cn/opc.html">一人公司计划</a><a href="/cn/research.html">科研合作</a><a href="/cn/transparency.html">透明度</a><a href="/cn/blogs.html" aria-current="page">文章</a><a href="/cn/faq.html">常见问题</a><a href="/blogs/diffusion_language_model/diffusion_language_models.html">EN</a><a href="/cn/opc.html#apply">申请</a></div></details>
+  </div>
+</header>
+<main id="main"><section class="hero small"><svg class="arcs" viewBox="0 0 1600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M-80 590 Q760 650 1680 250" stroke="#5aa9ff" stroke-width="2" fill="none" opacity=".85"/><path d="M-80 540 Q820 600 1680 170" stroke="#5aa9ff" stroke-width="1" fill="none" opacity=".35"/><path d="M-80 470 Q900 520 1680 60" stroke="#8fbcff" stroke-width="1" fill="none" opacity=".18"/><path d="M-80 640 Q700 680 1680 350" stroke="#2f7bff" stroke-width="6" fill="none" opacity=".12"/></svg><div class="wrap"><div class="crumbs"><a href="/cn/blogs.html">文章</a> /</div><h1>扩散语言模型的崛起</h1><p class="lead">文本生成的新范式</p><p class="byline">星弧 STARC · 2025-11</p></div></section><article class="article"><div class="wrap">
         <section id="introduction">
             <div class="inner">
                 <header class="major">
@@ -87,8 +56,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 1: AR Hegemony -->
         <section id="ar-hegemony" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -130,8 +97,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 2: Enter Diffusion -->
         <section id="diffusion-intro" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -186,8 +151,6 @@
                 </blockquote>
             </div>
         </section>
-
-        <!-- Section 3: Diffusion-LM -->
         <section id="diffusion-lm" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -236,8 +199,6 @@
                 </p>
             </div>
         </section>
-
-        <!-- Section 4: Scaling Up -->
         <section id="scaling" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -429,8 +390,6 @@
                 </blockquote>
             </div>
         </section>
-
-        <!-- Section 5: Specialized Domains -->
         <section id="specialized" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -523,8 +482,6 @@
 
             </div>
         </section>
-
-        <!-- Section 6: Timeline -->
         <section id="timeline" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -576,8 +533,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 7: Key Advantages -->
         <section id="advantages" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -639,8 +594,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 8: Open Challenges -->
         <section id="challenges" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -699,8 +652,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Section 9: Broader Implications -->
         <section id="implications" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -738,8 +689,6 @@
                 </ul>
             </div>
         </section>
-
-        <!-- Section 10: Conclusion -->
         <section id="conclusion" class="guide-section">
             <div class="inner">
                 <header class="major">
@@ -781,8 +730,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- References -->
         <section id="references">
             <div class="inner">
                 <header class="major">
@@ -834,8 +781,6 @@
                 </ol>
             </div>
         </section>
-
-        <!-- About -->
         <section id="about">
             <div class="inner">
                 <header class="major">
@@ -855,33 +800,17 @@
             </div>
         </section>
 
+    </div></article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><a class="brand" href="/cn/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span></a><p style="margin-top:14px;max-width:26em">一个小型非营利组织：帮学生做出真东西。不收学费，只收可退押金，一切公开。</p></div>
+      <div><h4>项目</h4><ul><li><a href="/cn/opc.html">一人公司计划</a></li><li><a href="/cn/research.html">科研合作</a></li></ul><h4 style="margin-top:20px">联系</h4><ul><li><a href="mailto:info@starc.institute">info@starc.institute</a></li><li><a href="https://x.com/Starc_Institute">X @Starc_Institute</a></li></ul></div>
+      <div><h4>关于</h4><ul><li><a href="/cn/mission.html">为什么做星弧</a></li><li><a href="/cn/transparency.html">透明度</a></li><li><a href="/cn/blogs.html">文章</a></li><li><a href="/cn/faq.html">常见问题</a></li></ul></div>
     </div>
-
-    <!-- Footer -->
-    <footer id="footer">
-        <div class="inner">
-            <ul class="icons">
-                <li><a href="https://x.com/Starc_Institute" class="icon brands alt fa-twitter"><span
-                        class="label">Twitter</span></a></li>
-                <li><a href="mailto:info@starc.institute" class="icon solid alt fa-envelope"><span
-                        class="label">Email</span></a></li>
-            </ul>
-            <ul class="copyright">
-                <li>星弧 2025</li>
-            </ul>
-        </div>
-    </footer>
-
-</div>
-
-<!-- Scripts -->
-<script src="../../assets/js/jquery.min.js"></script>
-<script src="../../assets/js/jquery.scrolly.min.js"></script>
-<script src="../../assets/js/jquery.scrollex.min.js"></script>
-<script src="../../assets/js/browser.min.js"></script>
-<script src="../../assets/js/breakpoints.min.js"></script>
-<script src="../../assets/js/util.js"></script>
-<script src="../../assets/js/main.js"></script>
-
+    <div class="fine">星弧 STARC Institute · 非营利 · 不收学费 · 录取前绝不收取任何费用</div>
+  </div>
+</footer>
 </body>
 </html>

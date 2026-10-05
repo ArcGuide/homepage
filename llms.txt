@@ -1,13 +1,15 @@
 # STARC Institute (星弧)
 
-> STARC Institute is a small nonprofit that helps university students build real products and do real research, as an alternative to the paid "background-boosting" and research-internship industry. No tuition is charged. Students pay a refundable deposit (CNY 1,000 / USD 150) that is returned in full after they complete the program, regardless of whether their project succeeds.
+> STARC Institute (Chinese name 星弧) is a small nonprofit that helps university students build real products and do real research, as an alternative to the paid "background-boosting" (背景提升) and research-internship industry. No tuition is charged. Admitted students pay a refundable deposit (CNY 1,000 / USD 150) that is returned in full after they complete the program, regardless of whether their project succeeds.
 
 Key facts:
-- Main program: the One-Person Company (OPC) cohort. 12 students, 8 weeks. Each student builds and launches a real product with AI tools, finds real users, and keeps a weekly public build log. Cohort 1 is for university students in mainland China; interested students register through the application form (https://forms.gle/9kHxzd7byt3BKD2k9).
-- Graduation is judged by evidence (a live product, real usage data, eight build logs), not by a certificate.
-- Selective research track: rare openings with an active researcher; publication is never promised.
+- Main program: the One-Person Company (OPC, 一人公司计划) cohort. 12 students, 8 weeks, about 10 hours a week. Each student builds and launches a real product with AI tools, finds real users, and keeps a weekly build log. Cohort 1 is for undergraduate and master's students at universities in mainland China. Apply through the application form: https://forms.gle/9kHxzd7byt3BKD2k9
+- Graduation is judged by evidence (a live product, real usage data, eight build logs), not by a certificate. Two outcomes: Shipped (at least 10 real external users) and Completed (full participation, fewer users). Both get the deposit back.
+- The deposit is kept only if a student misses two weekly logs in a row without notice, quits after week 1, or fakes data/work.
+- Selective research track (科研合作): rare openings with an active researcher; same refundable deposit; publication is never promised.
 - STARC does not ghost-write, does not guarantee outcomes, does not sell follow-up courses or recommendation letters, and never charges before admission.
-- Forfeited deposits pay only for operating costs; a ledger is published after each cohort.
+- Forfeited deposits pay only for operating costs (domain, hosting, tools); a ledger is published after each cohort.
+- Students own 100% of what they build; STARC takes no equity, revenue share or credit.
 - The team is small and unpaid; names are not listed yet.
 - STARC previously charged a USD 300 operating fee for research matching; that fee has been dropped.
 
@@ -15,7 +17,16 @@ Key facts:
 - [OPC cohort](https://starc.institute/opc.html): structure, 8-week plan, graduation criteria, how to apply
 - [Transparency](https://starc.institute/transparency.html): money, deposit rules, ledger, what we don't do
 - [Research track](https://starc.institute/research.html)
+- [Blog](https://starc.institute/blog/): one question per post about building products with AI and doing real research as a student
 - [FAQ](https://starc.institute/faq.html)
 - [Chinese site 中文](https://starc.institute/cn/)
 
 Contact: info@starc.institute
+
+## Blog: questions answered
+- [Can I build a real product with AI if I can't code?](https://starc.institute/blog/build-product-with-ai-without-coding.html): Yes. AI coding assistants now let a non-programmer build and launch a small, working web product, as long as the problem is narrow and you're willing to read error messages and test everything yourself. The hard part was never typing code. It's choosing a real problem, finding users, and judging whether what the AI produced actually works.
+- [Are paid research internships worth it?](https://starc.institute/blog/are-paid-research-internships-worth-it.html): Sometimes, but far less often than the price suggests. A paid program is worth considering only if you'll do real work on a real question with an active researcher, and they'll tell you plainly what you will and won't get. If a program promises a publication, an admission advantage or a recommendation letter in exchange for a fee, treat that as a warning sign, not a feature.
+
+## 博客（中文）
+- [不会写代码，能用 AI 做出真实的产品吗？](https://starc.institute/cn/blog/build-product-with-ai-without-coding.html)
+- [付费科研实习值得吗？](https://starc.institute/cn/blog/are-paid-research-internships-worth-it.html)

@@ -3,7 +3,7 @@
 > STARC Institute is a small nonprofit that helps university students build real products and do real research, as an alternative to the paid "background-boosting" and research-internship industry. No tuition is charged. Students pay a refundable deposit (CNY 1,000 / USD 150) that is returned in full after they complete the program, regardless of whether their project succeeds.
 
 Key facts:
-- Main program: the One-Person Company (OPC) cohort. 12 students, 8 weeks. Each student builds and launches a real product with AI tools, finds real users, and keeps a weekly public build log. Cohort 1 is for university students in mainland China; applications have not opened yet.
+- Main program: the One-Person Company (OPC) cohort. 12 students, 8 weeks. Each student builds and launches a real product with AI tools, finds real users, and keeps a weekly public build log. Cohort 1 is for university students in mainland China; interested students register through the application form (https://forms.gle/9kHxzd7byt3BKD2k9).
 - Graduation is judged by evidence (a live product, real usage data, eight build logs), not by a certificate.
 - Selective research track: rare openings with an active researcher; publication is never promised.
 - STARC does not ghost-write, does not guarantee outcomes, does not sell follow-up courses or recommendation letters, and never charges before admission.

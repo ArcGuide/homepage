@@ -304,3 +304,11 @@ details.qa .a { padding: 0 0 18px; color: var(--ink-soft); }
 .cta-card { background: var(--navy); color: var(--on-navy-muted); border-radius: var(--radius); padding: 28px; margin: 3em 0 1.6em; }
 .cta-card h3 { color: #fff; margin-top: 0; }
 .cta-card .btn.ghost { color: var(--on-navy); border-color: rgba(255,255,255,.35); margin-left: 6px; }
+
+/* ---------- WeChat sign-up dialog (Chinese site) ---------- */
+dialog.wechat { border: 1px solid var(--line); border-radius: 14px; padding: 30px 30px 26px; max-width: 360px; width: calc(100% - 32px); background: var(--surface); color: var(--ink); text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+dialog.wechat::backdrop { background: rgba(7,11,28,.55); }
+dialog.wechat h3 { margin: 4px 0 14px; font-size: 1.35rem; }
+.wechat-id { font-family: var(--mono); font-size: 1.45rem; font-weight: 650; letter-spacing: .02em; margin: 4px 0 18px; user-select: all; -webkit-user-select: all; }
+.wechat-x { position: absolute; top: 10px; right: 14px; border: 0; background: none; font-size: 1.5rem; line-height: 1; color: var(--muted); cursor: pointer; }
+dialog.wechat .btn { border: 0; cursor: pointer; font: inherit; font-weight: 600; }

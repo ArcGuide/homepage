@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-transform">
+<title>怎样在小红书发 build log，既真实又有人看？｜星弧 STARC</title>
+<meta name="description" content="学生在小红书记录做产品：一篇笔记写什么、数据怎么摆、AI 和利益相关怎么标明。">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="https://starc.institute/cn/blog/honest-build-log-that-gets-read.html">
+<link rel="alternate" hreflang="en" href="https://starc.institute/blog/honest-build-log-that-gets-read.html">
+<link rel="alternate" hreflang="zh-CN" href="https://starc.institute/cn/blog/honest-build-log-that-gets-read.html">
+<link rel="alternate" hreflang="x-default" href="https://starc.institute/blog/honest-build-log-that-gets-read.html">
+<link rel="alternate" type="application/rss+xml" title="STARC 博客" href="https://starc.institute/cn/blog/feed.xml">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="STARC Institute · 星弧">
+<meta property="og:title" content="怎样在小红书发 build log，既真实又有人看？｜星弧 STARC">
+<meta property="og:description" content="学生在小红书记录做产品：一篇笔记写什么、数据怎么摆、AI 和利益相关怎么标明。">
+<meta property="og:url" content="https://starc.institute/cn/blog/honest-build-log-that-gets-read.html">
+<meta property="og:image" content="https://starc.institute/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@Starc_Institute">
+<meta name="theme-color" content="#0a1230">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<link rel="stylesheet" href="/assets/site.css">
+<meta property="article:published_time" content="2026-10-16">
+<meta property="article:modified_time" content="2026-10-16">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "怎样在小红书发 build log，既真实又有人看？", "description": "学生在小红书记录做产品：一篇笔记写什么、数据怎么摆、AI 和利益相关怎么标明。", "datePublished": "2026-10-16", "dateModified": "2026-10-16", "inLanguage": "zh-CN", "mainEntityOfPage": "https://starc.institute/cn/blog/honest-build-log-that-gets-read.html", "image": "https://starc.institute/images/og.png", "author": {"@type": "Organization", "name": "STARC Institute", "url": "https://starc.institute/"}, "publisher": {"@type": "Organization", "name": "STARC Institute", "url": "https://starc.institute/", "logo": {"@type": "ImageObject", "url": "https://starc.institute/images/logo.png"}}, "keywords": "小红书 build in public, 小红书 记录 做产品, build log 怎么写, 小红书 做产品 笔记, 公开记录 做产品"}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "星弧", "item": "https://starc.institute/cn/"}, {"@type": "ListItem", "position": 2, "name": "博客", "item": "https://starc.institute/cn/blog/"}, {"@type": "ListItem", "position": 3, "name": "怎样在小红书发 build log，既真实又有人看？", "item": "https://starc.institute/cn/blog/honest-build-log-that-gets-read.html"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "数据很小，发出来会不会没人看？", "acceptedAnswer": {"@type": "Answer", "text": "不一定。\"12 个测试用户里有 3 个卡在注册页，我改了什么\"，比\"用户破百了\"对别的做产品的人更有用。早期产品数据小是常态，有具体的经验，就有人愿意看。"}}, {"@type": "Question", "name": "用 AI 做的产品、用 AI 做的配图，需要标注吗？", "acceptedAnswer": {"@type": "Answer", "text": "小红书《社区公约2.0》提倡创作中用了 AI 辅助工具要主动标明；《人工智能生成合成内容标识办法》要求用户发布 AI 生成合成内容时主动声明，并使用平台提供的标识功能。AI 生成的封面和文字，按规定标识；产品是用 AI 写的代码，在正文里说清楚怎么用的就好。"}}, {"@type": "Question", "name": "可以请同学帮忙发笔记推荐我的产品吗？", "acceptedAnswer": {"@type": "Answer", "text": "可以请他们真实试用后发，但要写明认识你。社区公约反对假扮素人和刷出来的口碑，熟人推荐装成路人，一旦被看出来，比没人推荐更伤。"}}, {"@type": "Question", "name": "笔记里能放购买链接吗？", "acceptedAnswer": {"@type": "Answer", "text": "先看平台当前的规则。另外，《互联网广告管理办法》第九条规定，以体验分享、消费测评等形式推销商品或服务并附加购买方式的，应当显著标明\"广告\"。你的产品如果收费，又在笔记里引导购买，就要考虑这一条。"}}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/cn/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span><span class="brand-sub">星弧</span></a>
+    <nav class="nav" aria-label="Main"><a href="/cn/opc.html">一人公司计划</a><a href="/cn/research.html">科研合作</a><a href="/cn/blog/" aria-current="page">博客</a><a href="/cn/transparency.html">运作方式</a><a href="/cn/blogs.html">研究导读</a><a href="/cn/faq.html">常见问题</a><a class="lang" href="/blog/honest-build-log-that-gets-read.html" hreflang="en">EN</a><a class="btn" href="#wechat">申请</a></nav>
+    <details class="menu"><summary>菜单</summary><div class="menu-panel"><a href="/cn/opc.html">一人公司计划</a><a href="/cn/research.html">科研合作</a><a href="/cn/blog/" aria-current="page">博客</a><a href="/cn/transparency.html">运作方式</a><a href="/cn/blogs.html">研究导读</a><a href="/cn/faq.html">常见问题</a><a href="/blog/honest-build-log-that-gets-read.html">EN</a><a href="#wechat">申请</a></div></details>
+  </div>
+</header>
+<main id="main"><section class="hero small"><svg class="arcs" viewBox="0 0 1600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M-80 590 Q760 650 1680 250" stroke="#5aa9ff" stroke-width="2" fill="none" opacity=".85"/><path d="M-80 540 Q820 600 1680 170" stroke="#5aa9ff" stroke-width="1" fill="none" opacity=".35"/><path d="M-80 470 Q900 520 1680 60" stroke="#8fbcff" stroke-width="1" fill="none" opacity=".18"/><path d="M-80 640 Q700 680 1680 350" stroke="#2f7bff" stroke-width="6" fill="none" opacity=".12"/></svg><div class="wrap"><div class="crumbs"><a href="/cn/blog/">博客</a> / 一人公司</div><h1>怎样在小红书发 build log，既真实又有人看？</h1><p class="lead">学生在小红书记录做产品：一篇笔记写什么、数据怎么摆、AI 和利益相关怎么标明。</p><p class="byline">星弧 STARC · <time datetime="2026-10-16">2026-10-16</time></p></div></section><article class="article post"><div class="wrap"><section><div class="answer"><div class="eyebrow">简短回答</div><p>在小红书发 build log，想既真实又有人看，关键是每篇只讲一件具体的事：这周改了什么、真实数据是多少、用户怎么说、AI 帮了什么又错在哪。数据小没关系，讲清楚来源和含义就行。不要立虚假人设、不要刷数据，用了 AI 主动标明，推广自己的产品要让人一眼看出是你自己的。</p></div><h2>怎样在小红书发 build log，既真实又有人看？</h2>
+<p>很多同学用 AI 做了一个小工具，想在小红书上"边做边记录"：一来攒点关注，二来找第一批用户。真动笔时却卡住了：自己的数据只有个位数，刷到的"独立开发"笔记动不动就是"上线一周破千"。</p>
+<p>于是很容易想到几种"包装"：数字往上凑一凑，失败的那周不写，把"做了个原型"写成"产品已上线"。别这么做。真实的 build log 一样可以有人看，而且只有真实的那种，经得起别人顺着链接点进去查。</p>
+<h2>平台规则和相关规定都在说什么？</h2>
+<p>搜"小红书 build in public""小红书 记录做产品"，结果几乎都是英文的通用指南和工具推广页，没有专门讲学生在小红书记录做产品的可靠文章。真正有约束力的，是平台公约和几份官方规定。把它们放在一起看，方向很一致：</p>
+<p><strong>不立虚假人设，不刷口碑。</strong> 据中国日报网对小红书<a href="https://cn.chinadaily.com.cn/a/202601/20/WS696eef27a310942cc499bf9f.html">《社区公约2.0》</a>的报道，新版公约围绕"真诚分享、友好互动"，分真诚分享、友好互动、有序经营三个板块；公约提醒不要在财富、学历、收入等方面塑造虚假人设，也反对刷出来的口碑和假扮素人。对做产品的学生来说，"学历""收入"这类人设和"用户数""营收"一样，都不要往上凑。</p>
+<p><strong>用了 AI 就主动标明。</strong> 同一篇报道提到，公约提倡创作中使用了 AI 辅助工具要主动标明。国家网信办等四部门发布的<a href="https://www.cac.gov.cn/2025-03/14/c_1743654684782215.htm">《人工智能生成合成内容标识办法》</a>自 2025 年 9 月 1 日起施行，要求用户发布生成合成内容时主动声明并使用平台的标识功能，也不得恶意删除、篡改标识。AI 画的封面、AI 写的文案，按规定标识。</p>
+<p><strong>推广自己的产品，要让人看得出来。</strong> 市场监管总局的<a href="https://zh.wikisource.org/wiki/%E4%BA%92%E8%81%94%E7%BD%91%E5%B9%BF%E5%91%8A%E7%AE%A1%E7%90%86%E5%8A%9E%E6%B3%95">《互联网广告管理办法》</a>第九条要求互联网广告具有可识别性，并规定以知识介绍、体验分享、消费测评等形式推销商品或服务、附加购买方式的，应当显著标明"广告"。学生的 build log 大多不带购买方式，但产品一旦收费、笔记里引导购买，就要把这一条考虑进去。</p>
+<p><strong>分享过程，而不只是结果。</strong> 这一点来自一本英文书。作家 Austin Kleon 在 <a href="https://austinkleon.com/show-your-work/">Show Your Work!</a> 里的核心主张是：边做边分享过程，每次一小块，比憋到做完再发更能积累关注者。build log 本来就是这个意思：好看的不是"v2 上线了"，而是你试了什么、哪里坏了、怎么改的。</p>
+<h2>这些规定没说的</h2>
+<p>它们讲清楚了"不能做什么"，但没有讲"怎样写才有人看"，也都不是写给学生的。还有一个分寸问题它们没有展开：真实不等于什么都公开。用户的昵称、聊天截图、联系方式，没有对方同意就不要放；你的核心做法，也可以只讲经验不讲细节。另外，平台对笔记里放外链、联系方式的规则会调整，发之前看一眼当前的规则。</p>
+<h2>一篇 build log 笔记的五段结构</h2>
+<p>每篇只写一周，或者一个决定。</p>
+<ol><li><strong>标题写结论。</strong> 比如"注册表单从 6 项删到 2 项，完成率翻倍"，比"做产品第 4 周"好。</li><li><strong>真实数据和它的来源。</strong> "改之前 15 个测试用户有 4 个完成注册，改之后 14 个有 9 个。"写清楚数据来自后台还是自己的记录表，以及时间范围。</li><li><strong>用户真实的反馈。</strong> 用自己的话转述，不带名字和头像，除非对方同意。</li><li><strong>AI 在这周干了什么。</strong> 用了哪个工具、怎么问的、它哪里错了，一两句就够。</li><li><strong>下一步，或者卡在哪。</strong> 一个具体的问题，比"大家觉得怎么样"更容易得到有用的评论。</li></ol>
+<p>图片部分，最有说服力的是你自己的截图：后台数据、报错页面、改前改后的对比。数据截图保留日期范围，遮住能认出用户的信息。</p>
+<h2>发之前的核对清单</h2>
+<div class="table-wrap"><table><thead><tr><th>检查项</th><th>为什么</th></tr></thead><tbody><tr><td>每个数字都拿得出截图或记录</td><td>有人问，你能直接贴出来</td></tr><tr><td>浏览、注册、活跃用户分开写</td><td>混在一起是最常见的"无意注水"</td></tr><tr><td>没有未经同意的用户信息</td><td>用户的隐私比一篇笔记重要</td></tr><tr><td>AI 生成的图片和文字已标识</td><td>公约提倡、标识办法有要求</td></tr><tr><td>帮你发笔记的同学写明了认识你</td><td>公约反对假扮素人</td></tr><tr><td>没有买粉、刷赞、刷评论</td><td>刷出来的口碑经不起查</td></tr><tr><td>收费产品附购买方式时考虑"广告"标识</td><td>《互联网广告管理办法》第九条</td></tr></tbody></table></div>
+<h2>怎样让真实的笔记也有人看？</h2>
+<ul><li><strong>固定节奏。</strong> 每周固定一天发一篇，比上线那周连发五篇然后消失强。</li><li><strong>失败的周也发。</strong> "第一天来了 20 个人，第二天一个都没回来，我猜原因是……"这类笔记往往最有共鸣。</li><li><strong>发给有这个问题的人。</strong> 你的工具帮护理专业的同学背考点，就用他们会搜的词写标题，而不是只写"独立开发"。</li><li><strong>认真回评论。</strong> 留言问"能试试吗"的人，常常就是你的第一批真实用户。</li></ul>
+<h2>STARC 怎么做 build log</h2>
+<p>星弧是一个小型非营利机构，它的<a href="/cn/opc.html">一人公司计划</a>要求每位学员 8 周里每周写一篇 build log：这周上线了什么、数据、用户反馈、卡在哪、下一步、怎么用的 AI。log 里的数字要有证据，数据造假会被终止参与。log 默认只在本期内部可见，每一篇是否公开都单独征求学员同意，可以署名也可以匿名，公开后也可以撤回。第 5 周的分发实验，小红书就是可选的渠道之一。</p>
+<p>第一期还没开始，所以还没有公开的 log 可以展示。规则写在<a href="/cn/transparency.html">运作方式</a>页面，常见问题见 <a href="/cn/faq.html">FAQ</a>。</p>
+<h2>一句话</h2>
+<p>每篇只讲一件事，数字写清来源，AI 主动标明，熟人推荐写明关系，然后每周坚持发，包括不顺的那几周。值得看的 build log，是陌生人点进去也查得到的那种。</p><h2>相关问题</h2><details class="qa"><summary>数据很小，发出来会不会没人看？</summary><div class="a"><p>不一定。"12 个测试用户里有 3 个卡在注册页，我改了什么"，比"用户破百了"对别的做产品的人更有用。早期产品数据小是常态，有具体的经验，就有人愿意看。</p></div></details><details class="qa"><summary>用 AI 做的产品、用 AI 做的配图，需要标注吗？</summary><div class="a"><p>小红书《社区公约2.0》提倡创作中用了 AI 辅助工具要主动标明；《人工智能生成合成内容标识办法》要求用户发布 AI 生成合成内容时主动声明，并使用平台提供的标识功能。AI 生成的封面和文字，按规定标识；产品是用 AI 写的代码，在正文里说清楚怎么用的就好。</p></div></details><details class="qa"><summary>可以请同学帮忙发笔记推荐我的产品吗？</summary><div class="a"><p>可以请他们真实试用后发，但要写明认识你。社区公约反对假扮素人和刷出来的口碑，熟人推荐装成路人，一旦被看出来，比没人推荐更伤。</p></div></details><details class="qa"><summary>笔记里能放购买链接吗？</summary><div class="a"><p>先看平台当前的规则。另外，《互联网广告管理办法》第九条规定，以体验分享、消费测评等形式推销商品或服务并附加购买方式的，应当显著标明"广告"。你的产品如果收费，又在笔记里引导购买，就要考虑这一条。</p></div></details><div class="cta-card"><h3>想做一个属于自己的产品？</h3><p>一人公司计划：12 人，8 周，做出一个有真实用户的产品。</p><p style="margin:0"><a class="btn" href="/cn/opc.html">了解一人公司计划</a> <a class="btn ghost" href="#wechat">申请</a></p></div><p class="muted small">最后更新: 2026-10-16. 星弧团队撰写。文中引用的规则来自我们的<a href="/cn/transparency.html">透明度页面</a>；规则变化时本文会同步更新。</p><h2>更多问题</h2><ul class="post-list"><li><div class="meta">2026-10-15<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/ai-built-site-slow-to-load.html">学生用 AI 做的网站放在海外托管，访问很慢怎么办？要备案吗？</a></h3><p>海外托管的学生网站为什么慢、什么情况下需要备案、个人备案能放什么，以及按顺序该做的几件事。</p></div></li><li><div class="meta">2026-10-13<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/mini-program-or-web-app-first.html">学生用 AI 做第一个产品，选微信小程序还是网页？</a></h3><p>学生用 AI 做第一个产品：小程序和网页各自的门槛、个人主体的限制，以及怎么选。</p></div></li><li><div class="meta">2026-10-11<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/non-cs-product-manager-own-product.html">非科班想走秋招产品经理，自己上线一个产品有用吗？</a></h3><p>非科班秋招产品经理：自己做的产品什么时候加分、什么时候没用，面试官会怎么追问。</p></div></li></ul></section></div></article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><a class="brand" href="/cn/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span></a><p style="margin-top:14px;max-width:26em">一个小型非营利组织：帮学生做出真实的产品、做真实的科研。真实的工作，如实的记录。</p></div>
+      <div><h4>项目</h4><ul><li><a href="/cn/opc.html">一人公司计划</a></li><li><a href="/cn/research.html">科研合作</a></li><li><a href="/cn/blog/">博客</a></li></ul><h4 style="margin-top:20px">联系</h4><ul><li id="wechat">微信 / WhatsApp：+86 185 1565 2879</li><li><a href="mailto:info@starc.institute">info@starc.institute</a></li><li><a href="https://x.com/Starc_Institute">X @Starc_Institute</a></li><li><a href="/cn/blog/feed.xml">RSS 订阅</a></li></ul></div>
+      <div><h4>关于</h4><ul><li><a href="/cn/mission.html">为什么做星弧</a></li><li><a href="/cn/transparency.html">运作方式</a></li><li><a href="/cn/blogs.html">研究导读</a></li><li><a href="/cn/faq.html">常见问题</a></li></ul></div>
+    </div>
+    <div class="fine">星弧 STARC Institute · 非营利</div>
+  </div>
+</footer>
+<dialog class="wechat" id="wechat-dialog" aria-labelledby="wechat-title">
+  <form method="dialog"><button class="wechat-x" aria-label="关闭">×</button></form>
+  <div class="eyebrow">申请 · 联系我们</div>
+  <h3 id="wechat-title">添加微信报名</h3>
+  <p class="muted" style="margin:0">微信 / WhatsApp</p>
+  <p class="wechat-id">+86 185 1565 2879</p>
+  <p><button class="btn" type="button" id="wechat-copy" data-copy="+8618515652879">复制号码</button></p>
+  <p class="small muted" style="margin:0">添加时请备注想申请的项目：一人公司计划或科研合作。</p>
+</dialog>
+<script>
+(function(){var d=document.getElementById("wechat-dialog");if(!d||!d.showModal)return;
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest('a[href="#wechat"]');if(!a)return;e.preventDefault();var m=a.closest("details");if(m)m.open=false;d.showModal();});
+d.addEventListener("click",function(e){if(e.target===d)d.close();});
+var b=document.getElementById("wechat-copy");b.addEventListener("click",function(){var t=b.getAttribute("data-copy");
+var done=function(){b.textContent="已复制";setTimeout(function(){b.textContent="复制号码";},2000);};
+if(navigator.clipboard)navigator.clipboard.writeText(t).then(done,function(){});});})();
+</script>
+</body>
+</html>

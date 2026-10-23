@@ -501,11 +501,20 @@ function showCard(c, isNew) {
     <small>${G.cg[c.id] ? '收进图鉴：' + G.cg[c.id] : ''}</small>
     <div><button class="btn primary" id="card-ok">${isNew ? '收下' : '关闭'}</button></div>
   </div>`);
+  // 点图全屏看
+  const art = $('#modal-body .card .art img');
+  if (art) $('#modal-body .card .art').onclick = () => openViewer(art.getAttribute('src'), c.title);
   return new Promise(r => {
     cardResolve = r;
     $('#card-ok').onclick = () => { closeModal(); };
   });
 }
+function openViewer(src, alt) {
+  const v = $('#viewer'), img = v.querySelector('img');
+  img.src = src; img.alt = alt || '';
+  v.hidden = false;
+}
+$('#viewer').addEventListener('click', () => { $('#viewer').hidden = true; });
 
 // ================= 行动之后：吵架、随机事件、新手福利 =================
 async function afterAct(a) {

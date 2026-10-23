@@ -441,6 +441,21 @@ async function tryDanger(a) {
 
 // ================= 星弧 OPC 支线 =================
 const OPC_URL = 'https://starc.institute/cn/opc.html';
+
+// ================= 计数（Abacus，免注册） =================
+// 只记三个次数：打开游戏 open、点开始 start、点了解星弧 starc。不记任何个人信息。
+// 调试版和本地预览不计数，免得我们自己测试把数字刷高。博客里用 /get/ 读数（只读不加）。
+const COUNTER = 'https://abacus.jasoncameron.dev/hit/starc-shengdai/';
+const COUNTING = !DEBUG && /(^|\.)starc\.institute$/.test(location.hostname);
+function count(key) {
+  if (!COUNTING) return;
+  try { fetch(COUNTER + key, { mode: 'cors', keepalive: true }).catch(() => {}); } catch (e) {}
+}
+// 页面上所有指向星弧官网的链接，点击时记一次 starc
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href*="starc.institute"]');
+  if (a) count('starc');
+}, true);
 async function opcProgress() {
   G.opc = (G.opc || 0) + 1;
   const beat = OPC_BEATS.find(b => b.at === G.opc);
@@ -455,6 +470,7 @@ function aboutHTML() {
   return `<h3>关于这个游戏</h3>
     <p>《圣黛故事》是星弧 STARC 一人公司计划（OPC）的演示作品：一个人，用 AI，几天做出来、上线，然后每周更新。</p>
     <p>星弧 OPC：8 周，用 AI 做一个真实的小产品，上线，找到真实用户，再如实写下过程。不要求会写代码。</p>
+    <p class="tiny">游戏里的图片由 AI 生成。我们只统计打开游戏、点“开始”、点“了解星弧”这三个次数，不收集任何个人信息；存档只保存在你自己的浏览器里。</p>
     <p><a class="btn" href="${OPC_URL}" target="_blank" rel="noopener">了解星弧 OPC →</a></p>`;
 }
 
@@ -865,7 +881,8 @@ const Game = {
     probeAssets();
     const has = !!store.get(SAVE_KEY);
     $('#btn-new').textContent = has ? '回到金陵城' : '开始';
-    $('#btn-new').onclick = () => enter(false);
+    count('open');
+    $('#btn-new').onclick = () => { count('start'); enter(false); };
     $('#btn-gallery').onclick = gallery;
     $('#btn-help').onclick = help;
     $('#btn-gallery2').onclick = gallery;

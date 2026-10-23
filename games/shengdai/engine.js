@@ -509,12 +509,44 @@ function showCard(c, isNew) {
     $('#card-ok').onclick = () => { closeModal(); };
   });
 }
-function openViewer(src, alt) {
+// 全屏看图：把游戏名和网址画进图片底部，玩家长按保存或截图分享时，图上带着出处
+const GAME_URL = 'starc.institute/games/shengdai';
+function watermarked(src, title) {
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => {
+      const w = im.naturalWidth, h = im.naturalHeight, band = Math.round(h * 0.085);
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h + band;
+      const g = cv.getContext('2d');
+      g.drawImage(im, 0, 0, w, h);
+      g.fillStyle = '#f3ecdf'; g.fillRect(0, h, w, band);           // 宣纸色底条
+      g.fillStyle = '#b5402f'; g.fillRect(0, h, w, Math.max(2, band * 0.04));
+      const fs = Math.round(band * 0.38), pad = Math.round(band * 0.4), mid = h + band / 2;
+      const font = '"STKaiti","KaiTi","Kaiti SC","Songti SC","SimSun",serif';
+      g.textBaseline = 'middle';
+      g.font = `bold ${fs}px ${font}`; g.fillStyle = '#2a2724'; g.textAlign = 'left';
+      g.fillText(title ? `「${title}」` : '', pad, mid);
+      g.textAlign = 'right';
+      g.font = `${Math.round(fs * 0.72)}px ${font}`; g.fillStyle = '#5b544c';
+      const url = GAME_URL;
+      g.fillText(url, w - pad, mid);
+      const uw = g.measureText(url).width;
+      g.font = `bold ${fs}px ${font}`; g.fillStyle = '#b5402f';
+      g.fillText('圣黛故事 · ', w - pad - uw, mid);
+      try { res(cv.toDataURL('image/jpeg', 0.9)); } catch (e) { res(src); }
+    };
+    im.onerror = () => res(src);
+    im.src = src;
+  });
+}
+async function openViewer(src, alt) {
   const v = $('#viewer'), img = v.querySelector('img');
   img.src = src; img.alt = alt || '';
   v.hidden = false;
+  img.src = await watermarked(src, alt);
 }
-$('#viewer').addEventListener('click', () => { $('#viewer').hidden = true; });
+$('#viewer').addEventListener('click', e => { if (e.target.tagName !== 'IMG') $('#viewer').hidden = true; }); // 点图片本身不关，方便长按保存
 
 // ================= 行动之后：吵架、随机事件、新手福利 =================
 async function afterAct(a) {

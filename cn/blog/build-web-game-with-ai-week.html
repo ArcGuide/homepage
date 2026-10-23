@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-transform">
+<title>不会写代码，一个人用 AI 能做出一款网页游戏吗？｜星弧 STARC</title>
+<meta name="description" content="我们用 AI 五天做出并上线了网页游戏《圣黛故事》：怎么分工、出图卡在哪、没有服务器怎么办，附实时访问数。">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="https://starc.institute/cn/blog/build-web-game-with-ai-week.html">
+<link rel="alternate" hreflang="en" href="https://starc.institute/blog/build-web-game-with-ai-week.html">
+<link rel="alternate" hreflang="zh-CN" href="https://starc.institute/cn/blog/build-web-game-with-ai-week.html">
+<link rel="alternate" hreflang="x-default" href="https://starc.institute/blog/build-web-game-with-ai-week.html">
+<link rel="alternate" type="application/rss+xml" title="STARC 博客" href="https://starc.institute/cn/blog/feed.xml">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="STARC Institute · 星弧">
+<meta property="og:title" content="不会写代码，一个人用 AI 能做出一款网页游戏吗？｜星弧 STARC">
+<meta property="og:description" content="我们用 AI 五天做出并上线了网页游戏《圣黛故事》：怎么分工、出图卡在哪、没有服务器怎么办，附实时访问数。">
+<meta property="og:url" content="https://starc.institute/cn/blog/build-web-game-with-ai-week.html">
+<meta property="og:image" content="https://starc.institute/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@Starc_Institute">
+<meta name="theme-color" content="#0a1230">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<link rel="stylesheet" href="/assets/site.css">
+<meta property="article:published_time" content="2026-10-23">
+<meta property="article:modified_time" content="2026-10-23">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "不会写代码，一个人用 AI 能做出一款网页游戏吗？", "description": "我们用 AI 五天做出并上线了网页游戏《圣黛故事》：怎么分工、出图卡在哪、没有服务器怎么办，附实时访问数。", "datePublished": "2026-10-23", "dateModified": "2026-10-23", "inLanguage": "zh-CN", "mainEntityOfPage": "https://starc.institute/cn/blog/build-web-game-with-ai-week.html", "image": "https://starc.institute/images/og.png", "author": {"@type": "Organization", "name": "STARC Institute", "url": "https://starc.institute/"}, "publisher": {"@type": "Organization", "name": "STARC Institute", "url": "https://starc.institute/", "logo": {"@type": "ImageObject", "url": "https://starc.institute/images/logo.png"}}, "keywords": "不会写代码 做游戏, 一个人 用AI 做网页游戏, AI 做游戏 上线, AI 出图 提示词, 圣黛CP 游戏"}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "星弧", "item": "https://starc.institute/cn/"}, {"@type": "ListItem", "position": 2, "name": "博客", "item": "https://starc.institute/cn/blog/"}, {"@type": "ListItem", "position": 3, "name": "不会写代码，一个人用 AI 能做出一款网页游戏吗？", "item": "https://starc.institute/cn/blog/build-web-game-with-ai-week.html"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "完全不会写代码，真的能做出来吗？", "acceptedAnswer": {"@type": "Answer", "text": "能做出小游戏。我们这次所有代码都由 AI 编程助手写，我们做的是三件事：说清楚要什么、玩一遍找问题、决定改哪里。不会写代码不是门槛，不会检查才是。"}}, {"@type": "Question", "name": "没有服务器，玩家的存档和访问量怎么办？", "acceptedAnswer": {"@type": "Answer", "text": "存档放在玩家自己的浏览器里（localStorage），换浏览器或清缓存会丢，所以我们做了备份码。访问量用一个免注册的计数服务，只记三个次数，不收集个人信息。"}}, {"@type": "Question", "name": "用 AI 画名著里的人物，会不会有版权问题？", "acceptedAnswer": {"@type": "Answer", "text": "原著早已进入公有领域，但电视剧剧照和演员的形象是另一回事，所以我们没有用剧照，人物都是 AI 生成的形象。至于 AI 生成的图片本身有没有著作权，2023 年北京互联网法院有过一个判决，学界至今仍有争议。"}}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/cn/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span><span class="brand-sub">星弧</span></a>
+    <nav class="nav" aria-label="Main"><a href="/cn/opc.html">一人公司计划</a><a href="/cn/research.html">科研合作</a><a href="/cn/blog/" aria-current="page">博客</a><a href="/cn/transparency.html">运作方式</a><a href="/cn/blogs.html">研究导读</a><a href="/cn/faq.html">常见问题</a><a class="lang" href="/blog/build-web-game-with-ai-week.html" hreflang="en">EN</a><a class="btn" href="#wechat">申请</a></nav>
+    <details class="menu"><summary>菜单</summary><div class="menu-panel"><a href="/cn/opc.html">一人公司计划</a><a href="/cn/research.html">科研合作</a><a href="/cn/blog/" aria-current="page">博客</a><a href="/cn/transparency.html">运作方式</a><a href="/cn/blogs.html">研究导读</a><a href="/cn/faq.html">常见问题</a><a href="/blog/build-web-game-with-ai-week.html">EN</a><a href="#wechat">申请</a></div></details>
+  </div>
+</header>
+<main id="main"><section class="hero small"><svg class="arcs" viewBox="0 0 1600 600" preserveAspectRatio="none" aria-hidden="true"><path d="M-80 590 Q760 650 1680 250" stroke="#5aa9ff" stroke-width="2" fill="none" opacity=".85"/><path d="M-80 540 Q820 600 1680 170" stroke="#5aa9ff" stroke-width="1" fill="none" opacity=".35"/><path d="M-80 470 Q900 520 1680 60" stroke="#8fbcff" stroke-width="1" fill="none" opacity=".18"/><path d="M-80 640 Q700 680 1680 350" stroke="#2f7bff" stroke-width="6" fill="none" opacity=".12"/></svg><div class="wrap"><div class="crumbs"><a href="/cn/blog/">博客</a> / 一人公司</div><h1>不会写代码，一个人用 AI 能做出一款网页游戏吗？</h1><p class="lead">我们用 AI 五天做出并上线了网页游戏《圣黛故事》：怎么分工、出图卡在哪、没有服务器怎么办，附实时访问数。</p><p class="byline">星弧 STARC · <time datetime="2026-10-23">2026-10-23</time></p></div></section><article class="article post"><div class="wrap"><section><div class="answer"><div class="eyebrow">简短回答</div><p>能，前提是游戏够小、你愿意一遍遍检查 AI 的产出。我们没有手写一行代码，用 AI 五天做出并上线了网页游戏《圣黛故事》；真正花时间的不是代码，而是出图：一张图要写几百字的分镜，AI 才画得对。没有服务器，也能用浏览器存档和免注册计数器解决。</p></div><h2>不会写代码，一个人用 AI 能做出一款网页游戏吗？</h2>
+<p>能，但要先把“做出来”说清楚：能在手机上打开、能玩、别人也能玩到，而不只是在自己电脑上跑一下。</p>
+<div class="callout"><p>先玩一下：<a href="/games/shengdai/">《圣黛故事》</a>，手机浏览器直接打开就能玩，不用下载、不用注册。</p></div>
+<p>这个问题我们刚刚自己答了一遍。《西游记》的孙悟空和《红楼梦》的林黛玉被网友凑成“圣黛CP”，今年 10 月再次刷屏。我们决定做一款可以玩的网页游戏<a href="/games/shengdai/">《圣黛故事》</a>：孙悟空和林黛玉已经在一起了，玩家替他们安排每天的日常，打工、做饭、看电影、吵架再和好，跟着现实日历过节，收集图鉴。从想法到第一版上线，用了五天，我们没有手写一行代码。</p>
+<p>下面是这五天的真实账本。</p>
+<h2>怎么分工：AI 写代码，人负责“说清楚”和“挑毛病”</h2>
+<p>代码全部由 AI 编程助手完成：游戏引擎、几十种日常活动、吵架和好、节日剧情、存档、部署脚本。人做的事情只有三类：</p>
+<ol><li><strong>说清楚要什么。</strong> 一开始我们只说了“做个恋爱游戏”，AI 交出来的是一个三十天就结束的追求游戏。后来改成“他们已经在一起了，没有结局，跟着现实日历每天回来看”，游戏才有了现在的样子。方向错了，代码写得再好也没用。</li><li><strong>玩一遍，挑毛病。</strong> 标题在笔记本上比屏幕还长、字被截掉一半、“糖”这种设计用语漏到了玩家界面上，这些都是玩的时候才发现的。</li><li><strong>决定改不改。</strong> AI 会提很多建议，有些很好，有些多余。拍板的必须是人。</li></ol>
+<h2>真正花时间的是出图</h2>
+<p>游戏里计划有 105 张图鉴插图，加上立绘和场景，一共一百多张。写作本文时上线了 53 张。我们用的是对话式的 AI 出图工具，免费额度一天大约能留下十几到二十张能用的图。</p>
+<p>出图最大的问题不是额度，而是 <strong>AI 会照字面意思画</strong>。几个真实的翻车：</p>
+<ul><li>提示词写“悟空站起来指着台上纠正说书先生”，画出来悟空对着空气争辩，因为我们没写清说书先生在画面哪个位置、悟空眼睛看哪里。</li><li>提示词写“黛玉右手比心，一只手掩着嘴”，画出了两只右手。</li><li>提示词把机位写成“从银幕方向往回拍”，结果两个人背对银幕坐着。</li></ul>
+<p>后来的办法是把每张图像写代码一样拆开：构图（每个人在画面哪一侧）、环境与光线、两个人各自的姿势、两只手在做什么、视线看向谁、表情是哪几块肌肉在动、这张图最容易画错的地方。一张图的提示词从一句话变成了五百到一千字，返工明显少了。</p>
+<h2>没有服务器怎么办</h2>
+<p>游戏是纯静态网页，托管在 GitHub Pages 上。按 <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits">GitHub Pages 的官方说明</a>，发布的站点不能超过 1 GB，每月带宽有 100 GB 的软上限，对一个小游戏绰绰有余。</p>
+<p>但静态网页只能读、不能写，这带来两个问题：</p>
+<ul><li><strong>存档</strong>：放在玩家自己的浏览器里。缺点是换浏览器、清缓存就没了，所以我们在游戏里加了“备份码”，可以手动导出、导入。</li><li><strong>访问量</strong>：我们原本想“存一个数字，每次点按钮加一”，但浏览器没法改服务器上的文件。最后用了一个免注册的计数服务，只记打开游戏、点“开始”、点“了解星弧”这三个次数，不收集任何个人信息。下面就是实时数字：</li></ul>
+<div class="live-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 6px"><div style="flex:1;min-width:90px;padding:12px 8px;border:1px solid rgba(0,0,0,.12);border-radius:12px;text-align:center"><div data-k="open" style="font-size:28px;font-weight:700">—</div><div style="font-size:13px;opacity:.75">打开游戏</div></div><div style="flex:1;min-width:90px;padding:12px 8px;border:1px solid rgba(0,0,0,.12);border-radius:12px;text-align:center"><div data-k="start" style="font-size:28px;font-weight:700">—</div><div style="font-size:13px;opacity:.75">点了「开始」</div></div><div style="flex:1;min-width:90px;padding:12px 8px;border:1px solid rgba(0,0,0,.12);border-radius:12px;text-align:center"><div data-k="starc" style="font-size:28px;font-weight:700">—</div><div style="font-size:13px;opacity:.75">点了「了解星弧」</div></div></div><p style="font-size:13px;opacity:.7;margin-top:0">从 2026 年 10 月 23 日开始统计，实时数字。</p><script>document.querySelectorAll(".live-stats [data-k]").forEach(function(el){fetch("https://abacus.jasoncameron.dev/get/starc-shengdai/"+el.dataset.k).then(function(r){return r.json()}).then(function(j){el.textContent=(j&&typeof j.value==="number"?j.value:0).toLocaleString()}).catch(function(){el.textContent="?"})})</script>
+<h2>AI 做的东西，边界在哪里</h2>
+<p>“圣黛CP”火了之后，《人民日报》发表评论，认为“<a href="https://m.sohu.com/a/1085387525_121019331/">技术打开了想象力的闸门</a>”，同时提醒二创要守住法律与伦理的边界：涉及经典的精神内核、角色形象、演员演绎，需要逐一判断。在此之前，国家广电总局从 2026 年 1 月起开展专项治理，<a href="https://www.news.cn/tech/20260116/9d007f032aa04408ab763964836af00b/c.html">清理了一批对经典电视剧的“AI 魔改”视频</a>。</p>
+<p>所以我们给自己定了两条：</p>
+<ul><li><strong>不用剧照和演员的脸。</strong> 原著早已进入公有领域，但电视剧画面和演员形象不是。游戏里的人物都是 AI 生成的形象，故事是原创的日常，不改写原著情节，也不做低俗化的改编。</li><li><strong>对版权保持谨慎。</strong> AI 生成的图片算不算作品，目前没有定论。2023 年北京互联网法院在“<a href="https://m.thepaper.cn/newsDetail_forward_25651835">AI 文生图著作权第一案</a>”中认定，原告通过设计提示词、调整参数、反复挑选投入了智力劳动，涉案图片构成美术作品；但学界对此仍有争议，有观点认为 AI 输出带有随机性，使用者并不能真正控制结果。我们的态度是：不靠 AI 图片的版权赚钱，也不拿电视剧剧照当素材。</li></ul>
+<h2>我们怎么做 OPC</h2>
+<p>星弧是一个小型非营利机构，<a href="/cn/opc.html">一人公司计划</a>的要求是：8 周，用 AI 做一个真实的小产品，上线，找到真实用户，再如实写下过程，不要求会写代码。《圣黛故事》就是按这个要求做的一个演示：上线、计数、把出过的错写出来。</p>
+<p>这篇文章里的数字会随游戏更新而变化，上面的计数是实时的。游戏在这里：<a href="/games/shengdai/">《圣黛故事》</a>。</p>
+<h2>简单说</h2>
+<p>不会写代码，也能用 AI 一个人做出一款小网页游戏并上线。代码不是瓶颈，瓶颈是把需求说清楚、把 AI 的每一份产出检查一遍。图片要写到构图、视线、双手这个粒度，AI 才画得对；没有服务器，就用浏览器存档和计数器解决。</p><h2>相关问题</h2><details class="qa"><summary>完全不会写代码，真的能做出来吗？</summary><div class="a"><p>能做出小游戏。我们这次所有代码都由 AI 编程助手写，我们做的是三件事：说清楚要什么、玩一遍找问题、决定改哪里。不会写代码不是门槛，不会检查才是。</p></div></details><details class="qa"><summary>没有服务器，玩家的存档和访问量怎么办？</summary><div class="a"><p>存档放在玩家自己的浏览器里（localStorage），换浏览器或清缓存会丢，所以我们做了备份码。访问量用一个免注册的计数服务，只记三个次数，不收集个人信息。</p></div></details><details class="qa"><summary>用 AI 画名著里的人物，会不会有版权问题？</summary><div class="a"><p>原著早已进入公有领域，但电视剧剧照和演员的形象是另一回事，所以我们没有用剧照，人物都是 AI 生成的形象。至于 AI 生成的图片本身有没有著作权，2023 年北京互联网法院有过一个判决，学界至今仍有争议。</p></div></details><div class="cta-card"><h3>想做一个属于自己的产品？</h3><p>一人公司计划：12 人，8 周，做出一个有真实用户的产品。</p><p style="margin:0"><a class="btn" href="/cn/opc.html">了解一人公司计划</a> <a class="btn ghost" href="#wechat">申请</a></p></div><p class="muted small">最后更新: 2026-10-23. 星弧团队撰写。文中引用的规则来自我们的<a href="/cn/transparency.html">透明度页面</a>；规则变化时本文会同步更新。</p><h2>更多问题</h2><ul class="post-list"><li><div class="meta">2026-10-22<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/student-product-business-registration.html">大学生做一人公司，需要注册个体户或公司吗？</a></h3><p>学生用 AI 做产品、开始收钱时，要不要注册个体户或公司：电商法、网络交易办法和新公司法怎么说。</p></div></li><li><div class="meta">2026-10-21<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/ai-coding-tools-graduation-project.html">毕业设计能用 AI 编程工具吗？学术诚信要注意什么？</a></h3><p>毕设写代码能不能用 Cursor、Copilot 等 AI 工具：各校规定的共识与分歧、怎么披露、哪些红线不能碰。</p></div></li><li><div class="meta">2026-10-18<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/prove-product-user-numbers-real.html">简历上的项目用户数据，怎么证明是真的？</a></h3><p>学生项目的用户数据怎么写进简历、面试被追问时怎么证明：口径、证据、截图和常见坑。</p></div></li></ul></section></div></article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><a class="brand" href="/cn/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M3 31 Q19 17 38 21" stroke="#5aa9ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M25 5l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="#e8eeff"/></svg><span class="brand-name">STARC</span></a><p style="margin-top:14px;max-width:26em">一个小型非营利组织：帮学生做出真实的产品、做真实的科研。真实的工作，如实的记录。</p></div>
+      <div><h4>项目</h4><ul><li><a href="/cn/opc.html">一人公司计划</a></li><li><a href="/cn/research.html">科研合作</a></li><li><a href="/cn/blog/">博客</a></li></ul><h4 style="margin-top:20px">联系</h4><ul><li id="wechat">微信 / WhatsApp：+86 185 1565 2879</li><li><a href="mailto:info@starc.institute">info@starc.institute</a></li><li><a href="https://x.com/Starc_Institute">X @Starc_Institute</a></li><li><a href="/cn/blog/feed.xml">RSS 订阅</a></li></ul></div>
+      <div><h4>关于</h4><ul><li><a href="/cn/mission.html">为什么做星弧</a></li><li><a href="/cn/transparency.html">运作方式</a></li><li><a href="/cn/blogs.html">研究导读</a></li><li><a href="/cn/faq.html">常见问题</a></li></ul></div>
+    </div>
+    <div class="fine">星弧 STARC Institute · 非营利</div>
+  </div>
+</footer>
+<dialog class="wechat" id="wechat-dialog" aria-labelledby="wechat-title">
+  <form method="dialog"><button class="wechat-x" aria-label="关闭">×</button></form>
+  <div class="eyebrow">申请 · 联系我们</div>
+  <h3 id="wechat-title">添加微信报名</h3>
+  <p class="muted" style="margin:0">微信 / WhatsApp</p>
+  <p class="wechat-id">+86 185 1565 2879</p>
+  <p><button class="btn" type="button" id="wechat-copy" data-copy="+8618515652879">复制号码</button></p>
+  <p class="small muted" style="margin:0">添加时请备注想申请的项目：一人公司计划或科研合作。</p>
+</dialog>
+<script>
+(function(){var d=document.getElementById("wechat-dialog");if(!d||!d.showModal)return;
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest('a[href="#wechat"]');if(!a)return;e.preventDefault();var m=a.closest("details");if(m)m.open=false;d.showModal();});
+d.addEventListener("click",function(e){if(e.target===d)d.close();});
+var b=document.getElementById("wechat-copy");b.addEventListener("click",function(){var t=b.getAttribute("data-copy");
+var done=function(){b.textContent="已复制";setTimeout(function(){b.textContent="复制号码";},2000);};
+if(navigator.clipboard)navigator.clipboard.writeText(t).then(done,function(){});});})();
+</script>
+</body>
+</html>

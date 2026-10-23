@@ -21,6 +21,7 @@ Key facts:
 Contact: info@starc.institute
 
 ## Blog: questions answered
+- [Can one person with no coding experience ship a web game with AI in a week?](https://starc.institute/blog/build-web-game-with-ai-week.html): Yes, if the game is small and you check everything the AI produces. We built and launched a web game in five days without writing code by hand. The slow part wasn't code: it was getting images right, which took prompts hundreds of words long. A static host, browser storage and a free counter covered everything a server would have done.
 - [Do I need an LLC to sell an app I built as a student?](https://starc.institute/blog/student-product-business-registration.html): No, not to start. Under SBA guidance, if you sell on your own under your legal name, you're automatically a sole proprietor and don't need to register anywhere, and Stripe lets you sell without a separate business entity. What you do need to handle is taxes: the IRS expects you to report the income, and self-employment tax applies once net earnings reach $400. An LLC becomes worth it when real liability risk shows up.
 - [Can I use AI coding tools on my senior capstone project?](https://starc.institute/blog/ai-coding-tools-graduation-project.html): Usually yes, but only within the rules your capstone instructor sets, and those vary from course to course. Where AI coding tools are allowed, US university policies converge on three requirements: disclose which tool you used and for what, mark AI-generated code in the work itself, and be able to explain and defend every line you submit.
 - [How do I prove my app's user numbers are real?](https://starc.institute/blog/prove-product-user-numbers-real.html): To prove your app's user numbers are real, say exactly what you counted (visitors, sign-ups or active users), over which dates, and from which tool, then keep evidence a stranger could check: an analytics screenshot or shared dashboard, an anonymized user list, and notes from real users. A small number with a clear definition and evidence is more convincing than a big number nobody can verify.
@@ -36,6 +37,7 @@ Contact: info@starc.institute
 - [Are paid research internships worth it?](https://starc.institute/blog/are-paid-research-internships-worth-it.html): Sometimes, but far less often than the price suggests. A paid program is worth considering only if you'll do real work on a real question with an active researcher, and they'll tell you plainly what you will and won't get. If a program promises a publication, an admission advantage or a recommendation letter in exchange for a fee, treat that as a warning sign, not a feature.
 
 ## 博客（中文）
+- [不会写代码，一个人用 AI 能做出一款网页游戏吗？](https://starc.institute/cn/blog/build-web-game-with-ai-week.html)
 - [大学生做一人公司，需要注册个体户或公司吗？](https://starc.institute/cn/blog/student-product-business-registration.html)
 - [毕业设计能用 AI 编程工具吗？学术诚信要注意什么？](https://starc.institute/cn/blog/ai-coding-tools-graduation-project.html)
 - [简历上的项目用户数据，怎么证明是真的？](https://starc.institute/cn/blog/prove-product-user-numbers-real.html)

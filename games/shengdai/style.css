@@ -445,3 +445,9 @@ html:not(.debug) .dev { display: none; }
 .fs-name b { letter-spacing: 1px; }
 .fs-btn { padding: 8px 12px; font-size: 14px; }
 #viewer { background: #0b0908; }
+
+/* AI 生成内容的显式标识（《人工智能生成合成内容标识办法》第四条） */
+.ai-tag { position: absolute; left: 8px; top: 8px; padding: 1px 6px; border-radius: 4px; font-size: 10px; letter-spacing: 1px;
+  color: #fff; background: rgba(0,0,0,.42); pointer-events: none; font-family: var(--song); }
+.cover.cutout { position: relative; }
+.cover.cutout .ai-tag { left: auto; right: 4px; top: auto; bottom: 6px; background: rgba(42,39,36,.35); }

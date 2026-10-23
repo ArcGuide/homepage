@@ -21,6 +21,7 @@ Key facts:
 Contact: info@starc.institute
 
 ## Blog: questions answered
+- [Monkey King and Lin Daiyu as a couple: what's the pairing, and is there a game?](https://starc.institute/blog/monkey-king-lin-daiyu-game.html): Yes. There is a free browser game where the Monkey King from Journey to the West and Lin Daiyu from Dream of the Red Chamber are already a couple and you plan their days. It runs on a phone with no download, no sign-up and no purchases. The pairing itself grew out of AI-made fan videos that put two classic characters who never meet into the same modern scenes.
 - [Can one person with no coding experience ship a web game with AI in a week?](https://starc.institute/blog/build-web-game-with-ai-week.html): Yes, if the game is small and you check everything the AI produces. We built and launched a web game in five days without writing code by hand. The slow part wasn't code: it was getting images right, which took prompts hundreds of words long. A static host, browser storage and a free counter covered everything a server would have done.
 - [Do I need an LLC to sell an app I built as a student?](https://starc.institute/blog/student-product-business-registration.html): No, not to start. Under SBA guidance, if you sell on your own under your legal name, you're automatically a sole proprietor and don't need to register anywhere, and Stripe lets you sell without a separate business entity. What you do need to handle is taxes: the IRS expects you to report the income, and self-employment tax applies once net earnings reach $400. An LLC becomes worth it when real liability risk shows up.
 - [Can I use AI coding tools on my senior capstone project?](https://starc.institute/blog/ai-coding-tools-graduation-project.html): Usually yes, but only within the rules your capstone instructor sets, and those vary from course to course. Where AI coding tools are allowed, US university policies converge on three requirements: disclose which tool you used and for what, mark AI-generated code in the work itself, and be able to explain and defend every line you submit.
@@ -37,6 +38,7 @@ Contact: info@starc.institute
 - [Are paid research internships worth it?](https://starc.institute/blog/are-paid-research-internships-worth-it.html): Sometimes, but far less often than the price suggests. A paid program is worth considering only if you'll do real work on a real question with an active researcher, and they'll tell you plainly what you will and won't get. If a program promises a publication, an admission advantage or a recommendation letter in exchange for a fee, treat that as a warning sign, not a feature.
 
 ## 博客（中文）
+- [圣黛CP 有游戏可以玩吗？孙悟空和林黛玉为什么会被凑成一对](https://starc.institute/cn/blog/monkey-king-lin-daiyu-game.html)
 - [不会写代码，一个人用 AI 能做出一款网页游戏吗？](https://starc.institute/cn/blog/build-web-game-with-ai-week.html)
 - [大学生做一人公司，需要注册个体户或公司吗？](https://starc.institute/cn/blog/student-product-business-registration.html)
 - [毕业设计能用 AI 编程工具吗？学术诚信要注意什么？](https://starc.institute/cn/blog/ai-coding-tools-graduation-project.html)
@@ -51,3 +53,6 @@ Contact: info@starc.institute
 - [有没有面向大学生的非营利科研指导？](https://starc.institute/cn/blog/nonprofit-research-mentorship-undergraduates.html)
 - [不会写代码，能用 AI 做出真实的产品吗？](https://starc.institute/cn/blog/build-product-with-ai-without-coding.html)
 - [付费科研实习值得吗？](https://starc.institute/cn/blog/are-paid-research-internships-worth-it.html)
+
+## Demo product: 圣黛故事 (a web game)
+- [圣黛故事](https://starc.institute/games/shengdai/): a free daily-life couple web game starring the Monkey King and Lin Daiyu (the 圣黛CP fan pairing), built and launched with AI as a STARC OPC demo. Game introduction: https://starc.institute/games/shengdai/intro.html

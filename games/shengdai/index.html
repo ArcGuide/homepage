@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- 每次更新内容，改一下这里所有 ?v= 的版本号，玩家的浏览器才会拿到新文件 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>圣黛故事</title>
+<meta name="description" content="圣黛故事：孙悟空和林黛玉已经在一起了。他们的日常，由你来安排——跟着现实日历过日子，每天都有新的小事。">
+<link rel="stylesheet" href="style.css?v=2026.10.23m">
+</head>
+<body>
+<div id="app">
+
+  <section id="title" class="screen">
+    <div class="title-inner">
+      <h1 class="logo" aria-label="圣黛故事">
+        <span class="logo-main">
+          <span class="ink"></span>
+          <span class="ch sheng" aria-hidden="true"></span>
+          <span class="ch dai" aria-hidden="true"></span>
+        </span>
+        <span class="logo-side"><span class="stamp">故<br>事</span></span>
+      </h1>
+      <p class="sub">这一回，她没有认错石头</p>
+      <div class="cover cutout"><img src="assets/cover.png" alt="孙悟空与林黛玉比心" onerror="this.parentNode.remove()"></div>
+      <div class="title-btns">
+        <button id="btn-new" class="btn primary">开始</button>
+        <div class="row">
+          <button id="btn-gallery" class="btn">图鉴</button>
+          <button id="btn-help" class="btn">玩法说明</button>
+        </div>
+      </div>
+      <div class="from-starc">
+        <div class="fs-from">来自</div>
+        <div class="fs-name">星弧 <b>OPC</b></div>
+        <p class="fs-desc">一个人 + AI，做出来、上线的真产品</p>
+        <a class="fs-btn" href="https://starc.institute/cn/" target="_blank" rel="noopener">了解星弧 →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen" hidden>
+    <header id="hud">
+      <div class="hud-row1">
+        <span id="hud-date"></span>
+        <span id="hud-weather"></span>
+        <span class="money" id="hud-money"></span>
+        <span id="hud-slot" class="slot-pill"></span>
+      </div>
+      <div class="hud-row2">
+        <span class="meter wk"><i>悟</i><b><em id="hud-wk-bar"></em></b><small id="hud-wk"></small></span>
+        <span class="meter dy"><i>黛</i><b><em id="hud-dy-bar"></em></b><small id="hud-dy"></small></span>
+      </div>
+      <div class="hud-row3">
+        <span class="meter heart"><i>♥</i><b><em id="hud-sweet-bar"></em></b><small id="hud-sweet"></small></span>
+        <button id="btn-time" class="icon-btn" aria-label="切换白天夜晚">☀️ 自动</button>
+        <button id="btn-gallery2" class="icon-btn">图鉴</button>
+      </div>
+    </header>
+
+    <div id="stage">
+      <div id="bg"></div>
+      <div id="weather-fx"></div>
+      <div id="pt-left" class="pt left"></div>
+      <div id="pt-right" class="pt right"></div>
+    </div>
+
+    <div id="dialog" hidden>
+      <div id="speaker"></div>
+      <div id="text"></div>
+      <div id="choices"></div>
+      <div id="next">▼</div>
+    </div>
+
+    <nav id="menu" hidden>
+      <div id="menu-hint"></div>
+      <div id="menu-tabs"></div>
+      <div id="menu-list"></div>
+    </nav>
+  </section>
+
+  <div id="toasts"></div>
+
+  <div id="modal" hidden>
+    <div class="sheet">
+      <button class="close" id="modal-close" aria-label="关闭">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/manifest.js?v=2026.10.23m"></script>
+<script src="assets.js?v=2026.10.23m"></script>
+<script src="engine.js?v=2026.10.23m"></script>
+<script src="data.js?v=2026.10.23m"></script>
+<script src="cg.js?v=2026.10.23m"></script>
+<script src="events.js?v=2026.10.23m"></script>
+<script src="rare.js?v=2026.10.23m"></script>
+<script src="danger.js?v=2026.10.23m"></script>
+<script src="opc.js?v=2026.10.23m"></script>
+<script>Game.boot();</script>
+</body>
+</html>

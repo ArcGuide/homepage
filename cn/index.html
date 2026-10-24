@@ -28,7 +28,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
 <link rel="manifest" href="/favicon/site.webmanifest">
-<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/site.css?v=a55f8605">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "NGO", "@id": "https://starc.institute/#org", "name": "STARC Institute", "alternateName": ["星弧", "STARC", "星弧 STARC Institute"], "url": "https://starc.institute/", "logo": "https://starc.institute/images/logo.png", "email": "info@starc.institute", "sameAs": ["https://x.com/Starc_Institute"], "nonprofitStatus": "Nonprofit", "knowsAbout": ["one-person company", "building products with AI", "student research", "research mentorship", "一人公司", "科研实习", "背景提升"], "description": "A small nonprofit that helps university students build real products and do real research. Judged by real output: live products, real users and honest build logs."}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "@id": "https://starc.institute/#website", "url": "https://starc.institute/cn/", "name": "STARC Institute · 星弧", "inLanguage": "zh-CN", "publisher": {"@id": "https://starc.institute/#org"}}</script>
 </head>
@@ -110,16 +110,25 @@
   </div>
 </section>
 
-<section class="block tint">
-  <div class="wrap prose">
-    <div class="eyebrow">现状</div>
-    <h2>说实话：我们很小，而且刚刚开始。</h2>
-    <p class="lead">第一期一人公司计划还没有开始。与其贴一墙我们证明不了的 logo 和数字，不如直接告诉你。</p>
-    <p>第一期结束后，学员的产品、使用数据和 build log 会放在这里，包括没做成的项目。</p>
+
+<section class="block tint showcase">
+  <div class="wrap">
+    <div class="sc-head">
+      <div class="section-head" style="margin-bottom:0"><div class="eyebrow">我们做过的东西</div><h2>教人做出真东西，我们自己先做出来。</h2><p>已经上线的产品，左右滑动查看全部。</p></div>
+      <div class="sc-nav"><button class="sc-btn" type="button" data-dir="-1" aria-label="上一个">‹</button><button class="sc-btn" type="button" data-dir="1" aria-label="下一个">›</button></div>
+    </div>
+    <ul class="sc-track" tabindex="0"><li class="sc-card"><a href="https://topcited.ai/" target="_blank" rel="noopener"><div class="sc-shot"><img src="/images/showcase/topcited.jpg" alt="TopCited AI" loading="lazy" width="800" height="500"></div><div class="sc-body"><div class="sc-name"><img class="sc-logo" src="/images/showcase/topcited-logo.png" alt="" width="28" height="28"><h3>TopCited AI</h3></div><div class="tag">AI 搜索可见度</div><p>当顾客问 ChatGPT、Gemini “买什么好”时，让品牌排在第一。已上线的产品，基于研究成果，发布前先模拟 AI 的排序。</p><span class="more">访问 →</span></div></a></li><li class="sc-card"><a href="https://www.heelo.dev/" target="_blank" rel="noopener"><div class="sc-shot"><img src="/images/showcase/heelo.jpg" alt="heelo" loading="lazy" width="800" height="500"></div><div class="sc-body"><div class="sc-name"><img class="sc-logo" src="/images/showcase/heelo-logo.svg" alt="" width="28" height="28"><h3>heelo</h3></div><div class="tag">AI Agent 基础设施</div><p>AI agent 的执行层：下单、订票、外联、发帖，一次调用完成，不用再跑几十步的浏览器循环。</p><span class="more">访问 →</span></div></a></li><li class="sc-card"><a href="https://starc.institute/games/shengdai/" target="_blank" rel="noopener"><div class="sc-shot"><img src="/images/showcase/shengdai.jpg" alt="圣黛故事" loading="lazy" width="800" height="500"></div><div class="sc-body"><div class="sc-name"><span class="sc-mono" aria-hidden="true">圣黛</span><h3>圣黛故事</h3></div><div class="tag">网页游戏 · OPC 示范</div><p>孙悟空×林黛玉的恋爱日常网页小游戏，跟着真实日历过节、解锁图鉴。星弧一人公司计划的示范项目。</p><span class="more">访问 →</span></div></a></li><li class="sc-card"><a href="https://recommendation-reality-gap.vercel.app/ledger" target="_blank" rel="noopener"><div class="sc-shot"><img src="/images/showcase/ledger.jpg" alt="Recommendation–Reality Gap" loading="lazy" width="800" height="500"></div><div class="sc-body"><div class="sc-name"><span class="sc-mono" aria-hidden="true">RRG</span><h3>Recommendation–Reality Gap</h3></div><div class="tag">公开研究账本</div><p>一个公开账本：人们真的照着 AI 的推荐去吃饭、旅行、买东西之后，结果怎样。每条记录都附原始来源。</p><span class="more">访问 →</span></div></a></li><li class="sc-card"><a href="https://topcited.ai/tools/distortion" target="_blank" rel="noopener"><div class="sc-shot"><img src="/images/showcase/distortion.jpg" alt="Influencer Distortion System" loading="lazy" width="800" height="500"></div><div class="sc-body"><div class="sc-name"><span class="sc-mono" aria-hidden="true">IDS</span><h3>Influencer Distortion System</h3></div><div class="tag">内容分析 · 已并入 TopCited</div><p>分析博主内容里成体系的情绪操纵：夸大、制造焦虑、追新、煽动性措辞和时间压力。</p><span class="more">访问 →</span></div></a></li></ul>
   </div>
 </section>
+<script>
+(function(){var t=document.querySelector(".sc-track");if(!t)return;var bs=document.querySelectorAll(".sc-btn");
+function step(){var c=t.querySelector(".sc-card");return c?c.getBoundingClientRect().width+20:300;}
+function upd(){bs[0].disabled=t.scrollLeft<4;bs[1].disabled=t.scrollLeft+t.clientWidth>=t.scrollWidth-4;}
+bs.forEach(function(b){b.addEventListener("click",function(){t.scrollBy({left:step()*(+b.getAttribute("data-dir")),behavior:"smooth"});});});
+t.addEventListener("scroll",upd,{passive:true});window.addEventListener("resize",upd);upd();})();
+</script>
 
-{LATEST}
+<section class="block"><div class="wrap"><div class="section-head"><div class="eyebrow">博客</div><h2>我们回答过的问题</h2></div><ul class="post-list"><li><div class="meta">2026-10-23<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/monkey-king-lin-daiyu-game.html">圣黛CP 有游戏可以玩吗？孙悟空和林黛玉为什么会被凑成一对</a></h3><p>圣黛CP 是什么、为什么是孙悟空和林黛玉、有没有能玩的游戏：网页小游戏《圣黛故事》手机打开就能玩，不用下载、不用注册。</p></div></li><li><div class="meta">2026-10-23<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/build-web-game-with-ai-week.html">不会写代码，一个人用 AI 能做出一款网页游戏吗？</a></h3><p>我们用 AI 五天做出并上线了网页游戏《圣黛故事》：怎么分工、出图卡在哪、没有服务器怎么办，附实时访问数。</p></div></li><li><div class="meta">2026-10-22<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/student-product-business-registration.html">大学生做一人公司，需要注册个体户或公司吗？</a></h3><p>学生用 AI 做产品、开始收钱时，要不要注册个体户或公司：电商法、网络交易办法和新公司法怎么说。</p></div></li><li><div class="meta">2026-10-21<br><span class="pill">一人公司</span></div><div><h3><a href="/cn/blog/ai-coding-tools-graduation-project.html">毕业设计能用 AI 编程工具吗？学术诚信要注意什么？</a></h3><p>毕设写代码能不能用 Cursor、Copilot 等 AI 工具：各校规定的共识与分歧、怎么披露、哪些红线不能碰。</p></div></li></ul><p style="margin-top:20px"><a href="/cn/blog/">全部问题 →</a></p></div></section>
 
 <section class="cta-band">
   <div class="wrap">

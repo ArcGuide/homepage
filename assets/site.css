@@ -336,3 +336,8 @@ dialog.wechat .btn { border: 0; cursor: pointer; font: inherit; font-weight: 600
 .sc-body .more { margin-top: auto; font-weight: 600; font-size: .92rem; color: var(--accent-ink); }
 @media (max-width: 1000px) { .sc-track { grid-auto-columns: calc((100% - 20px) / 2.2); } }
 @media (max-width: 640px) { .sc-track { grid-auto-columns: 82%; } .sc-head { align-items: flex-start; } .sc-nav { display: none; } }
+.sc-shot { position: relative; }
+.sc-star { position: absolute; top: 10px; left: 10px; z-index: 1; font-size: .72rem; font-weight: 700; letter-spacing: .04em; color: #3d2a00; background: linear-gradient(135deg, #ffe08a, #f5b82e); padding: 4px 10px; border-radius: 999px; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.sc-card.featured > a { border-color: #e9b949; box-shadow: 0 0 0 1px #e9b949 inset; }
+.sc-card.featured > a:hover { border-color: #d9a52c; box-shadow: 0 0 0 1px #d9a52c inset, 0 14px 30px rgba(10,18,48,.12); }
+.sc-head { align-items: center; }

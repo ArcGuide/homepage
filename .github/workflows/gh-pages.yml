@@ -3,6 +3,10 @@ name: Deploy static site to GitHub Pages
 on:
   push:
     branches: [main]
+  # 每小时重新部署一次，顺便刷新圣黛故事的计数快照（不产生提交）
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,6 +26,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v4
+      # 计数快照：在 GitHub 的服务器上读 Abacus，写成同站的 stats/shengdai.json。
+      # 有些网络或拦截插件连不上 Abacus，博客就先读这个文件。读失败不影响部署。
+      - name: Snapshot game counters
+        run: |
+          mkdir -p stats
+          get() { curl -s -m 10 "https://abacus.jasoncameron.dev/get/starc-shengdai/$1" | python3 -c 'import sys,json
+          try: print(int(json.load(sys.stdin).get("value",0)))
+          except Exception: print("null")'; }
+          o=$(get open); s=$(get start); c=$(get starc)
+          if [ "$o" != null ]; then
+            printf '{"open":%s,"start":%s,"starc":%s,"at":"%s"}\n' "$o" "$s" "$c" "$(date -u +%Y-%m-%dT%H:%MZ)" > stats/shengdai.json
+          fi
+          cat stats/shengdai.json 2>/dev/null || echo "counter unreachable, keeping repo copy"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

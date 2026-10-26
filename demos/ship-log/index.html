@@ -843,7 +843,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   var state = loadState();
   var lang = (function () {
-    var l = Store.get(LANG_KEY);
+    var l = (function(){try{var q=new URLSearchParams(location.search).get('lang');q=q&&q.toLowerCase();return q==='en'?'en':(q==='zh'||q==='cn')?'zh':null}catch(e){return null}})() || Store.get(LANG_KEY);
     if (l === 'en' || l === 'zh') return l;
     try { return /^zh/i.test(navigator.language || '') ? 'zh' : 'en'; } catch (e) { return 'en'; }
   })();

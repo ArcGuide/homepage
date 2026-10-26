@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OPC Workbench</title>
+<title>Agent-Era Tools</title>
 <style>
 :root{--wall:#dcd8d0;--wall-ink:#2a2826;--wall-muted:#5d5852;--pin:#b23a2a}
 @media (prefers-color-scheme:dark){:root{--wall:#1d1c1b;--wall-ink:#ece8e1;--wall-muted:#a7a199;--pin:#e0705c}}
@@ -145,22 +145,23 @@ body{margin:0;color:var(--wall-ink);font:15px/1.5 ui-sans-serif,-apple-system,"H
 </div>
 <script>
 var copy={
- zh:{kicker:"OPC 工作台 · 四个原型",lede:"四个产品点子，每个都只用一个 HTML 文件做成。不需要服务器和数据库，数据只在你自己的浏览器里处理。",
+ zh:{kicker:"Agent 时代的小工具",lede:"四个专注的小工具，帮你看清 AI Agent 在做什么、读什么，也帮你自己保持出货的节奏。",
   fgPlate:"图版 · 来访者",fgTitle:"智能体野外图鉴",fgDesc:"把网站访问日志拖进来，就能看到来过哪些 AI 爬虫和 Agent，它们在找什么，又在哪里扑了空。",
   tdK:"第一步 · 归拢",tdTitle:"把数据整理成 Agent 读得懂的样子",tdDesc:"放进一张杂乱的表格，逐列看清问题，一键清理，最后附上一份数据说明书。",
   rpTitle:"Agent 放映室",rpDesc:"把 Agent 的运行记录当成一段素材来剪：一步步回放，每次工具调用、每个报错、每笔 token 都在时间线上。",
-  note:"这些都是能直接上手用的原型。打开任何一个，点「示例」就能看到完整流程。",
+  note:"每个工具都备好了示例数据，打开就能在一分钟内看完整个流程。",
   slBand:"本周成绩",slTitle:"上线了才算",slDesc:"为创业者做的训练日志：只记录真正发布出去的东西，有连续周数、奖牌和可以分享的周报海报。"},
- en:{kicker:"OPC Workbench · four prototypes",lede:"Four product ideas, each built as a single HTML file. No server, no database. Your data is processed in your own browser.",
+ en:{kicker:"Tools for the agent era",lede:"Four focused tools for seeing what AI agents read and do, and for keeping your own shipping streak alive.",
   fgPlate:"Plate · Visitors",fgTitle:"Agent Field Guide",fgDesc:"Drop in your server log and see which AI crawlers and agents came by, what they were after, and where they came up empty.",
   tdK:"Step one · Gather",tdTitle:"Tidy your data until an agent can read it",tdDesc:"Bring a messy spreadsheet, look at it column by column, clean it in a pass, and leave with a data dictionary.",
-  rpTitle:"Agent Screening Room",rpDesc:"Cut an agent's run log like footage. Replay it step by step with every tool call, error and token on the timeline.",
-  note:"Every one of these actually works. Open any of them and hit the sample to see the whole flow.",
+  rpTitle:"Agent Replay",rpDesc:"Cut an agent's run log like footage. Replay it step by step with every tool call, error and token on the timeline.",
+  note:"Each one comes with sample data, so you can see the whole thing in about a minute.",
   slBand:"This week",slTitle:"It only counts if it shipped",slDesc:"A training log for founders. Log what you actually put out there, keep the streak, earn medals, post the weekly poster."}};
-var lang="zh";try{lang=localStorage.getItem("wb-lang")||((navigator.language||"").indexOf("zh")===0?"zh":"en")}catch(e){}
+var lang="zh";try{lang=(function(){try{var q=new URLSearchParams(location.search).get('lang');q=q&&q.toLowerCase();return q==='en'?'en':(q==='zh'||q==='cn')?'zh':null}catch(e){return null}})()||localStorage.getItem("wb-lang")||((navigator.language||"").indexOf("zh")===0?"zh":"en")}catch(e){}
 function paint(){var d=copy[lang];document.documentElement.lang=lang==="zh"?"zh":"en";
  document.querySelectorAll("[data-t]").forEach(function(n){n.textContent=d[n.getAttribute("data-t")]});
- document.getElementById("lng").textContent=lang==="zh"?"Read in English":"切换到中文";document.title=lang==="zh"?"OPC 工作台":"OPC Workbench"}
+ document.getElementById("lng").textContent=lang==="zh"?"Read in English":"切换到中文";document.title=lang==="zh"?"Agent 时代的小工具":"Agent-Era Tools";
+ document.querySelectorAll(".board>a").forEach(function(a){a.href=a.getAttribute("href").split("?")[0]+"?lang="+lang})}
 document.getElementById("lng").addEventListener("click",function(){lang=lang==="zh"?"en":"zh";try{localStorage.setItem("wb-lang",lang)}catch(e){}paint()});
 paint();
 </script>

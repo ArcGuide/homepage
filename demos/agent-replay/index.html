@@ -1332,7 +1332,7 @@ var I18N = {
       synthetic: '时间为推算（原始日志没有时间戳）。', footer: '由 Agent 回放 在本地生成。' }
   }
 };
-var lang = store.get('ar.lang');
+var lang = (function(){try{var q=new URLSearchParams(location.search).get('lang');q=q&&q.toLowerCase();return q==='en'?'en':(q==='zh'||q==='cn')?'zh':null}catch(e){return null}})() || store.get('ar.lang');
 if (lang !== 'en' && lang !== 'zh') lang = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
 function t(k, v) {
   var s = I18N[lang][k]; if (s == null) s = I18N.en[k]; if (s == null) s = k;

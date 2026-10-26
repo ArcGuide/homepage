@@ -1377,7 +1377,8 @@ const NOTE_ZH = {
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let LANG = "en";
-try { const s = localStorage.getItem("tidy-lang"); if (s === "en" || s === "zh") LANG = s; else if ((navigator.language || "").toLowerCase().startsWith("zh")) LANG = "zh"; } catch (e) { }
+const urlLang = (function(){try{var q=new URLSearchParams(location.search).get('lang');q=q&&q.toLowerCase();return q==='en'?'en':(q==='zh'||q==='cn')?'zh':null}catch(e){return null}})();
+try { const s = urlLang || localStorage.getItem("tidy-lang"); if (s === "en" || s === "zh") LANG = s; else if ((navigator.language || "").toLowerCase().startsWith("zh")) LANG = "zh"; } catch (e) { }
 function t(k, v) {
   let s = I18N[LANG][k]; if (s == null) s = I18N.en[k]; if (s == null) s = k;
   if (v) s = s.replace(/\{(\w+)\}/g, (m, n) => v[n] != null ? v[n] : m);

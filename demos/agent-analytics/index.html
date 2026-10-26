@@ -1085,7 +1085,8 @@ var I18N = {
  }
 };
 var lang = 'en';
-try { var saved = localStorage.getItem('agentFieldGuide.lang'); if (saved === 'zh' || saved === 'en') lang = saved; else if (/^zh/i.test(navigator.language||'')) lang = 'zh'; } catch(e){}
+var urlLang = (function(){try{var q=new URLSearchParams(location.search).get('lang');q=q&&q.toLowerCase();return q==='en'?'en':(q==='zh'||q==='cn')?'zh':null}catch(e){return null}})();
+try { var saved = urlLang || localStorage.getItem('agentFieldGuide.lang'); if (saved === 'zh' || saved === 'en') lang = saved; else if (/^zh/i.test(navigator.language||'')) lang = 'zh'; } catch(e){}
 function t(k, vars){
   var s = (I18N[lang][k] != null ? I18N[lang][k] : I18N.en[k]);
   if (s == null) return k;

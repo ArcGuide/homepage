@@ -1,0 +1,2222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Replay — Screening Room</title>
+<meta name="description" content="Cut a replay of any agent run: program monitor, multi-track timeline, inspector. Runs entirely in your browser.">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#e9e8e3; --deck:#f4f3ef; --deck-2:#fbfaf7; --deck-3:#e2e0d9; --well:#ffffff;
+  --seam:#d3d0c7; --seam-2:#c2beb3;
+  --ink:#1d1e22; --ink-2:#4f525b; --ink-3:#7c7f88;
+  --tally:#4d7a00; --tally-ink:#ffffff; --tally-soft:rgba(77,122,0,.12);
+  --ph:#d6331f;
+  --v-msg:#2a78d6; --v-think:#eda100; --v-call:#eb6834; --v-res:#1baf7a; --v-err:#d03b3b; --v-user:#5a6170; --v-sys:#9a9ea8;
+  --wave-up:#eb6834; --wave-dn:#2a78d6;
+  --tok-i:#2a78d6; --tok-o:#eb6834; --tok-cr:#1baf7a; --tok-cw:#c98500;
+  --term-bg:#16181d; --term-ink:#d9dde4; --term-dim:#8b919c;
+  --add-bg:rgba(27,175,122,.14); --add-ink:#0b6b49; --del-bg:rgba(208,59,59,.12); --del-ink:#a32626;
+  --shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(0,0,0,.06);
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#08090b; --deck:#121317; --deck-2:#181a1f; --deck-3:#20232a; --well:#0b0c0f;
+    --seam:#262a32; --seam-2:#343944;
+    --ink:#e7e8ec; --ink-2:#a3a8b3; --ink-3:#6b717d;
+    --tally:#c6f432; --tally-ink:#11140a; --tally-soft:rgba(198,244,50,.10);
+    --ph:#ff4b3a;
+    --v-msg:#3987e5; --v-think:#c98500; --v-call:#d95926; --v-res:#199e70; --v-err:#e0453f; --v-user:#8a93a6; --v-sys:#555b67;
+    --wave-up:#d95926; --wave-dn:#3987e5;
+    --tok-i:#3987e5; --tok-o:#d95926; --tok-cr:#199e70; --tok-cw:#c98500;
+    --term-bg:#050607; --term-ink:#d4d8df; --term-dim:#7b818c;
+    --add-bg:rgba(25,158,112,.16); --add-ink:#6fdcb0; --del-bg:rgba(224,69,63,.15); --del-ink:#ff9b95;
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#08090b; --deck:#121317; --deck-2:#181a1f; --deck-3:#20232a; --well:#0b0c0f;
+  --seam:#262a32; --seam-2:#343944;
+  --ink:#e7e8ec; --ink-2:#a3a8b3; --ink-3:#6b717d;
+  --tally:#c6f432; --tally-ink:#11140a; --tally-soft:rgba(198,244,50,.10);
+  --ph:#ff4b3a;
+  --v-msg:#3987e5; --v-think:#c98500; --v-call:#d95926; --v-res:#199e70; --v-err:#e0453f; --v-user:#8a93a6; --v-sys:#555b67;
+  --wave-up:#d95926; --wave-dn:#3987e5;
+  --tok-i:#3987e5; --tok-o:#d95926; --tok-cr:#199e70; --tok-cw:#c98500;
+  --term-bg:#050607; --term-ink:#d4d8df; --term-dim:#7b818c;
+  --add-bg:rgba(25,158,112,.16); --add-ink:#6fdcb0; --del-bg:rgba(224,69,63,.15); --del-ink:#ff9b95;
+  --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:12.5px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.mono,.tc{font-family:var(--mono);font-variant-numeric:tabular-nums}
+kbd{font:600 10.5px var(--mono);padding:1px 5px;border:1px solid var(--seam-2);border-bottom-width:2px;border-radius:4px;background:var(--deck-2);color:var(--ink-2)}
+
+/* ── suite frame ── */
+.suite{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:32px auto minmax(0,1fr) auto;height:100vh;height:100dvh}
+.menubar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--deck);border-bottom:1px solid var(--seam);position:relative;z-index:30;user-select:none}
+.marque{display:flex;align-items:center;gap:8px;margin-right:10px;font:700 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.reel-glyph{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink);position:relative;flex:none}
+.reel-glyph::before{content:"";position:absolute;inset:3px;border-radius:50%;background:radial-gradient(circle at 50% 18%,var(--ink) 1.3px,transparent 1.6px),radial-gradient(circle at 18% 70%,var(--ink) 1.3px,transparent 1.6px),radial-gradient(circle at 82% 70%,var(--ink) 1.3px,transparent 1.6px)}
+.reel-glyph::after{content:"";position:absolute;right:-6px;bottom:-2px;width:7px;height:2px;background:var(--tally);border-radius:1px}
+.menu{position:relative}
+.menu-title{background:none;border:0;padding:5px 9px;border-radius:5px;color:var(--ink-2)}
+.menu-title:hover,.menu.open .menu-title{background:var(--deck-3);color:var(--ink)}
+.menu-pop{display:none;position:absolute;left:0;top:calc(100% + 3px);min-width:250px;padding:5px;background:var(--deck-2);border:1px solid var(--seam-2);border-radius:8px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.menu.open>.menu-pop{display:block}
+.mi{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:6px 10px;border-radius:5px;color:var(--ink);position:relative;white-space:nowrap}
+.mi:hover,.mi:focus-visible,.sub.open>.mi{background:var(--tally);color:var(--tally-ink);outline:none}
+.mi:disabled{opacity:.4;pointer-events:none}
+.mi .ks{margin-left:auto;font:11px var(--mono);opacity:.65}
+.mi .chk{width:12px;font-family:var(--mono)}
+.mi .arrow{margin-left:auto;opacity:.7}
+.menu-sep{height:1px;background:var(--seam);margin:5px 4px}
+.sub{position:relative}
+.sub-pop{display:none;position:absolute;left:calc(100% - 4px);top:-5px;min-width:170px;padding:5px;background:var(--deck-2);border:1px solid var(--seam-2);border-radius:8px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.sub.open>.sub-pop{display:block}
+@media (hover:hover){.sub:hover>.sub-pop{display:block}}
+.menubar .spacer{flex:1}
+.local-lamp{display:flex;align-items:center;gap:7px;font:11px var(--mono);color:var(--ink-2);white-space:nowrap;padding:0 4px}
+.local-lamp i{width:7px;height:7px;border-radius:50%;background:var(--tally);box-shadow:0 0 8px var(--tally)}
+.drawer-btn{display:none;background:var(--deck-3);border:1px solid var(--seam);border-radius:5px;padding:3px 8px;font:11px var(--mono);color:var(--ink-2);margin-left:4px}
+
+/* ── slate strip (run identity) ── */
+.slate-strip{display:flex;align-items:center;gap:14px;padding:6px 12px;background:var(--deck-2);border-bottom:1px solid var(--seam);min-width:0;overflow:hidden}
+.clap{flex:none;width:30px;height:20px;border-radius:3px;background:repeating-linear-gradient(135deg,var(--ink) 0 5px,var(--deck-2) 5px 10px);border:1px solid var(--ink);opacity:.85}
+.clip-name{font-weight:650;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.slate-fields{display:flex;gap:16px;flex:none;font:11px var(--mono);color:var(--ink-3)}
+.slate-fields b{color:var(--ink);font-weight:600;margin-left:5px}
+.ribbon{font:10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--tally-soft);color:var(--ink);border:1px solid var(--seam-2)}
+
+/* ── bay ── */
+.bay{display:grid;grid-template-columns:250px minmax(0,1fr) 296px;min-height:0}
+.panel{background:var(--deck);display:flex;flex-direction:column;min-height:0;min-width:0}
+.panel-head{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border-bottom:1px solid var(--seam);font:650 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);flex:none}
+.panel-head .grow{flex:1}
+.bin{border-right:1px solid var(--seam)}
+.inspector{border-left:1px solid var(--seam)}
+.bin-tabs{display:flex;gap:2px}
+.bin-tab{background:none;border:0;border-bottom:2px solid transparent;padding:6px 6px 5px;font:inherit;letter-spacing:inherit;color:var(--ink-3);text-transform:inherit}
+.bin-tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--tally)}
+.bin-find{margin:8px 8px 4px;padding:6px 8px;background:var(--well);border:1px solid var(--seam);border-radius:5px;outline:none}
+.bin-find:focus{border-color:var(--tally)}
+.bin-kinds{display:flex;flex-wrap:wrap;gap:4px;padding:2px 8px 8px}
+.kind-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border:1px solid var(--seam);border-radius:999px;background:none;font:10.5px var(--mono);color:var(--ink-2)}
+.kind-chip[aria-pressed="false"]{opacity:.45}
+.kind-chip i,.sw{width:8px;height:8px;border-radius:2px;display:inline-block;flex:none}
+.bin-scroll{flex:1;overflow:auto;position:relative;min-height:0;border-top:1px solid var(--seam)}
+.bin-rows{position:relative}
+.bin-row{position:absolute;left:0;right:0;height:26px;display:flex;align-items:center;gap:7px;padding:0 8px 0 0;cursor:pointer;border-bottom:1px solid color-mix(in srgb,var(--seam) 55%,transparent)}
+.bin-row:hover{background:var(--deck-3)}
+.bin-row.is-live{background:var(--tally-soft);box-shadow:inset 3px 0 0 var(--tally)}
+.bin-row .bar{width:3px;align-self:stretch;flex:none}
+.bin-row .tc{font-size:10.5px;color:var(--ink-3);flex:none;width:58px}
+.bin-row .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.bin-row .lbl b{font-weight:600}
+.bin-row .x{color:var(--v-err);font:700 11px var(--mono)}
+.tool-roster{flex:1;overflow:auto;padding:6px 8px 12px}
+.tool-line{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:7px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent}
+.tool-line:hover{background:var(--deck-3);border-color:var(--seam)}
+.tool-line .nm{font:600 12px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tool-line .ct{font:12px var(--mono);font-variant-numeric:tabular-nums}
+.tool-line .meter{grid-column:1/-1;height:4px;background:var(--deck-3);border-radius:2px;overflow:hidden}
+.tool-line .meter i{display:block;height:100%;background:var(--v-call);border-radius:2px}
+.tool-line .sub-info{grid-column:1/-1;font:10.5px var(--mono);color:var(--ink-3)}
+
+/* ── program monitor ── */
+.monitor{background:var(--bg);display:flex;flex-direction:column;min-height:0;min-width:0;padding:10px 12px 0}
+.monitor-frame{position:relative;flex:1;min-height:0;background:var(--well);border:1px solid var(--seam-2);border-radius:6px;overflow:hidden;box-shadow:0 0 0 4px var(--deck), 0 0 0 5px var(--seam)}
+.burn{position:absolute;z-index:3;font:600 10.5px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.62);color:#e9eaee;pointer-events:none}
+.burn.tl{left:8px;top:5px}
+.burn.tr{right:8px;top:5px}
+.mon-strip{position:absolute;left:0;right:0;top:0;height:30px;background:var(--deck);border-bottom:1px solid var(--seam);z-index:2}
+.mon-strip .live-lbl{position:absolute;left:50%;top:0;transform:translateX(-50%);line-height:30px;font:11px var(--mono);color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+.burn .rec{display:inline-block;width:7px;height:7px;border-radius:50%;background:#666;margin-right:6px;vertical-align:0}
+.burn.on-air .rec{background:#ff3b30;box-shadow:0 0 8px #ff3b30}
+.corner{position:absolute;width:14px;height:14px;border-color:var(--seam-2);border-style:solid;z-index:2;pointer-events:none}
+.corner.a{left:6px;top:36px;border-width:1px 0 0 1px}.corner.b{right:6px;top:36px;border-width:1px 1px 0 0}.corner.c{left:6px;bottom:6px;border-width:0 0 1px 1px}.corner.d{right:6px;bottom:6px;border-width:0 1px 1px 0}
+.screen{position:absolute;inset:30px 0 0 0;overflow:auto;padding:22px 22px 26px;scroll-behavior:auto}
+.feed-head{font:11px var(--mono);color:var(--ink-3);text-align:center;padding:4px 0 14px}
+.shot{max-width:860px;margin:0 auto 12px;border-radius:7px;position:relative;animation:cutIn .22s ease-out}
+@keyframes cutIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.shot.is-live{box-shadow:0 0 0 1.5px var(--tally), 0 0 22px var(--tally-soft)}
+.shot .slug{display:flex;align-items:center;gap:8px;font:11px var(--mono);color:var(--ink-3);padding:7px 11px 0}
+.slug .who{font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.slug .tcode{margin-left:auto}
+.slug .dur{color:var(--ink-3)}
+.shot--user{background:var(--deck-3);border:1px solid var(--seam)}
+.shot--assistant{background:var(--deck-2);border:1px solid var(--seam)}
+.shot--assistant .slug .who{color:var(--v-msg)}
+.shot--thought{background:transparent;border:1px dashed var(--seam-2)}
+.shot--thought .slug .who{color:var(--v-think)}
+.shot--thought .copy{font-style:italic;color:var(--ink-2)}
+.shot--system{background:transparent;border:1px solid var(--seam)}
+.shot--system .copy{color:var(--ink-3);font-size:11.5px}
+.copy{padding:6px 12px 11px;white-space:pre-wrap;word-break:break-word;font-size:13px}
+.copy code{font-family:var(--mono);font-size:.92em;background:var(--deck-3);padding:0 4px;border-radius:3px}
+.caret{display:inline-block;width:7px;height:14px;background:var(--tally);vertical-align:-2px;margin-left:1px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.shot--call{background:var(--deck-2);border:1px solid var(--seam);overflow:hidden}
+.shot--call .slug{padding:8px 11px;border-bottom:1px solid var(--seam);background:var(--deck)}
+.slug .tool{font-weight:700;color:var(--ink);letter-spacing:0;text-transform:none}
+.slug .arg{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--ink-2)}
+.slug .chip{width:8px;height:8px;border-radius:2px;background:var(--v-call);flex:none}
+.retake{font:700 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid var(--v-think);color:var(--v-think)}
+.cut-body{padding:10px 11px}
+.note{font-size:11.5px;color:var(--ink-3);margin:0 0 6px}
+.term{margin:0;background:var(--term-bg);color:var(--term-ink);font:12px/1.5 var(--mono);padding:10px 12px;border-radius:5px;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:none}
+.term .ps{color:var(--tally);user-select:none}
+.term.out{color:var(--term-dim)}
+.term.out.bad{color:#ff9b95}
+.path{font:12px var(--mono);color:var(--ink);background:var(--deck-3);padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:7px;word-break:break-all}
+.diff{margin:0;font:12px/1.5 var(--mono);border:1px solid var(--seam);border-radius:5px;overflow:auto;background:var(--well)}
+.diff div{white-space:pre-wrap;word-break:break-word;padding:0 10px 0 26px;position:relative}
+.diff div::before{position:absolute;left:9px;opacity:.8}
+.diff .add{background:var(--add-bg);color:var(--add-ink)}.diff .add::before{content:"+"}
+.diff .del{background:var(--del-bg);color:var(--del-ink)}.diff .del::before{content:"−"}
+.diff .ctx{color:var(--ink-2)}
+.diff .gap{color:var(--ink-3);text-align:center;padding:0}
+.take{border-top:1px solid var(--seam);padding:9px 11px 11px;background:var(--deck)}
+.take-tag{font:700 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--v-res);margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.take.bad{background:color-mix(in srgb,var(--v-err) 7%,var(--deck))}
+.take.bad .take-tag{color:var(--v-err)}
+.rolling{font:11px var(--mono);color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.rolling i{width:8px;height:8px;border-radius:50%;background:var(--ph);animation:blink 1s steps(2) infinite}
+.collapsed-read{display:flex;align-items:center;gap:10px;font:12px var(--mono);color:var(--ink-2)}
+.pre-plain{margin:0;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;color:var(--ink-2);max-height:none}
+.more{margin-top:7px;background:var(--deck-3);border:1px solid var(--seam);border-radius:4px;padding:3px 9px;font:11px var(--mono);color:var(--ink-2)}
+.more:hover{border-color:var(--tally);color:var(--ink)}
+.todos{list-style:none;margin:0;padding:0;font-size:12.5px}
+.todos li{display:flex;gap:8px;padding:2px 0}
+.todos .st{font-family:var(--mono);width:16px;color:var(--ink-3)}
+.todos .done{color:var(--ink-3);text-decoration:line-through}
+.todos .doing .st{color:var(--tally)}
+.shot--err{border:1px solid var(--v-err);background:color-mix(in srgb,var(--v-err) 8%,var(--deck-2))}
+.shot--err .slug .who{color:var(--v-err)}
+
+/* slate (empty state) */
+.slate{position:absolute;inset:0;display:grid;place-items:center;padding:30px;text-align:center;z-index:4;background:var(--well)}
+.slate[hidden]{display:none}
+.slate-card{max-width:560px}
+.slate-bars{height:14px;border-radius:3px 3px 0 0;background:repeating-linear-gradient(135deg,var(--ink) 0 14px,var(--well) 14px 28px);border:1.5px solid var(--ink);border-bottom:0;margin:0 auto;width:220px;transform:rotate(-4deg);transform-origin:left bottom}
+.slate-board{border:1.5px solid var(--ink);border-radius:0 0 4px 4px;width:220px;margin:0 auto 20px;display:grid;grid-template-columns:1fr 1fr;font:10px var(--mono);text-transform:uppercase;letter-spacing:.1em;text-align:left}
+.slate-board div{padding:5px 8px;border-top:1px solid var(--seam-2)}
+.slate-board div:nth-child(odd){border-right:1px solid var(--seam-2)}
+.slate-board b{display:block;font-size:13px;letter-spacing:.02em;color:var(--ink)}
+.slate h2{margin:0 0 8px;font-size:20px;letter-spacing:-.01em}
+.slate p{margin:0 auto 16px;color:var(--ink-2);max-width:470px}
+.slate-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn{border:1px solid var(--seam-2);background:var(--deck-2);border-radius:6px;padding:7px 13px;font-weight:600}
+.btn:hover{border-color:var(--ink-3)}
+.btn.go{background:var(--tally);color:var(--tally-ink);border-color:transparent}
+.slate small{display:block;margin-top:14px;font:11px var(--mono);color:var(--ink-3)}
+.dropping .monitor-frame{box-shadow:0 0 0 4px var(--deck), 0 0 0 6px var(--tally)}
+
+/* transport */
+.transport{display:flex;align-items:center;gap:10px;padding:10px 2px 10px;flex-wrap:wrap}
+.tcode-big{font:600 22px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--tally);background:var(--well);border:1px solid var(--seam);padding:5px 9px;border-radius:5px;min-width:150px;text-align:center}
+.tcode-sub{font:10.5px var(--mono);color:var(--ink-3);line-height:1.35;min-width:96px}
+.tcode-sub b{color:var(--ink-2);font-weight:600}
+.deck-btns{display:flex;gap:3px}
+.tbtn{width:34px;height:30px;border:1px solid var(--seam);background:var(--deck-2);border-radius:5px;display:grid;place-items:center;color:var(--ink)}
+.tbtn:hover{border-color:var(--ink-3)}
+.tbtn.play{width:44px;background:var(--tally);color:var(--tally-ink);border-color:transparent}
+.tbtn svg{width:14px;height:14px;fill:currentColor}
+.tbtn.mark.on{border-color:var(--tally);color:var(--tally)}
+.tbtn.mark{font:700 11px var(--mono)}
+.speed{height:30px;border:1px solid var(--seam);background:var(--deck-2);border-radius:5px;padding:0 6px;font:12px var(--mono)}
+.scrub{flex:1;min-width:140px;accent-color:var(--tally)}
+.scrub-wrap{flex:1;display:flex;align-items:center;gap:8px;min-width:160px}
+
+/* ── timeline ── */
+.timeline{background:var(--deck);border-top:1px solid var(--seam);display:flex;flex-direction:column;min-width:0}
+.tl-bar{display:flex;align-items:center;gap:10px;height:30px;padding:0 10px;border-bottom:1px solid var(--seam);font:11px var(--mono);color:var(--ink-3);overflow:hidden;white-space:nowrap}
+.tl-bar .ttl{font-weight:650;letter-spacing:.12em;text-transform:uppercase}
+.seg{display:inline-flex;border:1px solid var(--seam);border-radius:5px;overflow:hidden}
+.seg button{background:none;border:0;padding:3px 8px;font:11px var(--mono);color:var(--ink-3)}
+.seg button[aria-pressed="true"]{background:var(--deck-3);color:var(--ink)}
+.zoom-btn{background:var(--deck-2);border:1px solid var(--seam);border-radius:4px;width:24px;height:22px;font:12px var(--mono);color:var(--ink-2);padding:0}
+.zoom-btn.wide{width:auto;padding:0 7px}
+.keys{margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--ink-3);font-size:10.5px}
+.keys span{display:inline-flex;gap:4px;align-items:center}
+.tl-body{display:grid;grid-template-columns:118px minmax(0,1fr);position:relative}
+.track-heads{border-right:1px solid var(--seam);background:var(--deck)}
+.track-head{display:flex;align-items:center;gap:7px;padding:0 9px;font:10.5px var(--mono);color:var(--ink-2);border-bottom:1px solid var(--seam);white-space:nowrap;overflow:hidden}
+.track-head .id{font-weight:700;color:var(--ink-3);width:24px}
+.track-head.ruler-h{color:var(--ink-3)}
+.tl-canvas-wrap{position:relative;min-width:0;cursor:crosshair}
+#tl{display:block;width:100%}
+.tl-tip{position:fixed;z-index:50;pointer-events:none;background:var(--deck-2);border:1px solid var(--seam-2);border-radius:6px;padding:6px 9px;font:11px var(--mono);color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:340px;white-space:pre-wrap;display:none}
+
+/* ── inspector ── */
+.insp-scroll{overflow:auto;flex:1;min-height:0;padding:10px 12px 18px}
+.insp-sec{margin-bottom:16px}
+.insp-sec h3{margin:0 0 8px;font:650 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:6px}
+.insp-sec h3 .hint{margin-left:auto;letter-spacing:0;text-transform:none;font-weight:400}
+.sheet{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tile{background:var(--deck-2);border:1px solid var(--seam);border-radius:6px;padding:7px 9px;box-shadow:var(--shadow)}
+.tile .k{font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.tile .v{font:600 17px var(--mono);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v.bad{color:var(--v-err)}
+.tile .s{font:10.5px var(--mono);color:var(--ink-3)}
+.vitals{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:11px var(--mono);color:var(--ink-2);margin-top:8px}
+.vitals b{color:var(--ink);font-weight:600;text-align:right}
+.levels{position:relative}
+.level-row{display:grid;grid-template-columns:1fr auto;align-items:end;margin-bottom:2px;font:10.5px var(--mono);color:var(--ink-2)}
+.level-row b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.level-row span{display:flex;align-items:center;gap:6px}
+#levels{display:block;width:100%;height:176px;cursor:crosshair}
+.lv-tip{position:absolute;pointer-events:none;background:var(--deck-2);border:1px solid var(--seam-2);border-radius:6px;padding:6px 8px;font:10.5px var(--mono);display:none;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.25);z-index:5}
+.cue{display:block;width:100%;text-align:left;background:var(--deck-2);border:1px solid var(--seam);border-radius:6px;padding:7px 9px;margin-bottom:6px}
+.cue:hover{border-color:var(--ink-3)}
+.cue .top{display:flex;gap:8px;align-items:baseline;font:11px var(--mono)}
+.cue .top b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.cue .top .tc{margin-left:auto;color:var(--ink-3);flex:none}
+.cue .msg{font:11px var(--mono);color:var(--del-ink);margin-top:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+.cue .next{font-size:11.5px;color:var(--ink-2);margin-top:5px;padding-top:5px;border-top:1px dashed var(--seam);word-break:break-word}
+.cue .next em{font:normal 600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-right:6px}
+.cue.err{border-left:3px solid var(--v-err)}
+.take-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--seam);padding:6px 2px;font:11px var(--mono)}
+.take-row:hover{background:var(--deck-2)}
+.take-row .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.take-row .d{font-weight:650;font-variant-numeric:tabular-nums}
+.quiet{color:var(--ink-3);font-size:11.5px}
+
+/* ingest + render overlays */
+.strip-progress{position:fixed;left:0;right:0;top:0;height:3px;z-index:90;pointer-events:none;display:none}
+.strip-progress i{display:block;height:100%;width:0;background:var(--tally);box-shadow:0 0 10px var(--tally);transition:width .15s}
+.render-q{position:fixed;right:16px;bottom:16px;z-index:80;width:320px;background:var(--deck-2);border:1px solid var(--seam-2);border-radius:8px;padding:11px 13px;box-shadow:0 18px 50px rgba(0,0,0,.4);display:none}
+.render-q.show{display:block;animation:cutIn .2s ease-out}
+.render-q .rq-t{font:600 12px var(--mono);display:flex;justify-content:space-between;gap:8px}
+.render-q .rq-s{font:11px var(--mono);color:var(--ink-3);margin-top:3px;word-break:break-all}
+.rq-track{height:6px;border-radius:3px;background:var(--deck-3);margin-top:9px;overflow:hidden;position:relative}
+.rq-track i{position:absolute;left:0;top:0;bottom:0;width:0;background:repeating-linear-gradient(135deg,var(--tally) 0 8px,color-mix(in srgb,var(--tally) 70%,transparent) 8px 16px);background-size:22px 22px;animation:barber .6s linear infinite;transition:width .18s ease-out}
+@keyframes barber{to{background-position:22px 0}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:95;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font:12px var(--mono);display:none;max-width:90vw}
+.toast.show{display:block;animation:cutIn .2s}
+
+dialog{border:1px solid var(--seam-2);border-radius:10px;background:var(--deck-2);color:var(--ink);padding:0;width:min(680px,94vw);box-shadow:0 30px 80px rgba(0,0,0,.5)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.dlg-head{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--seam);font:650 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.dlg-head button{margin-left:auto;background:none;border:0;font-size:16px;color:var(--ink-3)}
+.dlg-body{padding:14px;max-height:70vh;overflow:auto}
+.dlg-body h4{margin:14px 0 6px;font-size:13px}
+.dlg-body h4:first-child{margin-top:0}
+.dlg-body p{margin:0 0 8px;color:var(--ink-2)}
+.dlg-body pre{margin:0 0 8px;background:var(--term-bg);color:var(--term-ink);padding:10px 12px;border-radius:6px;font:11.5px/1.5 var(--mono);overflow:auto}
+.dlg-body textarea{width:100%;height:240px;background:var(--well);border:1px solid var(--seam);border-radius:6px;padding:10px;font:11.5px var(--mono);resize:vertical}
+.dlg-foot{display:flex;justify-content:flex-end;gap:8px;padding:0 14px 14px}
+.keymap{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center}
+
+.scrim{display:none}
+/* ── narrower suites: inspector into a drawer ── */
+@media (max-width:1180px){
+  .bay{grid-template-columns:230px minmax(0,1fr)}
+  .inspector{position:fixed;right:0;top:32px;bottom:0;width:min(330px,92vw);z-index:40;transform:translateX(102%);transition:transform .2s ease;box-shadow:-20px 0 50px rgba(0,0,0,.35)}
+  .suite.show-insp .inspector{transform:none}
+  .drawer-btn.for-insp{display:inline-block}
+  .suite.show-insp .scrim,.suite.show-bin .scrim{display:block;position:fixed;inset:32px 0 0;background:rgba(0,0,0,.4);z-index:35}
+}
+/* ── phones: monitor + timeline, bins in drawers ── */
+@media (max-width:820px){
+  body{overflow:auto}
+  .suite{height:auto;min-height:100dvh;grid-template-rows:auto auto auto auto;align-content:start}
+  .menubar{position:sticky;top:0;height:40px;padding:0 6px}
+  .marque span.wordmark{display:none}
+  .local-lamp span{display:none}
+  .menu-title{padding:6px 7px}
+  .menu-pop{position:fixed;left:8px;right:8px;top:44px;min-width:0}
+  .sub-pop{position:static;box-shadow:none;border:0;padding:0 0 0 14px;background:none}
+  .bay{display:block}
+  .bin{position:fixed;left:0;top:40px;bottom:0;width:min(320px,88vw);z-index:40;transform:translateX(-102%);transition:transform .2s ease;box-shadow:20px 0 50px rgba(0,0,0,.35)}
+  .inspector{top:40px}
+  .suite.show-bin .bin{transform:none}
+  .suite.show-insp .scrim,.suite.show-bin .scrim{inset:40px 0 0}
+  .drawer-btn{display:inline-block}
+  .slate-strip{flex-wrap:wrap;gap:6px 12px;padding:8px 12px}
+  .clip-name{flex-basis:calc(100% - 50px)}
+  .slate-fields{flex-wrap:wrap;gap:4px 12px}
+  .monitor{padding:10px 10px 0}
+  .monitor-frame{height:62vh;flex:none}
+  .screen{padding:16px 10px 20px}
+  .mon-strip .live-lbl{display:none}
+  .tcode-sub{min-width:0;flex:none}
+  .marque{margin-right:2px}
+  .local-lamp{padding:0 2px}
+  .copy{font-size:13.5px}
+  .transport{gap:8px}
+  .tcode-big{font-size:19px;min-width:0;flex:1 1 150px}
+  .deck-btns .tbtn{width:38px}
+  .slate-strip .slate-fields{font-size:10.5px;flex:1 1 100%}
+  .scrub-wrap{flex-basis:100%;order:5}
+  .keys{display:none}
+  .tl-body{grid-template-columns:64px minmax(0,1fr)}
+  .track-head .nm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="suite" id="suite">
+  <nav class="menubar" id="menubar" aria-label="Menu">
+    <div class="marque"><span class="reel-glyph" aria-hidden="true"></span><span class="wordmark" data-i="brand"></span></div>
+    <div class="menu" data-menu>
+      <button class="menu-title" data-i="m_file" aria-haspopup="true"></button>
+      <div class="menu-pop" role="menu">
+        <button class="mi" data-act="open"><span class="chk"></span><span data-i="mi_open"></span><span class="ks">⌘O</span></button>
+        <button class="mi" data-act="paste"><span class="chk"></span><span data-i="mi_paste"></span></button>
+        <button class="mi" data-act="sample"><span class="chk"></span><span data-i="mi_sample"></span></button>
+        <div class="menu-sep"></div>
+        <button class="mi" data-act="eject"><span class="chk"></span><span data-i="mi_eject"></span></button>
+      </div>
+    </div>
+    <div class="menu" data-menu>
+      <button class="menu-title" data-i="m_render" aria-haspopup="true"></button>
+      <div class="menu-pop" role="menu">
+        <button class="mi" data-act="render" data-needs-run><span class="chk"></span><span data-i="mi_render"></span><span class="ks">⇧R</span></button>
+        <button class="mi" data-act="notes" data-needs-run><span class="chk"></span><span data-i="mi_notes"></span></button>
+      </div>
+    </div>
+    <div class="menu" data-menu>
+      <button class="menu-title" data-i="m_view" aria-haspopup="true"></button>
+      <div class="menu-pop" role="menu">
+        <div class="sub" data-sub>
+          <button class="mi" data-subopen><span class="chk"></span><span data-i="mi_lang"></span><span class="arrow">▸</span></button>
+          <div class="sub-pop">
+            <button class="mi" data-lang="en"><span class="chk"></span>English</button>
+            <button class="mi" data-lang="zh"><span class="chk"></span>中文</button>
+          </div>
+        </div>
+        <div class="sub" data-sub>
+          <button class="mi" data-subopen><span class="chk"></span><span data-i="mi_look"></span><span class="arrow">▸</span></button>
+          <div class="sub-pop">
+            <button class="mi" data-theme-pick="system"><span class="chk"></span><span data-i="look_sys"></span></button>
+            <button class="mi" data-theme-pick="dark"><span class="chk"></span><span data-i="look_dark"></span></button>
+            <button class="mi" data-theme-pick="light"><span class="chk"></span><span data-i="look_light"></span></button>
+          </div>
+        </div>
+        <div class="menu-sep"></div>
+        <button class="mi" data-act="axis-wall"><span class="chk"></span><span data-i="mi_axis_wall"></span></button>
+        <button class="mi" data-act="axis-step"><span class="chk"></span><span data-i="mi_axis_step"></span></button>
+        <button class="mi" data-act="fit"><span class="chk"></span><span data-i="mi_fit"></span><span class="ks">F</span></button>
+      </div>
+    </div>
+    <div class="menu" data-menu>
+      <button class="menu-title" data-i="m_help" aria-haspopup="true"></button>
+      <div class="menu-pop" role="menu">
+        <button class="mi" data-act="formats"><span class="chk"></span><span data-i="mi_formats"></span></button>
+        <button class="mi" data-act="keys"><span class="chk"></span><span data-i="mi_keys"></span><span class="ks">?</span></button>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="local-lamp" title=""><i></i><span data-i="local"></span></div>
+    <button class="drawer-btn for-bin" data-drawer="bin" data-i="d_bin"></button>
+    <button class="drawer-btn for-insp" data-drawer="insp" data-i="d_insp"></button>
+  </nav>
+
+  <header class="slate-strip">
+    <span class="clap" aria-hidden="true"></span>
+    <div class="clip-name" id="clipName"></div>
+    <div class="slate-fields" id="slateFields"></div>
+  </header>
+
+  <main class="bay">
+    <aside class="panel bin" id="bin">
+      <div class="panel-head"><span data-i="bin"></span><span class="grow"></span>
+        <div class="bin-tabs" role="tablist">
+          <button class="bin-tab" role="tab" aria-selected="true" data-tab="shots" data-i="tab_shots"></button>
+          <button class="bin-tab" role="tab" aria-selected="false" data-tab="tools" data-i="tab_tools"></button>
+        </div>
+      </div>
+      <div id="paneShots" style="display:flex;flex-direction:column;min-height:0;flex:1">
+        <input class="bin-find" id="binFind" type="search" autocomplete="off" spellcheck="false">
+        <div class="bin-kinds" id="binKinds"></div>
+        <div class="bin-scroll" id="binScroll"><div class="bin-rows" id="binRows"></div></div>
+      </div>
+      <div id="paneTools" class="tool-roster" hidden></div>
+    </aside>
+
+    <section class="monitor" id="monitor">
+      <div class="monitor-frame">
+        <span class="corner a"></span><span class="corner b"></span><span class="corner c"></span><span class="corner d"></span>
+        <div class="mon-strip"><span class="live-lbl" id="liveLbl"></span></div>
+        <div class="burn tl" id="burnTL"><span class="rec"></span><span data-i="pgm"></span></div>
+        <div class="burn tr mono" id="burnTR">00:00:00:00</div>
+        <div class="screen" id="screen" aria-live="off"></div>
+        <div class="slate" id="slate">
+          <div class="slate-card">
+            <div class="slate-bars"></div>
+            <div class="slate-board">
+              <div><span data-i="sl_prod"></span><b data-i="sl_prod_v"></b></div>
+              <div><span data-i="sl_roll"></span><b>A001</b></div>
+              <div><span data-i="sl_scene"></span><b>—</b></div>
+              <div><span data-i="sl_take"></span><b>1</b></div>
+            </div>
+            <h2 data-i="empty_h"></h2>
+            <p data-i="empty_p"></p>
+            <div class="slate-actions">
+              <button class="btn go" data-act="sample" data-i="mi_sample"></button>
+              <button class="btn" data-act="open" data-i="mi_open"></button>
+              <button class="btn" data-act="paste" data-i="mi_paste"></button>
+            </div>
+            <small data-i="local_long"></small>
+          </div>
+        </div>
+      </div>
+      <div class="transport" id="transport">
+        <div class="tcode-big" id="tcBig">00:00:00:00</div>
+        <div class="tcode-sub" id="tcSub"></div>
+        <div class="deck-btns">
+          <button class="tbtn" data-act="home" data-ti="t_home"><svg viewBox="0 0 16 16"><path d="M3 2h2v12H3zM14 2v12L6 8z"/></svg></button>
+          <button class="tbtn" data-act="back" data-ti="t_back"><svg viewBox="0 0 16 16"><path d="M12 2v12L4 8zM2 2h2v12H2z" transform="translate(1 0)"/></svg></button>
+          <button class="tbtn play" data-act="toggle" id="playBtn" data-ti="t_play"><svg viewBox="0 0 16 16" id="playIco"><path d="M4 2l10 6-10 6z"/></svg></button>
+          <button class="tbtn" data-act="fwd" data-ti="t_fwd"><svg viewBox="0 0 16 16"><path d="M4 2v12l8-6zM12 2h2v12h-2z" transform="translate(-1 0)"/></svg></button>
+          <button class="tbtn" data-act="end" data-ti="t_end"><svg viewBox="0 0 16 16"><path d="M11 2h2v12h-2zM2 2v12l8-6z"/></svg></button>
+        </div>
+        <select class="speed" id="speed" aria-label="speed">
+          <option value="1">1×</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option>
+        </select>
+        <div class="deck-btns">
+          <button class="tbtn mark" data-act="mark-in" id="markIn" data-ti="t_in">I</button>
+          <button class="tbtn mark" data-act="mark-out" id="markOut" data-ti="t_out">O</button>
+        </div>
+        <div class="scrub-wrap"><input class="scrub" id="scrub" type="range" min="0" max="0" value="0" aria-label="scrub"></div>
+      </div>
+    </section>
+
+    <aside class="panel inspector" id="insp">
+      <div class="panel-head"><span data-i="insp"></span></div>
+      <div class="insp-scroll" id="inspBody"></div>
+    </aside>
+  </main>
+
+  <section class="timeline" id="timeline">
+    <div class="tl-bar">
+      <span class="ttl" data-i="tl"></span>
+      <span class="seg" role="group"><button data-axis="wall" aria-pressed="true" data-i="ax_wall"></button><button data-axis="step" aria-pressed="false" data-i="ax_step"></button></span>
+      <button class="zoom-btn" data-zoom="out" aria-label="zoom out">−</button><button class="zoom-btn" data-zoom="in" aria-label="zoom in">+</button><button class="zoom-btn wide" data-zoom="fit" data-i="fit"></button>
+      <div class="keys" id="keyLegend"></div>
+    </div>
+    <div class="tl-body">
+      <div class="track-heads" id="trackHeads"></div>
+      <div class="tl-canvas-wrap" id="tlWrap"><canvas id="tl"></canvas></div>
+    </div>
+  </section>
+  <div class="scrim" id="scrim"></div>
+</div>
+
+<div class="strip-progress" id="ingest"><i></i></div>
+<div class="render-q" id="renderQ"><div class="rq-t"><span id="rqTitle"></span><span id="rqPct" class="mono">0%</span></div><div class="rq-s" id="rqSub"></div><div class="rq-track"><i id="rqBar"></i></div></div>
+<div class="toast" id="toast"></div>
+<div class="tl-tip" id="tlTip"></div>
+<input type="file" id="fileIn" accept=".jsonl,.json,.txt,.ndjson,application/json" hidden>
+
+<dialog id="dlgPaste"><div class="dlg-head"><span data-i="paste_h"></span><button data-close aria-label="close">✕</button></div>
+  <div class="dlg-body"><p data-i="paste_p"></p><textarea id="pasteArea" spellcheck="false"></textarea></div>
+  <div class="dlg-foot"><button class="btn" data-close data-i="cancel"></button><button class="btn go" id="pasteGo" data-i="paste_go"></button></div></dialog>
+<dialog id="dlgFormats"><div class="dlg-head"><span data-i="fmt_h"></span><button data-close aria-label="close">✕</button></div><div class="dlg-body" id="fmtBody"></div></dialog>
+<dialog id="dlgKeys"><div class="dlg-head"><span data-i="mi_keys"></span><button data-close aria-label="close">✕</button></div><div class="dlg-body"><div class="keymap" id="keyMap"></div></div></dialog>
+
+<script type="application/json" id="embedded-run"></script>
+<script id="core">
+/* Agent Replay core: format detection, parsers, conform pass, sample reel, cut notes.
+   No DOM access here, so the same code runs in node for testing. */
+var AR = (function () {
+  'use strict';
+  var CAP = 200000;               // per-field cap at import (keeps memory bounded)
+  var tick = function () { return new Promise(function (r) { setTimeout(r, 0); }); };
+
+  function str(v) {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    try { return JSON.stringify(v, null, 2); } catch (e) { return String(v); }
+  }
+  function clip(v) {
+    var s = str(v);
+    return s.length > CAP ? s.slice(0, CAP) + '\n… [' + (s.length - CAP) + ' more chars trimmed at import]' : s;
+  }
+  function toMs(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number' && isFinite(v)) {
+      if (v >= 1e11) return v;           // epoch ms
+      if (v >= 1e9) return v * 1000;     // epoch seconds
+      return v * 1000;                   // seconds offset from start
+    }
+    if (typeof v === 'string') {
+      var d = Date.parse(v);
+      if (!isNaN(d)) return d;
+      var f = parseFloat(v);
+      if (!isNaN(f)) return toMs(f);
+    }
+    return null;
+  }
+  function firstLine(s, n) {
+    s = String(s || '').replace(/^\s+/, '');
+    var i = s.indexOf('\n'); if (i >= 0) s = s.slice(0, i);
+    n = n || 90;
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  }
+
+  function errLine(text) {
+    var L = String(text || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    var pick = null;
+    for (var i = 0; i < L.length && !pick; i++) if (/\b(\d+ failed|failed|error|exception|traceback|fatal|not found|denied|timed? ?out)\b/i.test(L[i])) pick = L[i];
+    for (i = 0; i < L.length && !pick; i++) if (/[✕✗]/.test(L[i])) pick = L[i];
+    pick = pick || L[0] || '';
+    return pick.length > 160 ? pick.slice(0, 159) + '…' : pick;
+  }
+
+  /* ---------- detection ---------- */
+  function classifyArray(arr) {
+    for (var i = 0; i < Math.min(arr.length, 50); i++) {
+      var o = arr[i]; if (!o || typeof o !== 'object') continue;
+      if (o.kind) return 'generic';
+      if (o.type && o.message && (o.type === 'user' || o.type === 'assistant')) return 'claude';
+      if (o.role) return 'openai';
+    }
+    return 'unknown';
+  }
+  function detect(text) {
+    var s = String(text || '').replace(/^\uFEFF/, '').trim();
+    if (!s) return { kind: 'empty' };
+    if (s[0] === '[') {
+      try { var arr = JSON.parse(s); if (Array.isArray(arr)) return { kind: classifyArray(arr), data: arr }; } catch (e) {}
+    }
+    if (s[0] === '{') {
+      var whole = null;
+      try { whole = JSON.parse(s); } catch (e) {}
+      if (whole && typeof whole === 'object') {
+        if (whole.format === 'agent-replay' && Array.isArray(whole.steps)) return { kind: 'replay', data: whole };
+        if (Array.isArray(whole.messages)) return { kind: 'openai', data: whole.messages, meta: whole };
+        if (Array.isArray(whole.steps)) return { kind: 'generic', data: whole.steps, meta: whole };
+        if (whole.type && whole.message) return { kind: 'claude', lines: [s] };
+      }
+      // JSON Lines
+      var lines = s.split(/\r?\n/), seen = 0, votes = { claude: 0, openai: 0, generic: 0 };
+      for (var j = 0; j < lines.length && seen < 40; j++) {
+        var l = lines[j].trim(); if (!l) continue;
+        var o; try { o = JSON.parse(l); } catch (e) { continue; }
+        seen++;
+        if (o && o.kind) votes.generic++;
+        else if (o && o.type && (o.message || o.uuid || o.sessionId)) votes.claude++;
+        else if (o && o.role) votes.openai++;
+      }
+      if (votes.claude >= votes.openai && votes.claude >= votes.generic && votes.claude > 0) return { kind: 'claude', lines: lines };
+      if (votes.generic >= votes.openai && votes.generic > 0) return { kind: 'generic-lines', lines: lines };
+      if (votes.openai > 0) return { kind: 'openai-lines', lines: lines };
+    }
+    return { kind: 'unknown' };
+  }
+
+  /* ---------- Claude Code transcripts (.jsonl) ---------- */
+  function resultText(c) {
+    if (c == null) return '';
+    if (typeof c === 'string') return c;
+    if (Array.isArray(c)) return c.map(function (b) {
+      if (!b) return '';
+      if (b.type === 'text') return b.text || '';
+      if (b.type === 'image') return '[image]';
+      if (typeof b === 'string') return b;
+      return str(b);
+    }).join('\n');
+    return str(c);
+  }
+  function isWrapperText(s) {
+    return /^\s*<(command-|local-command|system-reminder|bash-|user-prompt-submit-hook)/.test(s) || /^\s*Caveat: The messages below/.test(s);
+  }
+  function ingestClaude(o, out, meta, usageById) {
+    if (!o || typeof o !== 'object') return;
+    if (o.type === 'summary' && typeof o.summary === 'string') { if (!meta.title) meta.title = o.summary; return; }
+    if (o.type === 'custom-title' && typeof o.customTitle === 'string') { meta.title = o.customTitle; return; }
+    if (o.type !== 'user' && o.type !== 'assistant') { meta.ignored = (meta.ignored || 0) + 1; return; }
+    var m = o.message; if (!m || typeof m !== 'object') return;
+    if (o.isMeta) return;
+    var t = toMs(o.timestamp);
+    var side = !!o.isSidechain;
+    if (o.type === 'assistant') {
+      if (m.model && m.model !== '<synthetic>') meta.model = m.model;
+      var tok = null, u = m.usage;
+      if (u) {
+        tok = { i: u.input_tokens || 0, o: u.output_tokens || 0, cr: u.cache_read_input_tokens || 0, cw: u.cache_creation_input_tokens || 0 };
+        if (m.id && usageById[m.id]) {      // same API message streamed over several lines: count once, keep max
+          var prev = usageById[m.id];
+          prev.i = Math.max(prev.i, tok.i); prev.o = Math.max(prev.o, tok.o); prev.cr = Math.max(prev.cr, tok.cr); prev.cw = Math.max(prev.cw, tok.cw);
+          tok = null;
+        }
+      }
+      var blocks = typeof m.content === 'string' ? [{ type: 'text', text: m.content }] : (Array.isArray(m.content) ? m.content : []);
+      var first = null;
+      for (var i = 0; i < blocks.length; i++) {
+        var b = blocks[i]; if (!b) continue; var st = null;
+        if (b.type === 'text') { if (!b.text || !b.text.trim()) continue; st = { k: o.isApiErrorMessage ? 'error' : 'assistant', t: t, text: clip(b.text) }; }
+        else if (b.type === 'thinking') st = { k: 'thought', t: t, text: clip(b.thinking || ''), hidden: !(b.thinking || '').trim() };
+        else if (b.type === 'redacted_thinking') st = { k: 'thought', t: t, text: '', hidden: true };
+        else if (b.type === 'tool_use' || b.type === 'server_tool_use') st = { k: 'call', t: t, name: b.name || 'tool', id: b.id, input: b.input || {} };
+        else continue;
+        if (side) st.side = true;
+        out.push(st); if (!first) first = st;
+      }
+      if (tok) {
+        var holder = first || (out.length ? out[out.length - 1] : null);
+        if (holder) { holder.tok = tok; if (m.id) usageById[m.id] = tok; }
+      }
+    } else {
+      var c = m.content;
+      if (typeof c === 'string') {
+        if (!c.trim()) return;
+        out.push({ k: isWrapperText(c) ? 'system' : 'user', t: t, text: clip(c), side: side || undefined });
+      } else if (Array.isArray(c)) {
+        for (var k = 0; k < c.length; k++) {
+          var bb = c[k]; if (!bb) continue;
+          if (bb.type === 'tool_result') {
+            var txt = resultText(bb.content);
+            var err = !!bb.is_error || /^\s*<tool_use_error>/.test(txt);
+            txt = txt.replace(/^\s*<tool_use_error>([\s\S]*?)<\/tool_use_error>\s*$/, '$1');
+            out.push({ k: 'result', t: t, id: bb.tool_use_id, output: clip(txt), err: err, side: side || undefined });
+          } else if (bb.type === 'text') {
+            if (!bb.text || !bb.text.trim()) continue;
+            out.push({ k: isWrapperText(bb.text) ? 'system' : 'user', t: t, text: clip(bb.text), side: side || undefined });
+          } else if (bb.type === 'image') {
+            out.push({ k: 'user', t: t, text: '[image]' });
+          }
+        }
+      }
+    }
+  }
+  async function parseClaudeLines(lines, onProgress) {
+    var out = [], meta = { source: 'claude', model: null, title: null }, usageById = {}, bad = 0;
+    for (var i = 0; i < lines.length; i++) {
+      if (onProgress && i % 1500 === 0) { onProgress(i / lines.length); await tick(); }
+      var l = lines[i]; if (!l || !l.trim()) continue;
+      var o; try { o = JSON.parse(l); } catch (e) { bad++; continue; }
+      ingestClaude(o, out, meta, usageById);
+    }
+    meta.badLines = bad;
+    return { meta: meta, steps: out };
+  }
+
+  /* ---------- OpenAI-style chat messages ---------- */
+  function partsText(c) {
+    if (c == null) return '';
+    if (typeof c === 'string') return c;
+    if (Array.isArray(c)) return c.map(function (p) {
+      if (typeof p === 'string') return p;
+      if (!p) return '';
+      if (p.type === 'image_url' || p.type === 'input_image' || p.type === 'image') return '[image]';
+      return p.text != null ? (typeof p.text === 'string' ? p.text : (p.text.value || '')) : (p.content || '');
+    }).join('\n');
+    return str(c);
+  }
+  function parseArgs(a) {
+    if (a == null) return {};
+    if (typeof a !== 'string') return a;
+    try { return JSON.parse(a); } catch (e) { return { arguments: a }; }
+  }
+  function looksLikeError(s) {
+    var h = String(s || '').slice(0, 400);
+    if (/^\s*(error|exception|traceback|fatal)\b/i.test(h)) return true;
+    try { var j = JSON.parse(h.length < 400 ? s : '{}'); if (j && typeof j === 'object' && (j.error || j.is_error)) return true; } catch (e) {}
+    return /^\s*\{\s*"error"\s*:/.test(h);
+  }
+  function parseOpenAI(arr) {
+    var out = [], meta = { source: 'openai', model: null, title: null }, lastCall = null;
+    for (var i = 0; i < arr.length; i++) {
+      var m = arr[i]; if (!m || typeof m !== 'object') continue;
+      var role = m.role, t = toMs(m.timestamp != null ? m.timestamp : (m.created_at != null ? m.created_at : (m.created != null ? m.created : m.time)));
+      var text = partsText(m.content);
+      var tok = null;
+      if (m.usage) {
+        var u = m.usage, cached = (u.prompt_tokens_details && u.prompt_tokens_details.cached_tokens) || u.cached_tokens || 0;
+        var pin = u.prompt_tokens != null ? u.prompt_tokens : (u.input_tokens || 0);
+        tok = { i: Math.max(0, pin - cached), o: u.completion_tokens != null ? u.completion_tokens : (u.output_tokens || 0), cr: cached, cw: 0 };
+      }
+      if (m.model) meta.model = m.model;
+      var pushed = [];
+      if (role === 'system' || role === 'developer') { if (text) pushed.push({ k: 'system', t: t, text: clip(text) }); }
+      else if (role === 'user') { if (text) pushed.push({ k: 'user', t: t, text: clip(text) }); }
+      else if (role === 'assistant') {
+        var reasoning = m.reasoning_content || m.reasoning;
+        if (reasoning) pushed.push({ k: 'thought', t: t, text: clip(typeof reasoning === 'string' ? reasoning : partsText(reasoning.summary || reasoning)) });
+        if (text && text.trim()) pushed.push({ k: 'assistant', t: t, text: clip(text) });
+        (m.tool_calls || []).forEach(function (tc, j) {
+          var fn = tc.function || tc;
+          pushed.push({ k: 'call', t: t, name: fn.name || 'tool', id: tc.id || ('call_' + i + '_' + j), input: parseArgs(fn.arguments != null ? fn.arguments : fn.input) });
+        });
+        if (m.function_call) pushed.push({ k: 'call', t: t, name: m.function_call.name || 'function', id: 'fn_' + i, input: parseArgs(m.function_call.arguments) });
+        if (m.refusal) pushed.push({ k: 'assistant', t: t, text: clip(m.refusal) });
+      }
+      else if (role === 'tool' || role === 'function') {
+        pushed.push({ k: 'result', t: t, id: m.tool_call_id || null, name: m.name, output: clip(text), err: !!(m.is_error || m.error) || looksLikeError(text) });
+      }
+      if (tok && pushed.length) pushed[0].tok = tok;
+      for (var p = 0; p < pushed.length; p++) out.push(pushed[p]);
+    }
+    return { meta: meta, steps: out };
+  }
+
+  /* ---------- generic step list ---------- */
+  function normTokens(x) {
+    if (x == null) return null;
+    if (typeof x === 'number') return { i: 0, o: x, cr: 0, cw: 0 };
+    if (typeof x !== 'object') return null;
+    var g = function () { for (var a = 0; a < arguments.length; a++) if (x[arguments[a]] != null) return +x[arguments[a]] || 0; return 0; };
+    return { i: g('input', 'in', 'prompt', 'input_tokens', 'i'), o: g('output', 'out', 'completion', 'output_tokens', 'o'), cr: g('cache_read', 'cacheRead', 'cache_read_input_tokens', 'cr'), cw: g('cache_write', 'cacheWrite', 'cache_creation_input_tokens', 'cw') };
+  }
+  function parseGeneric(arr) {
+    var out = [], meta = { source: 'generic', model: null, title: null };
+    for (var i = 0; i < arr.length; i++) {
+      var s = arr[i]; if (!s || typeof s !== 'object') continue;
+      var kind = String(s.kind || '').toLowerCase(), t = toMs(s.t != null ? s.t : (s.time != null ? s.time : s.timestamp)), st;
+      var body = s.output != null ? s.output : (s.text != null ? s.text : (s.content != null ? s.content : s.input));
+      if (kind === 'thought' || kind === 'thinking') st = { k: 'thought', t: t, text: clip(body) };
+      else if (kind === 'tool_call' || kind === 'call') st = { k: 'call', t: t, name: s.name || 'tool', id: s.id || null, input: s.input != null ? s.input : {} };
+      else if (kind === 'tool_result' || kind === 'result') st = { k: 'result', t: t, name: s.name, id: s.id || s.call_id || null, output: clip(s.output != null ? s.output : s.text), err: !!(s.error || s.is_error || s.isError) };
+      else if (kind === 'error') st = { k: 'error', t: t, name: s.name, text: clip(s.output != null ? s.output : (s.message || s.input)) };
+      else if (kind === 'user') st = { k: 'user', t: t, text: clip(body) };
+      else if (kind === 'system') st = { k: 'system', t: t, text: clip(body) };
+      else if (kind === 'message') st = { k: (s.role === 'user' || s.name === 'user') ? 'user' : 'assistant', t: t, text: clip(body) };
+      else continue;
+      var tk = normTokens(s.tokens); if (tk) st.tok = tk;
+      out.push(st);
+    }
+    return { meta: meta, steps: out };
+  }
+  function parseLinesAsArray(lines) {
+    var arr = [];
+    for (var i = 0; i < lines.length; i++) { var l = lines[i].trim(); if (!l) continue; try { arr.push(JSON.parse(l)); } catch (e) {} }
+    return arr;
+  }
+
+  /* ---------- conform: timing, pairing, derived stats ---------- */
+  var EST = { user: 2500, system: 300, thought: 3500, assistant: 2500, call: 900, result: 1800, error: 600 };
+  function conform(raw, meta) {
+    var steps = raw.steps.filter(Boolean), n = steps.length, i;
+    meta = Object.assign({}, raw.meta || {}, meta || {});
+    var timed = 0; for (i = 0; i < n; i++) if (steps[i].t != null) timed++;
+    if (n && timed < n / 2) {          // not enough real clocks: lay out a plausible schedule
+      meta.syntheticTime = true;
+      var clock = 0;
+      for (i = 0; i < n; i++) {
+        var s = steps[i], len = (s.text || s.output || '').length;
+        clock += EST[s.k] + (s.k === 'assistant' || s.k === 'thought' ? Math.min(6000, len * 12) : 0);
+        s.t = clock;
+      }
+    } else {
+      var firstT = null; for (i = 0; i < n; i++) if (steps[i].t != null) { firstT = steps[i].t; break; }
+      var prev = firstT;
+      for (i = 0; i < n; i++) {
+        if (steps[i].t == null) steps[i].t = prev; else if (steps[i].t < prev) steps[i].t = prev; // keep monotone for the timeline
+        prev = steps[i].t;
+      }
+    }
+    var t0 = n ? steps[0].t : 0;
+    for (i = 0; i < n; i++) { steps[i].i = i; steps[i].rt = steps[i].t - t0; }
+
+    // pair calls with results
+    var byId = {}, open = [];
+    for (i = 0; i < n; i++) {
+      var st = steps[i];
+      if (st.k === 'call') { if (st.id) byId[st.id] = i; open.push(i); }
+      else if (st.k === 'result') {
+        var ci = (st.id && byId[st.id] != null) ? byId[st.id] : -1;
+        if (ci < 0) {                     // no id: latest unanswered call, preferring same name
+          for (var q = open.length - 1; q >= 0; q--) { var c = steps[open[q]]; if (c.pair == null && (!st.name || c.name === st.name)) { ci = open[q]; break; } }
+          if (ci < 0) for (q = open.length - 1; q >= 0; q--) if (steps[open[q]].pair == null) { ci = open[q]; break; }
+        }
+        if (ci >= 0 && steps[ci].pair == null) { steps[ci].pair = i; st.pair = ci; st.name = st.name || steps[ci].name; if (st.err) steps[ci].err = true; }
+      }
+    }
+    // durations: tool latency for calls, model latency for thoughts/messages
+    for (i = 0; i < n; i++) {
+      var x = steps[i];
+      if (x.k === 'call') x.dur = x.pair != null ? Math.max(0, steps[x.pair].t - x.t) : 0;
+      else if (x.k === 'thought' || x.k === 'assistant') x.dur = i > 0 ? Math.max(0, x.t - steps[i - 1].t) : 0;
+      else x.dur = 0;
+    }
+    // breaks, retries, next move
+    var breaks = [], retries = 0;
+    for (i = 0; i < n; i++) {
+      var r = steps[i];
+      var isBreak = (r.k === 'result' && r.err) || r.k === 'error';
+      if (!isBreak) continue;
+      var callIdx = r.k === 'result' ? r.pair : null;
+      var call = callIdx != null ? steps[callIdx] : null;
+      var next = null, retryIdx = null, seenCalls = 0;
+      for (var j = i + 1; j < n; j++) {
+        var y = steps[j];
+        if (next == null && (y.k === 'thought' || y.k === 'assistant' || y.k === 'call') && !(y.k === 'thought' && y.hidden)) next = j;
+        if (y.k === 'call') {
+          seenCalls++;
+          if (call && y.name === call.name && retryIdx == null) { retryIdx = j; break; }
+          if (seenCalls >= 4) break;
+        }
+        if (y.k === 'user') break;
+      }
+      if (retryIdx != null && !steps[retryIdx].retake) { steps[retryIdx].retake = true; retries++; }
+      breaks.push({ i: i, call: callIdx, next: next, retry: retryIdx });
+    }
+    // tokens (cumulative)
+    var cum = { i: new Float64Array(n), o: new Float64Array(n), cr: new Float64Array(n), cw: new Float64Array(n) }, acc = { i: 0, o: 0, cr: 0, cw: 0 };
+    for (i = 0; i < n; i++) {
+      var tk = steps[i].tok;
+      if (tk) { acc.i += tk.i || 0; acc.o += tk.o || 0; acc.cr += tk.cr || 0; acc.cw += tk.cw || 0; }
+      cum.i[i] = acc.i; cum.o[i] = acc.o; cum.cr[i] = acc.cr; cum.cw[i] = acc.cw;
+    }
+    // tool roster
+    var tools = {}, kinds = {};
+    for (i = 0; i < n; i++) {
+      var z = steps[i]; kinds[z.k] = (kinds[z.k] || 0) + 1;
+      if (z.k !== 'call') continue;
+      var tr = tools[z.name] || (tools[z.name] = { name: z.name, count: 0, errors: 0, total: 0, idx: [] });
+      tr.count++; tr.total += z.dur; tr.idx.push(i); if (z.err) tr.errors++;
+    }
+    var roster = Object.keys(tools).map(function (k) { return tools[k]; }).sort(function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); });
+    var lat = steps.filter(function (s) { return s.k === 'call' && s.pair != null; }).map(function (s) { return s.dur; }).sort(function (a, b) { return a - b; });
+    var longest = steps.filter(function (s) { return (s.k === 'call' || s.k === 'thought' || s.k === 'assistant') && s.dur > 0; })
+      .sort(function (a, b) { return b.dur - a.dur; }).slice(0, 7).map(function (s) { return s.i; });
+    var dur = n ? steps[n - 1].t - t0 : 0;
+    var title = meta.title;
+    if (!title) { for (i = 0; i < n; i++) if (steps[i].k === 'user') { title = firstLine(steps[i].text, 110); break; } }
+    var stats = {
+      t0: t0, duration: dur, steps: n, kinds: kinds, calls: kinds.call || 0, roster: roster,
+      errors: breaks.length, breaks: breaks, retries: retries, cum: cum, totals: acc,
+      medianLatency: lat.length ? lat[Math.floor(lat.length / 2)] : 0,
+      longest: longest
+    };
+    meta.title = title || 'Untitled run';
+    return { meta: meta, steps: steps, stats: stats };
+  }
+
+  async function parseText(text, onProgress) {
+    var d = detect(text), raw;
+    if (d.kind === 'claude') raw = await parseClaudeLines(d.lines || [], onProgress);
+    else if (d.kind === 'openai') raw = parseOpenAI(d.data);
+    else if (d.kind === 'openai-lines') raw = parseOpenAI(parseLinesAsArray(d.lines));
+    else if (d.kind === 'generic') raw = parseGeneric(d.data);
+    else if (d.kind === 'generic-lines') raw = parseGeneric(parseLinesAsArray(d.lines));
+    else if (d.kind === 'replay') raw = { meta: Object.assign({}, d.data.meta, { rendered: true }), steps: d.data.steps.map(function (s) { return Object.assign({}, s); }) };
+    else if (d.kind === 'empty') throw new Error('empty');
+    else throw new Error('unknown');
+    if (!raw.steps.length) throw new Error('nosteps');
+    if (d.meta && d.meta.title && !raw.meta.title) raw.meta.title = d.meta.title;
+    return conform(raw);
+  }
+  // detect() for arrays of Claude entries (rare): route through the line parser
+  var _detect = detect;
+  detect = function (text) {
+    var d = _detect(text);
+    if (d.kind === 'claude' && d.data) { d.lines = d.data.map(function (o) { return JSON.stringify(o); }); d.data = null; }
+    return d;
+  };
+
+  /* ---------- portable form (what Render embeds) ---------- */
+  var KEEP = ['k', 't', 'name', 'id', 'text', 'input', 'output', 'err', 'tok', 'hidden', 'side'];
+  function portable(run, from, to) {
+    from = from || 0; to = to == null ? run.steps.length - 1 : to;
+    var steps = [];
+    for (var i = from; i <= to; i++) {
+      var s = run.steps[i], o = {};
+      KEEP.forEach(function (k) { if (s[k] !== undefined && s[k] !== null && s[k] !== false) o[k] = s[k]; });
+      // a result whose call was cut out of the range keeps its tool name
+      if (s.k === 'result' && s.pair != null && s.pair < from) o.name = s.name;
+      steps.push(o);
+    }
+    var meta = { title: run.meta.title, source: run.meta.source, model: run.meta.model, syntheticTime: run.meta.syntheticTime || undefined };
+    if (from > 0 || to < run.steps.length - 1) meta.range = [from, to];
+    return { format: 'agent-replay', v: 1, meta: meta, steps: steps };
+  }
+
+  /* ---------- labels ---------- */
+  function keyArg(input) {
+    if (!input || typeof input !== 'object') return typeof input === 'string' ? input : '';
+    var order = ['command', 'cmd', 'file_path', 'notebook_path', 'pattern', 'path', 'url', 'query', 'description', 'prompt', 'skill'];
+    for (var i = 0; i < order.length; i++) {
+      var v = input[order[i]];
+      if (typeof v === 'string' && v) {
+        if (order[i] === 'pattern' && input.path) return v + '  ·  ' + input.path;
+        return v;
+      }
+    }
+    if (Array.isArray(input.todos)) return input.todos.length + ' todos';
+    for (var k in input) if (typeof input[k] === 'string' && input[k]) return input[k];
+    return '';
+  }
+  function label(s) {
+    if (s.k === 'call') return s.name + '  ' + firstLine(keyArg(s.input), 100);
+    if (s.k === 'result') return '↳ ' + (s.name ? s.name + ': ' : '') + (s.err ? errLine(s.output) : firstLine(s.output, 100));
+    if (s.k === 'error') return errLine(s.text);
+    if (s.k === 'thought' && s.hidden) return '(thinking)';
+    return firstLine(s.text, 120);
+  }
+  function tc(ms, fps) {
+    fps = fps || 30; ms = Math.max(0, ms || 0);
+    var f = Math.floor((ms % 1000) / (1000 / fps)), s = Math.floor(ms / 1000);
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return p(Math.floor(s / 3600)) + ':' + p(Math.floor(s / 60) % 60) + ':' + p(s % 60) + ':' + p(f);
+  }
+  function hms(ms) { return tc(ms).slice(0, 8); }
+  function human(ms) {
+    if (ms < 1000) return Math.round(ms) + 'ms';
+    if (ms < 60000) return (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + 's';
+    var m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000);
+    if (m < 60) return m + 'm ' + (s < 10 ? '0' : '') + s + 's';
+    return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+  }
+  function kfmt(n) { n = +n || 0; return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 1 : 2) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + 'k' : String(Math.round(n)); }
+
+  /* ---------- cut notes (Markdown) ---------- */
+  var MD_EN = {
+    h: 'Cut notes', source: 'Source', model: 'Model', runtime: 'Runtime', shots: 'Steps', calls: 'Tool calls', errors: 'Errors', retries: 'Retakes',
+    tokens: 'Tokens', tin: 'input', tout: 'output', tcr: 'cache read', tcw: 'cache write', usage: 'Tool usage', tool: 'Tool', count: 'Calls', errs: 'Errors', avg: 'Avg latency',
+    broke: 'Where it broke', next: 'next move', none: 'No failing tool results.', longest: 'Longest takes', list: 'Shot list', more: 'more steps not listed',
+    synthetic: 'Timing reconstructed (the source had no timestamps).', footer: 'Generated locally by Agent Replay.'
+  };
+  function toMarkdown(run, L) {
+    L = Object.assign({}, MD_EN, L || {});
+    var st = run.stats, s = run.steps, o = [];
+    var esc = function (x) { return String(x).replace(/\|/g, '\\|').replace(/`/g, "'"); };
+    o.push('# ' + L.h + ' — ' + run.meta.title, '');
+    o.push('- **' + L.source + ':** ' + run.meta.source + (run.meta.model ? '  ·  **' + L.model + ':** ' + run.meta.model : ''));
+    o.push('- **' + L.runtime + ':** ' + human(st.duration) + '  ·  **' + L.shots + ':** ' + st.steps + '  ·  **' + L.calls + ':** ' + st.calls + '  ·  **' + L.errors + ':** ' + st.errors + '  ·  **' + L.retries + ':** ' + st.retries);
+    var T = st.totals;
+    o.push('- **' + L.tokens + ':** ' + kfmt(T.i) + ' ' + L.tin + ', ' + kfmt(T.o) + ' ' + L.tout + ', ' + kfmt(T.cr) + ' ' + L.tcr + ', ' + kfmt(T.cw) + ' ' + L.tcw);
+    if (run.meta.syntheticTime) o.push('- _' + L.synthetic + '_');
+    o.push('', '## ' + L.usage, '', '| ' + L.tool + ' | ' + L.count + ' | ' + L.errs + ' | ' + L.avg + ' |', '|---|---:|---:|---:|');
+    st.roster.forEach(function (r) { o.push('| `' + esc(r.name) + '` | ' + r.count + ' | ' + r.errors + ' | ' + human(r.total / r.count) + ' |'); });
+    o.push('', '## ' + L.broke, '');
+    if (!st.breaks.length) o.push(L.none);
+    st.breaks.forEach(function (b, k) {
+      var r = s[b.i], c = b.call != null ? s[b.call] : null;
+      o.push((k + 1) + '. `' + tc(r.rt).slice(0, 8) + '` **' + esc(c ? c.name : (r.name || 'error')) + '**' + (c ? ' `' + esc(firstLine(keyArg(c.input), 80)) + '`' : '') + ' — ' + esc(errLine(r.output || r.text)));
+      if (b.next != null) o.push('   - ' + L.next + ': ' + esc(label(s[b.next])));
+    });
+    o.push('', '## ' + L.longest, '');
+    st.longest.forEach(function (i) { o.push('- `' + human(s[i].dur) + '` ' + esc(label(s[i]))); });
+    o.push('', '## ' + L.list, '');
+    var lim = Math.min(s.length, 400);
+    for (var i = 0; i < lim; i++) {
+      var x = s[i]; if (x.k === 'result' && !x.err) continue;
+      o.push('- `' + hms(x.rt) + '` ' + (x.k === 'call' ? '**' + esc(x.name) + '** `' + esc(firstLine(keyArg(x.input), 90)) + '`' : '_' + x.k + '_ ' + esc(label(x))) + (x.err ? ' ✕' : '') + (x.retake ? ' ↻' : ''));
+    }
+    if (s.length > lim) o.push('- … ' + (s.length - lim) + ' ' + L.more);
+    o.push('', '---', '_' + L.footer + '_', '');
+    return o.join('\n');
+  }
+
+  /* ---------- sample reel (synthetic Claude Code transcript) ---------- */
+  function buildSample() {
+    var MONEY_JS = [
+      "// Formatting helpers for invoice totals",
+      "const SYMBOLS = { USD: '$', EUR: '€', GBP: '£' };",
+      "",
+      "function toCents(amount) {",
+      "  const cents = Math.floor(amount * 100);",
+      "  return cents;",
+      "}",
+      "",
+      "function groupThousands(intPart) {",
+      "  return intPart.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');",
+      "}",
+      "",
+      "function formatCurrency(amount, currency = 'USD') {",
+      "  const symbol = SYMBOLS[currency] ?? '';",
+      "  const cents = toCents(amount);",
+      "  const whole = Math.trunc(cents / 100).toString();",
+      "  const frac = String(Math.abs(cents % 100)).padStart(2, '0');",
+      "  return `${symbol}${groupThousands(whole)}.${frac}`;",
+      "}",
+      "",
+      "function sumLineItems(items) {",
+      "  const cents = items.reduce((acc, it) => acc + toCents(it.price * it.qty), 0);",
+      "  return cents / 100;",
+      "}",
+      "",
+      "module.exports = { formatCurrency, sumLineItems, toCents };"
+    ];
+    var TEST_JS = [
+      "const { formatCurrency, sumLineItems } = require('../src/money');",
+      "",
+      "describe('formatCurrency', () => {",
+      "  test('formats whole dollars', () => {",
+      "    expect(formatCurrency(12)).toBe('$12.00');",
+      "  });",
+      "  test('groups thousands', () => {",
+      "    expect(formatCurrency(1234567)).toBe('$1,234,567.00');",
+      "  });",
+      "  test('rounds to the nearest cent', () => {",
+      "    expect(formatCurrency(1234.567)).toBe('$1,234.57');",
+      "  });",
+      "  test('puts the minus sign before the symbol', () => {",
+      "    expect(formatCurrency(-5)).toBe('-$5.00');",
+      "  });",
+      "  test('supports EUR', () => {",
+      "    expect(formatCurrency(9.5, 'EUR')).toBe('€9.50');",
+      "  });",
+      "});",
+      "",
+      "describe('sumLineItems', () => {",
+      "  test('adds line items', () => {",
+      "    expect(sumLineItems([{ price: 19.99, qty: 3 }, { price: 5, qty: 1 }])).toBe(64.97);",
+      "  });",
+      "});"
+    ];
+    var numbered = function (lines, start) { return lines.map(function (l, i) { var n = String(i + (start || 1)); return '      '.slice(n.length) + n + '→' + l; }).join('\n'); };
+    var FAIL1 = [
+      "> ledger-kit@2.3.1 test", "> jest money", "",
+      " FAIL  test/money.test.js",
+      "  formatCurrency",
+      "    ✓ formats whole dollars (2 ms)",
+      "    ✓ groups thousands",
+      "    ✕ rounds to the nearest cent (3 ms)",
+      "    ✕ puts the minus sign before the symbol (1 ms)",
+      "    ✓ supports EUR",
+      "  sumLineItems",
+      "    ✓ adds line items (1 ms)", "",
+      "  ● formatCurrency › rounds to the nearest cent", "",
+      "    expect(received).toBe(expected) // Object.is equality", "",
+      "    Expected: \"$1,234.57\"",
+      "    Received: \"$1,234.56\"", "",
+      "      10 |   test('rounds to the nearest cent', () => {",
+      "    > 11 |     expect(formatCurrency(1234.567)).toBe('$1,234.57');",
+      "         |                                      ^", "",
+      "  ● formatCurrency › puts the minus sign before the symbol", "",
+      "    Expected: \"-$5.00\"",
+      "    Received: \"$-5.00\"", "",
+      "Tests:       2 failed, 4 passed, 6 total",
+      "Time:        1.214 s",
+      "Ran all test suites matching /money/i."
+    ].join('\n');
+    var FAIL2 = [
+      "> ledger-kit@2.3.1 test", "> jest money", "",
+      " FAIL  test/money.test.js",
+      "  formatCurrency",
+      "    ✓ formats whole dollars (2 ms)",
+      "    ✓ groups thousands",
+      "    ✓ rounds to the nearest cent",
+      "    ✕ puts the minus sign before the symbol (2 ms)",
+      "    ✓ supports EUR",
+      "  sumLineItems",
+      "    ✕ adds line items (1 ms)", "",
+      "  ● formatCurrency › puts the minus sign before the symbol", "",
+      "    Expected: \"-$5.00\"",
+      "    Received: \"$-5.00\"", "",
+      "  ● sumLineItems › adds line items", "",
+      "    Expected: 64.97",
+      "    Received: 64.98", "",
+      "Tests:       2 failed, 4 passed, 6 total",
+      "Time:        1.106 s"
+    ].join('\n');
+    var PASS = function (n, extra) {
+      return ["> ledger-kit@2.3.1 test", "> jest money", "", " PASS  test/money.test.js", "  formatCurrency",
+        "    ✓ formats whole dollars (1 ms)", "    ✓ groups thousands", "    ✓ rounds to the nearest cent", "    ✓ puts the minus sign before the symbol", "    ✓ supports EUR"]
+        .concat(extra || []).concat(["  sumLineItems", "    ✓ adds line items", "", "Tests:       " + n + " passed, " + n + " total", "Time:        0.981 s"]).join('\n');
+    };
+    var EDIT_ERR = "<tool_use_error>Found 3 matches of the string to replace, but replace_all is false. To replace all occurrences, set replace_all to true. To replace only one occurrence, please provide more context to uniquely identify the instance.\nString:   const cents =</tool_use_error>";
+
+    // script: [secondsFromStart, type, ...]
+    var S = [
+      [0, 'user', "CI is red on the invoice formatting tests in ledger-kit — `npm test -- money` fails. Can you find out why and fix it? Don't change the expected values in the tests; they match what finance signed off on."],
+      [4.2, 'think', "Start by reproducing. Run only the money suite so the output stays short, then read the module and the test file. The user says the expectations are correct, so the bug is in src/money.js."],
+      [5.1, 'text', "I'll reproduce the failure first, then trace it to the formatting code."],
+      [5.6, 'tool', 'TodoWrite', { todos: [
+        { content: 'Reproduce the failing money tests', status: 'in_progress', activeForm: 'Reproducing failures' },
+        { content: 'Find the root cause in src/money.js', status: 'pending', activeForm: 'Finding root cause' },
+        { content: 'Fix rounding and sign handling', status: 'pending', activeForm: 'Fixing formatting' },
+        { content: 'Re-run the full suite and lint', status: 'pending', activeForm: 'Re-running checks' }] }, 'Todos have been modified successfully.', false, 0.2],
+      [6.4, 'tool', 'Bash', { command: 'npm test -- money', description: 'Run the money test suite' }, FAIL1, true, 3.9],
+      [14.8, 'think', "Two failures. 1234.567 → $1,234.56 means we truncate instead of rounding: that smells like Math.floor on the cents. -5 → $-5.00 means the sign is being printed after the currency symbol, so the sign comes from `whole` (Math.trunc of a negative). Let me look at the source."],
+      [15.3, 'tool', 'Glob', { pattern: 'src/**/*.js' }, ['src/index.js', 'src/money.js', 'src/tax.js', 'src/invoice.js', 'src/util/dates.js'].join('\n'), false, 0.3],
+      [16.0, 'tool', 'Read', { file_path: 'src/money.js' }, numbered(MONEY_JS), false, 0.2],
+      [16.7, 'tool', 'Read', { file_path: 'test/money.test.js' }, numbered(TEST_JS), false, 0.2],
+      [18.2, 'tool', 'Grep', { pattern: 'toCents|Math\\.floor', path: 'src', output_mode: 'content', '-n': true },
+        ['src/money.js:4:function toCents(amount) {', 'src/money.js:5:  const cents = Math.floor(amount * 100);', 'src/money.js:15:  const cents = toCents(amount);', 'src/money.js:22:  const cents = items.reduce((acc, it) => acc + toCents(it.price * it.qty), 0);', 'src/money.js:26:module.exports = { formatCurrency, sumLineItems, toCents };', 'src/tax.js:12:  return Math.floor(subtotal * rate * 100) / 100;'].join('\n'), false, 0.4],
+      [26.9, 'think', "Confirmed: toCents uses Math.floor, so 123456.7 cents floors to 123456. Switching to Math.round fixes the first test. sumLineItems also goes through toCents, so it will change too — I'll watch that test. tax.js has its own floor but it's out of scope for this failure."],
+      [27.4, 'tool', 'TodoWrite', { todos: [
+        { content: 'Reproduce the failing money tests', status: 'completed', activeForm: 'Reproducing failures' },
+        { content: 'Find the root cause in src/money.js', status: 'completed', activeForm: 'Finding root cause' },
+        { content: 'Fix rounding and sign handling', status: 'in_progress', activeForm: 'Fixing formatting' },
+        { content: 'Re-run the full suite and lint', status: 'pending', activeForm: 'Re-running checks' }] }, 'Todos have been modified successfully.', false, 0.2],
+      [28.3, 'tool', 'Edit', { file_path: 'src/money.js', old_string: '  const cents = Math.floor(amount * 100);', new_string: '  const cents = Math.round(amount * 100);' }, 'The file src/money.js has been updated.', false, 0.1],
+      [29.0, 'tool', 'Bash', { command: 'npm test -- money', description: 'Re-run the money suite' }, FAIL2, true, 3.6],
+      [41.5, 'think', "Rounding test passes now, but sumLineItems broke: 19.99 * 3 = 59.97000000000001 in floating point, and rounding each product independently drifts. The right move is to convert to cents before multiplying, and make the rounding robust to binary drift (1.005 * 100 = 100.49999…). I'll rewrite toCents to round half away from zero on a precision-corrected value."],
+      [43.0, 'tool', 'Edit', { file_path: 'src/money.js', old_string: '  const cents =', new_string: '  const scaled =' }, EDIT_ERR, true, 0.1],
+      [46.8, 'think', "That string appears three times. I need the whole toCents body as context so the match is unique."],
+      [47.3, 'tool', 'Read', { file_path: 'src/money.js', offset: 1, limit: 8 }, numbered(MONEY_JS.slice(0, 8).map(function (l) { return l.replace('Math.floor', 'Math.round'); })), false, 0.2],
+      [49.9, 'tool', 'Edit', { file_path: 'src/money.js',
+        old_string: "function toCents(amount) {\n  const cents = Math.round(amount * 100);\n  return cents;\n}",
+        new_string: "function toCents(amount) {\n  // Round half away from zero on a precision-corrected value:\n  // 1.005 * 100 is 100.49999999999999 in binary floating point.\n  const scaled = Number((Math.abs(amount) * 100).toPrecision(15));\n  return Math.sign(amount) * Math.round(scaled);\n}" }, 'The file src/money.js has been updated.', false, 0.1],
+      [52.6, 'tool', 'Edit', { file_path: 'src/money.js',
+        old_string: "  const whole = Math.trunc(cents / 100).toString();\n  const frac = String(Math.abs(cents % 100)).padStart(2, '0');\n  return `${symbol}${groupThousands(whole)}.${frac}`;",
+        new_string: "  const sign = cents < 0 ? '-' : '';\n  const abs = Math.abs(cents);\n  const whole = Math.trunc(abs / 100).toString();\n  const frac = String(abs % 100).padStart(2, '0');\n  return `${sign}${symbol}${groupThousands(whole)}.${frac}`;" }, 'The file src/money.js has been updated.', false, 0.1],
+      [55.1, 'tool', 'Edit', { file_path: 'src/money.js',
+        old_string: "  const cents = items.reduce((acc, it) => acc + toCents(it.price * it.qty), 0);",
+        new_string: "  const cents = items.reduce((acc, it) => acc + toCents(it.price) * it.qty, 0);" }, 'The file src/money.js has been updated.', false, 0.1],
+      [56.0, 'tool', 'Bash', { command: 'npm test -- money', description: 'Re-run the money suite' }, PASS(6), false, 3.4],
+      [62.2, 'tool', 'Bash', { command: 'npm test && npm run lint', description: 'Full test suite and lint' },
+        "> ledger-kit@2.3.1 test\n> jest\n\n PASS  test/tax.test.js\n PASS  test/invoice.test.js\n PASS  test/money.test.js\n PASS  test/dates.test.js\n\nTest Suites: 4 passed, 4 total\nTests:       31 passed, 31 total\nTime:        2.388 s\n\n> ledger-kit@2.3.1 lint\n> eslint src test\n", false, 8.7],
+      [72.9, 'tool', 'TodoWrite', { todos: [
+        { content: 'Reproduce the failing money tests', status: 'completed', activeForm: 'Reproducing failures' },
+        { content: 'Find the root cause in src/money.js', status: 'completed', activeForm: 'Finding root cause' },
+        { content: 'Fix rounding and sign handling', status: 'completed', activeForm: 'Fixing formatting' },
+        { content: 'Re-run the full suite and lint', status: 'completed', activeForm: 'Re-running checks' }] }, 'Todos have been modified successfully.', false, 0.2],
+      [73.6, 'tool', 'Bash', { command: 'git diff --stat', description: 'Summarize the change' }, ' src/money.js | 13 +++++++++----\n 1 file changed, 9 insertions(+), 4 deletions(-)', false, 0.3],
+      [80.4, 'text', "Fixed. All 31 tests pass and lint is clean.\n\n**Root cause** — three bugs in `src/money.js`:\n1. `toCents` used `Math.floor`, so $1,234.567 truncated to $1,234.56. It now rounds half away from zero on a precision-corrected value (so 1.005 → 101 cents, not 100).\n2. The minus sign came from `Math.trunc` on the dollars, which put it after the symbol (`$-5.00`). The sign is now emitted before the symbol.\n3. `sumLineItems` rounded `price × qty` after multiplying, which drifted by a cent; it now converts the unit price to cents first.\n\nNo test expectations were changed. `src/tax.js` has a similar `Math.floor` — worth a look separately."],
+      [262.0, 'user', "Nice. Add regression tests for 1.005 and for a negative amount with thousands, so this doesn't come back."],
+      [266.5, 'think', "Add two cases to the formatCurrency describe block: 1.005 → $1.01 and -1234.5 → -$1,234.50. Insert them after the EUR test."],
+      [267.2, 'tool', 'Edit', { file_path: 'test/money.test.js',
+        old_string: "  test('supports EUR', () => {\n    expect(formatCurrency(9.5, 'EUR')).toBe('€9.50');\n  });",
+        new_string: "  test('supports EUR', () => {\n    expect(formatCurrency(9.5, 'EUR')).toBe('€9.50');\n  });\n  test('rounds half-cents up despite float drift', () => {\n    expect(formatCurrency(1.005)).toBe('$1.01');\n  });\n  test('negative amounts keep grouping', () => {\n    expect(formatCurrency(-1234.5)).toBe('-$1,234.50');\n  });" }, 'The file test/money.test.js has been updated.', false, 0.1],
+      [268.4, 'tool', 'Bash', { command: 'npm test -- money', description: 'Run the money suite with the new cases' }, PASS(8, ['    ✓ rounds half-cents up despite float drift', '    ✓ negative amounts keep grouping']), false, 3.3],
+      [275.0, 'text', "Added both regression tests to `test/money.test.js`; the money suite is green (8/8). The 1.005 case would have failed under the old `Math.floor` and also under a plain `Math.round`, so it guards the precision fix specifically."]
+    ];
+
+    var lines = [], uid = 0, msgN = 0, parent = null, base = Date.UTC(2026, 9, 21, 15, 4, 12);
+    var cacheRead = 11800;
+    var iso = function (sec) { return new Date(base + Math.round(sec * 1000)).toISOString(); };
+    var mkUuid = function () { uid++; var h = ('00000000' + uid.toString(16)).slice(-8); return h + '-5a3e-4c1d-9b7a-' + ('000000000000' + (uid * 7919).toString(16)).slice(-12); };
+    var push = function (o) { o.uuid = mkUuid(); o.parentUuid = parent; o.sessionId = 'sample-0000'; o.cwd = '/work/ledger-kit'; o.version = 'sample'; parent = o.uuid; lines.push(JSON.stringify(o)); };
+    // group consecutive assistant blocks into one API message (one id, repeated usage on each line, like real logs)
+    var curMsg = null;
+    var startMsg = function (outLen) {
+      msgN++;
+      var out = Math.max(18, Math.round(outLen / 3.6));
+      var u = { input_tokens: 4 + (msgN % 5) * 3, output_tokens: out, cache_read_input_tokens: cacheRead, cache_creation_input_tokens: 380 + (msgN * 137) % 900 };
+      cacheRead += 420 + (msgN * 211) % 1600;
+      curMsg = { id: 'msg_sample_' + ('000' + msgN).slice(-3), usage: u };
+    };
+    var asst = function (sec, block, outLen) {
+      if (!curMsg) startMsg(outLen);
+      push({ type: 'assistant', timestamp: iso(sec), message: { id: curMsg.id, type: 'message', role: 'assistant', model: 'claude-sample-model', content: [block], stop_reason: null, usage: curMsg.usage } });
+    };
+    lines.push(JSON.stringify({ type: 'summary', summary: 'Fix invoice currency formatting tests', leafUuid: 'x' }));
+    var tid = 0;
+    S.forEach(function (row) {
+      var sec = row[0], kind = row[1];
+      if (kind === 'user') { curMsg = null; push({ type: 'user', timestamp: iso(sec), message: { role: 'user', content: row[2] } }); return; }
+      if (kind === 'think') { asst(sec, { type: 'thinking', thinking: row[2], signature: 'sample' }, row[2].length + 200); return; }
+      if (kind === 'text') { asst(sec, { type: 'text', text: row[2] }, row[2].length); return; }
+      if (kind === 'tool') {
+        tid++; var id = 'toolu_sample_' + ('00' + tid).slice(-2);
+        asst(sec, { type: 'tool_use', id: id, name: row[2], input: row[3] }, JSON.stringify(row[3]).length);
+        curMsg = null;
+        push({ type: 'user', timestamp: iso(sec + row[6]), message: { role: 'user', content: [{ tool_use_id: id, type: 'tool_result', content: row[4], is_error: row[5] || undefined }] } });
+      }
+    });
+    lines.push(JSON.stringify({ type: 'system', subtype: 'stop_hook_summary', timestamp: iso(276) }));
+    return lines.join('\n');
+  }
+
+  var api = { errLine: errLine, detect: detect, parseText: parseText, conform: conform, portable: portable, label: label, keyArg: keyArg, firstLine: firstLine, tc: tc, hms: hms, human: human, kfmt: kfmt, toMarkdown: toMarkdown, buildSample: buildSample, str: str };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  return api;
+})();
+</script>
+<script id="suite-ui">
+(function () {
+'use strict';
+/* Snapshot the pristine page first: Render re-emits it with a run embedded. */
+var OPEN_TAG = '<scr' + 'ipt type="application/json" id="embedded-run">';
+var CLOSE_TAG = '</scr' + 'ipt>';
+var APP_SRC = '<!doctype html>\n' + document.documentElement.outerHTML;
+
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var store = {
+  get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+
+/* ───────────── strings ───────────── */
+var FMT_EN = '<h4>Claude Code sessions (.jsonl)</h4><p>One JSON object per line, the way Claude Code saves sessions under <code>~/.claude/projects/</code>. Prompts, thinking, replies, tool calls and tool results become steps; token usage is counted once per API message. Line types the player doesn\'t use (snapshots, hooks, summaries) are skipped.</p>'
+  + '<h4>OpenAI-style messages (.json)</h4><p>An array of <code>{role, content, tool_calls, tool_call_id}</code> messages, or <code>{"messages": [...]}</code>. Optional per-message <code>timestamp</code> and <code>usage</code>. A tool message that starts with "Error"/"Traceback" or carries an <code>error</code> field counts as a failure. Without timestamps, pacing is reconstructed from content length.</p>'
+  + '<h4>Step list (.json / .jsonl)</h4><p>The easiest way to bring your own agent in:</p><pre>[\n  {"t": 0,   "kind": "message", "role": "user", "output": "Fix the failing test"},\n  {"t": 1.2, "kind": "thought", "output": "Run the suite first."},\n  {"t": 1.5, "kind": "tool_call", "name": "Bash", "id": "c1",\n   "input": {"command": "npm test"}},\n  {"t": 4.8, "kind": "tool_result", "id": "c1", "output": "1 failed", "error": true},\n  {"t": 9.0, "kind": "message", "output": "Fixed.",\n   "tokens": {"input": 1200, "output": 85}}\n]</pre>'
+  + '<p><code>t</code> — seconds from start, epoch seconds/ms, or an ISO date. <code>kind</code> — <code>thought</code> · <code>tool_call</code> · <code>tool_result</code> · <code>message</code> · <code>error</code>. <code>id</code> pairs a call with its result (otherwise the latest open call wins). <code>tokens</code> — a number (output) or <code>{input, output, cache_read, cache_write}</code>.</p>'
+  + '<h4>Rendered replays</h4><p>An .html replay rendered here plays on its own; open it in any browser.</p>';
+var FMT_ZH = '<h4>Claude Code 会话（.jsonl）</h4><p>每行一个 JSON 对象，即 Claude Code 保存在 <code>~/.claude/projects/</code> 下的会话文件。指令、思考、回复、工具调用和工具结果都会变成步骤；Token 用量按每条 API 消息只计一次。播放器用不到的行（快照、hook、摘要等）会被跳过。</p>'
+  + '<h4>OpenAI 风格消息（.json）</h4><p><code>{role, content, tool_calls, tool_call_id}</code> 组成的数组，或 <code>{"messages": [...]}</code>。每条消息可带 <code>timestamp</code> 和 <code>usage</code>。以 "Error"/"Traceback" 开头或带 <code>error</code> 字段的工具消息记为失败。没有时间戳时，按内容长度推算节奏。</p>'
+  + '<h4>步骤列表（.json / .jsonl）</h4><p>接入自己的 agent 最简单的方式：</p><pre>[\n  {"t": 0,   "kind": "message", "role": "user", "output": "修好那个失败的测试"},\n  {"t": 1.2, "kind": "thought", "output": "先跑一遍测试。"},\n  {"t": 1.5, "kind": "tool_call", "name": "Bash", "id": "c1",\n   "input": {"command": "npm test"}},\n  {"t": 4.8, "kind": "tool_result", "id": "c1", "output": "1 failed", "error": true},\n  {"t": 9.0, "kind": "message", "output": "已修复。",\n   "tokens": {"input": 1200, "output": 85}}\n]</pre>'
+  + '<p><code>t</code>：距开始的秒数、Unix 秒/毫秒，或 ISO 时间。<code>kind</code>：<code>thought</code> · <code>tool_call</code> · <code>tool_result</code> · <code>message</code> · <code>error</code>。<code>id</code> 用来配对调用和结果（没有时配给最近一个未完成的调用）。<code>tokens</code>：一个数字（输出）或 <code>{input, output, cache_read, cache_write}</code>。</p>'
+  + '<h4>渲染出的回放</h4><p>在这里渲染出的 .html 回放可以独立播放，用任何浏览器打开即可。</p>';
+
+var I18N = {
+  en: {
+    brand: 'Agent Replay', m_file: 'File', mi_open: 'Import footage…', mi_paste: 'Paste a log…', mi_sample: 'Load sample reel', mi_eject: 'Eject reel',
+    m_render: 'Render', mi_render: 'Render replay (.html)', mi_render_range: 'Render in → out (.html)', mi_notes: 'Export cut notes (.md)',
+    m_view: 'View', mi_lang: 'Language', mi_look: 'Appearance', look_sys: 'Match system', look_dark: 'Dark suite', look_light: 'Bright suite',
+    mi_axis_wall: 'Timeline: wall clock', mi_axis_step: 'Timeline: one slot per step', mi_fit: 'Fit timeline to window',
+    m_help: 'Help', mi_formats: 'Supported footage', mi_keys: 'Keyboard shortcuts',
+    local: 'LOCAL · logs never leave your browser', local_long: 'Everything runs on this page. Your logs never leave your browser.',
+    d_bin: 'Bin', d_insp: 'Inspector', bin: 'Bin', tab_shots: 'Steps', tab_tools: 'Tools', find_ph: 'Find a step…',
+    pgm: 'PGM', sl_prod: 'Production', sl_prod_v: 'Agent run', sl_roll: 'Roll', sl_scene: 'Scene', sl_take: 'Take',
+    empty_h: 'No reel loaded',
+    empty_p: 'Drop a transcript anywhere and it gets cut into a replay: every thought, tool call and result laid out on a timeline you can scrub. Takes Claude Code .jsonl sessions, OpenAI-style message arrays, or a plain step list.',
+    insp: 'Inspector', tl: 'Timeline', ax_wall: 'Wall clock', ax_step: 'Per step', fit: 'Fit',
+    paste_h: 'Paste a log', paste_p: 'Paste a .jsonl transcript or a JSON array. It is parsed right here on the page.', cancel: 'Cancel', paste_go: 'Cut the replay',
+    fmt_h: 'Supported footage', fmt_body: FMT_EN,
+    tr_msg: 'Messages', tr_think: 'Thinking', tr_call: 'Tool calls', tr_res: 'Results', tr_err: 'Errors', tr_tok: 'Tokens', tr_tc: 'Timecode',
+    k_user: 'Prompt', k_assistant: 'Agent', k_thought: 'Thinking', k_call: 'Tool call', k_result: 'Result', k_error: 'Error', k_system: 'System',
+    sec_sheet: 'Run sheet', sec_levels: 'Token levels', sec_longest: 'Longest takes', sec_broke: 'Where it broke', levels_hint: 'cumulative',
+    tile_runtime: 'Runtime', tile_steps: 'Steps', tile_calls: 'Tool calls', tile_err: 'Errors', tile_retake: 'Retakes', tile_tok: 'Tokens',
+    tile_tok_s: '{o} out', tile_err_s: 'failed results', tile_retake_s: 'same tool, again', tile_calls_s: '{n} tools',
+    v_errrate: 'Failure rate', v_medlat: 'Median tool latency', v_outpm: 'Output tokens / min', v_model: 'Model', v_source: 'Source',
+    tok_i: 'Input', tok_o: 'Output', tok_cr: 'Cache read', tok_cw: 'Cache write',
+    next_move: 'Next move', retry_tag: 'retake', no_breaks: 'Clean take: no tool call failed.', lat_model: 'model', lat_tool: 'tool',
+    step_of: 'STEP {a} / {b}', running: 'rolling…', result_tag: 'Result', error_tag: 'Failed', no_result: 'No result recorded',
+    show_all: 'Show the full take · {n} lines', earlier: '{n} earlier steps are off the monitor. Scrub back to see them.',
+    read_lines: '{n} lines read', matches: '{n} lines', hidden_thought: 'Thinking (content not recorded in the log)', open_read: 'Open',
+    src_claude: 'Claude Code', src_openai: 'OpenAI-style', src_generic: 'Step list',
+    f_src: 'SRC', f_model: 'MODEL', f_dur: 'DUR', f_steps: 'STEPS',
+    ribbon_rendered: 'Rendered replay', ribbon_range: 'Steps {a}–{b}', ribbon_synth: 'Timing reconstructed', sidechain: 'subagent',
+    err_empty: 'Nothing to read: the log is empty.', err_unknown: 'Couldn\'t recognize that format. See Help ▸ Supported footage.', err_nosteps: 'Read the file, but found no steps to replay.',
+    loaded: '{n} steps conformed in {ms}', ingest: 'Ingesting footage…',
+    rq_title: 'Rendering replay', rq_notes: 'Exporting cut notes', rq_done: 'Rendered', rq_s0: 'Conforming timeline…', rq_s1: 'Packing {n} steps…', rq_s2: 'Embedding the player…', rq_s3: 'Writing file…',
+    mark_in: 'In point at step {n}', mark_out: 'Out point at step {n}', marks_cleared: 'In and out cleared',
+    kl_play: 'play', kl_shuttle: 'shuttle', kl_step: 'step', kl_mark: 'in/out',
+    km_space: 'Play / pause', km_jkl: 'Shuttle: J reverse, K stop, L forward (press again for 2× / 5× / 10×)', km_arrows: 'Previous / next step (hold Shift for 10)',
+    km_home: 'First / last step', km_io: 'Mark in / out. Playback and Render use the marked range', km_x: 'Clear in / out', km_f: 'Fit timeline to window',
+    km_wheel: 'Over the timeline: wheel zooms, Shift + wheel pans, drag the ruler to scrub', km_r: 'Render replay', km_q: 'This list',
+    t_home: 'First step (Home)', t_back: 'Previous step (←)', t_play: 'Play / pause (Space)', t_fwd: 'Next step (→)', t_end: 'Last step (End)', t_in: 'Mark in (I)', t_out: 'Mark out (O)',
+    tl_calls: '{n} calls', tl_avg: 'avg {d}', tl_err: '{n} failed', tl_hint: 'Click a tool to jump to its next call.',
+    md: { h: 'Cut notes' }
+  },
+  zh: {
+    brand: 'Agent 回放', m_file: '文件', mi_open: '导入素材…', mi_paste: '粘贴日志…', mi_sample: '载入示例素材', mi_eject: '弹出素材',
+    m_render: '渲染', mi_render: '渲染回放（.html）', mi_render_range: '渲染入点 → 出点（.html）', mi_notes: '导出剪辑笔记（.md）',
+    m_view: '视图', mi_lang: '语言', mi_look: '外观', look_sys: '跟随系统', look_dark: '暗色剪辑室', look_light: '明亮剪辑室',
+    mi_axis_wall: '时间线：真实时间', mi_axis_step: '时间线：每步等宽', mi_fit: '时间线适配窗口',
+    m_help: '帮助', mi_formats: '支持的素材格式', mi_keys: '快捷键',
+    local: '本地运行 · 记录不会离开你的浏览器', local_long: '一切都在本页运行，记录不会离开你的浏览器。',
+    d_bin: '素材箱', d_insp: '检查器', bin: '素材箱', tab_shots: '步骤', tab_tools: '工具', find_ph: '查找步骤…',
+    pgm: 'PGM', sl_prod: '片名', sl_prod_v: 'Agent 任务', sl_roll: '卷', sl_scene: '场', sl_take: '条',
+    empty_h: '还没有载入素材',
+    empty_p: '把 transcript 拖到页面任意位置，就会剪成一段回放：每一次思考、工具调用和结果都排在一条可拖动的时间线上。支持 Claude Code 的 .jsonl 会话、OpenAI 风格的消息数组，以及简单的步骤列表。',
+    insp: '检查器', tl: '时间线', ax_wall: '真实时间', ax_step: '按步骤', fit: '适配',
+    paste_h: '粘贴日志', paste_p: '粘贴 .jsonl transcript 或 JSON 数组，直接在本页解析。', cancel: '取消', paste_go: '剪成回放',
+    fmt_h: '支持的素材格式', fmt_body: FMT_ZH,
+    tr_msg: '消息', tr_think: '思考', tr_call: '工具调用', tr_res: '结果', tr_err: '错误', tr_tok: 'Token', tr_tc: '时间码',
+    k_user: '指令', k_assistant: 'Agent', k_thought: '思考', k_call: '工具调用', k_result: '结果', k_error: '错误', k_system: '系统',
+    sec_sheet: '场记单', sec_levels: 'Token 电平', sec_longest: '最长的镜头', sec_broke: '出错的地方', levels_hint: '累计',
+    tile_runtime: '时长', tile_steps: '步骤', tile_calls: '工具调用', tile_err: '错误', tile_retake: '重拍', tile_tok: 'Token',
+    tile_tok_s: '输出 {o}', tile_err_s: '失败的结果', tile_retake_s: '同一工具再试', tile_calls_s: '{n} 种工具',
+    v_errrate: '失败率', v_medlat: '工具延迟中位数', v_outpm: '每分钟输出 Token', v_model: '模型', v_source: '来源',
+    tok_i: '输入', tok_o: '输出', tok_cr: '缓存读取', tok_cw: '缓存写入',
+    next_move: '下一步动作', retry_tag: '重拍', no_breaks: '一条过：没有工具调用失败。', lat_model: '模型', lat_tool: '工具',
+    step_of: '第 {a} / {b} 步', running: '运行中…', result_tag: '结果', error_tag: '失败', no_result: '日志里没有结果',
+    show_all: '展开完整内容 · {n} 行', earlier: '监视器之外还有 {n} 个更早的步骤，往回拖动即可查看。',
+    read_lines: '读取 {n} 行', matches: '{n} 行', hidden_thought: '思考（日志未记录内容）', open_read: '展开',
+    src_claude: 'Claude Code', src_openai: 'OpenAI 风格', src_generic: '步骤列表',
+    f_src: '来源', f_model: '模型', f_dur: '时长', f_steps: '步骤',
+    ribbon_rendered: '渲染版回放', ribbon_range: '第 {a}–{b} 步', ribbon_synth: '时间为推算', sidechain: '子 agent',
+    err_empty: '日志是空的，没有可读的内容。', err_unknown: '无法识别这个格式，见 帮助 ▸ 支持的素材格式。', err_nosteps: '文件读取成功，但没有找到可回放的步骤。',
+    loaded: '已整理 {n} 个步骤，用时 {ms}', ingest: '正在导入素材…',
+    rq_title: '正在渲染回放', rq_notes: '正在导出剪辑笔记', rq_done: '渲染完成', rq_s0: '整理时间线…', rq_s1: '打包 {n} 个步骤…', rq_s2: '嵌入播放器…', rq_s3: '写入文件…',
+    mark_in: '入点：第 {n} 步', mark_out: '出点：第 {n} 步', marks_cleared: '已清除入点和出点',
+    kl_play: '播放', kl_shuttle: '穿梭', kl_step: '逐步', kl_mark: '入/出点',
+    km_space: '播放 / 暂停', km_jkl: '穿梭：J 倒放，K 停止，L 正放（再按一次加速到 2× / 5× / 10×）', km_arrows: '上一步 / 下一步（按住 Shift 跳 10 步）',
+    km_home: '第一步 / 最后一步', km_io: '标记入点 / 出点，播放和渲染都只用这一段', km_x: '清除入点 / 出点', km_f: '时间线适配窗口',
+    km_wheel: '在时间线上：滚轮缩放，Shift + 滚轮平移，拖动标尺定位', km_r: '渲染回放', km_q: '显示本列表',
+    t_home: '第一步（Home）', t_back: '上一步（←）', t_play: '播放 / 暂停（空格）', t_fwd: '下一步（→）', t_end: '最后一步（End）', t_in: '标记入点（I）', t_out: '标记出点（O）',
+    tl_calls: '{n} 次', tl_avg: '平均 {d}', tl_err: '{n} 次失败', tl_hint: '点击工具，跳到它的下一次调用。',
+    md: { h: '剪辑笔记', source: '来源', model: '模型', runtime: '时长', shots: '步骤', calls: '工具调用', errors: '错误', retries: '重拍',
+      tokens: 'Token', tin: '输入', tout: '输出', tcr: '缓存读取', tcw: '缓存写入', usage: '工具用量', tool: '工具', count: '调用次数', errs: '错误', avg: '平均延迟',
+      broke: '出错的地方', next: '下一步动作', none: '没有失败的工具调用。', longest: '最长的镜头', list: '镜头列表', more: '个步骤未列出',
+      synthetic: '时间为推算（原始日志没有时间戳）。', footer: '由 Agent 回放 在本地生成。' }
+  }
+};
+var lang = store.get('ar.lang');
+if (lang !== 'en' && lang !== 'zh') lang = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+function t(k, v) {
+  var s = I18N[lang][k]; if (s == null) s = I18N.en[k]; if (s == null) s = k;
+  if (v) s = String(s).replace(/\{(\w+)\}/g, function (_, x) { return v[x] != null ? v[x] : ''; });
+  return s;
+}
+
+/* ───────────── state ───────────── */
+var run = null, cur = 0, playing = false, dir = 0, speed = 1, timer = null;
+var inMark = null, outMark = null, axis = store.get('ar.axis') === 'step' ? 'step' : 'wall';
+var view = { a0: 0, a1: 1 }, labels = [], trackOf = null, feedTo = -1, feedFrom = 0, stream = null, lastHoverLv = null;
+var SPEEDS = [1, 2, 5, 10], WINDOW = 120;
+var binKinds = { user: 1, assistant: 1, thought: 1, call: 1, result: 1, error: 1, system: 1 }, binQ = '', binIdx = [];
+var KIND_VAR = { user: '--v-user', assistant: '--v-msg', thought: '--v-think', call: '--v-call', result: '--v-res', error: '--v-err', system: '--v-sys' };
+var TRACKS = [
+  { id: 'V1', key: 'tr_msg', v: '--v-msg' }, { id: 'V2', key: 'tr_think', v: '--v-think' }, { id: 'V3', key: 'tr_call', v: '--v-call' },
+  { id: 'V4', key: 'tr_res', v: '--v-res' }, { id: 'E1', key: 'tr_err', v: '--v-err' }
+];
+var RULER_H = 22, TRACK_H = 24, WAVE_H = 46, TL_H = RULER_H + TRACK_H * TRACKS.length + WAVE_H;
+function kindKey(s) { return (s.k === 'result' && s.err) ? 'error' : s.k; }
+function trackIndex(s) {
+  if (s.k === 'user' || s.k === 'assistant' || s.k === 'system') return 0;
+  if (s.k === 'thought') return 1; if (s.k === 'call') return 2;
+  if (s.k === 'result') return s.err ? 4 : 3; return 4;
+}
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#888'; }
+function N() { return run ? run.steps.length : 0; }
+function lo() { return inMark != null ? inMark : 0; }
+function hi() { return outMark != null ? outMark : N() - 1; }
+
+/* ───────────── i18n + theme ───────────── */
+function applyTheme() {
+  var th = store.get('ar.theme') || 'system';
+  if (th === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', th);
+  $$('[data-theme-pick]').forEach(function (b) { $('.chk', b).textContent = b.dataset.themePick === th ? '✓' : ''; });
+  requestAnimationFrame(redrawAll);
+}
+function applyI18n() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  $$('[data-i]').forEach(function (el) { el.textContent = t(el.dataset.i); });
+  $$('[data-ti]').forEach(function (el) { el.title = t(el.dataset.ti); el.setAttribute('aria-label', t(el.dataset.ti)); });
+  $('#binFind').placeholder = t('find_ph');
+  $$('[data-lang]').forEach(function (b) { $('.chk', b).textContent = b.dataset.lang === lang ? '✓' : ''; });
+  $('#fmtBody').innerHTML = t('fmt_body');
+  $('.local-lamp').title = t('local_long');
+  renderKeys(); renderTrackHeads(); syncMenus();
+  if (run) { renderSlate(); renderBinKinds(); renderBinRows(); renderTools(); renderInspector(); feedTo = -1; renderFeed(false); syncAll(); }
+  else { renderSlate(); renderInspector(); }
+}
+function syncMenus() {
+  $$('[data-needs-run]').forEach(function (b) { b.disabled = !run; });
+  var rr = $('[data-act="render"] [data-i]'); if (rr) rr.textContent = (inMark != null || outMark != null) ? t('mi_render_range') : t('mi_render');
+  $('[data-act="axis-wall"] .chk').textContent = axis === 'wall' ? '●' : '';
+  $('[data-act="axis-step"] .chk').textContent = axis === 'step' ? '●' : '';
+  $('[data-act="eject"]').disabled = !run;
+  $$('[data-axis]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.axis === axis)); });
+}
+function renderKeys() {
+  $('#keyLegend').innerHTML = '<span><kbd>Space</kbd>' + esc(t('kl_play')) + '</span><span><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd>' + esc(t('kl_shuttle')) + '</span><span><kbd>←</kbd><kbd>→</kbd>' + esc(t('kl_step')) + '</span><span><kbd>I</kbd><kbd>O</kbd>' + esc(t('kl_mark')) + '</span><span><kbd>?</kbd></span>';
+  var rows = [['Space', 'km_space'], ['J K L', 'km_jkl'], ['← →', 'km_arrows'], ['Home End', 'km_home'], ['I O', 'km_io'], ['X', 'km_x'], ['F', 'km_f'], ['⇧ R', 'km_r'], ['?', 'km_q'], ['⌖', 'km_wheel']];
+  $('#keyMap').innerHTML = rows.map(function (r) { return '<span>' + r[0].split(' ').map(function (k) { return '<kbd>' + esc(k) + '</kbd>'; }).join(' ') + '</span><span>' + esc(t(r[1])) + '</span>'; }).join('');
+}
+function renderTrackHeads() {
+  var h = '<div class="track-head ruler-h" style="height:' + RULER_H + 'px"><span class="id">TC</span><span class="nm">' + esc(t('tr_tc')) + '</span></div>';
+  TRACKS.forEach(function (tr) { h += '<div class="track-head" style="height:' + TRACK_H + 'px"><span class="sw" style="background:var(' + tr.v + ')"></span><span class="id">' + tr.id + '</span><span class="nm">' + esc(t(tr.key)) + '</span></div>'; });
+  h += '<div class="track-head" style="height:' + WAVE_H + 'px;border-bottom:0"><span class="sw" style="background:linear-gradient(var(--wave-up) 50%,var(--wave-dn) 50%)"></span><span class="id">A1</span><span class="nm">' + esc(t('tr_tok')) + '</span></div>';
+  $('#trackHeads').innerHTML = h;
+  $('#tl').style.height = TL_H + 'px';
+}
+
+/* ───────────── slate strip ───────────── */
+function renderSlate() {
+  var nm = $('#clipName'), f = $('#slateFields');
+  if (!run) { nm.textContent = t('empty_h'); f.innerHTML = ''; return; }
+  nm.textContent = run.meta.title; nm.title = run.meta.title;
+  var st = run.stats, m = run.meta, h = '';
+  if (m.rendered) h += '<span class="ribbon">' + esc(t('ribbon_rendered')) + '</span>';
+  if (m.range) h += '<span class="ribbon">' + esc(t('ribbon_range', { a: m.range[0] + 1, b: m.range[1] + 1 })) + '</span>';
+  if (m.syntheticTime) h += '<span class="ribbon">' + esc(t('ribbon_synth')) + '</span>';
+  h += '<span>' + esc(t('f_src')) + '<b>' + esc(t('src_' + m.source) || m.source) + '</b></span>';
+  if (m.model) h += '<span>' + esc(t('f_model')) + '<b>' + esc(m.model) + '</b></span>';
+  h += '<span>' + esc(t('f_dur')) + '<b>' + AR.hms(st.duration) + '</b></span><span>' + esc(t('f_steps')) + '<b>' + st.steps + '</b></span>';
+  f.innerHTML = h;
+}
+
+/* ───────────── program monitor ───────────── */
+function fmtText(s) {
+  return esc(s).replace(/`([^`\n]{1,240})`/g, '<code>$1</code>').replace(/\*\*([^*\n]{1,240})\*\*/g, '<b>$1</b>');
+}
+function lineCount(s) { if (!s) return 0; var n = 1; for (var i = 0; i < s.length; i++) if (s.charCodeAt(i) === 10) n++; return n; }
+function fullOf(i, f) {
+  var s = run.steps[i];
+  if (f === 'output') return s.output || '';
+  if (f === 'text') return s.text || '';
+  if (f === 'cmd') return (s.input && (s.input.command || s.input.cmd)) || '';
+  if (f === 'content') return (s.input && s.input.content) || '';
+  if (f === 'json') return AR.str(s.input);
+  return '';
+}
+function clipped(text, i, f, cls, maxL, prefix) {
+  maxL = maxL || 22; text = text || '';
+  var n = lineCount(text), shown = text, more = false;
+  if (n > maxL) { shown = text.split('\n').slice(0, maxL).join('\n'); more = true; }
+  if (shown.length > 3200) { shown = shown.slice(0, 3200) + '…'; more = true; }
+  return '<pre class="' + cls + '">' + (prefix || '') + esc(shown) + '</pre>' + (more ? '<button class="more" data-expand="' + i + '" data-f="' + f + '" data-mode="pre" data-prefix="' + (prefix ? 1 : 0) + '">' + esc(t('show_all', { n: n })) + '</button>' : '');
+}
+function textBlock(i) {
+  var s = run.steps[i], txt = s.text || '';
+  if (s.k === 'thought' && s.hidden) return '<span class="quiet">' + esc(t('hidden_thought')) + '</span>';
+  var n = lineCount(txt);
+  if (txt.length > 6000 || n > 80) {
+    var cut = txt.split('\n').slice(0, 60).join('\n').slice(0, 5000);
+    return fmtText(cut) + '…\n<button class="more" data-expand="' + i + '" data-f="text" data-mode="copy">' + esc(t('show_all', { n: n })) + '</button>';
+  }
+  return fmtText(txt);
+}
+function diffLines(a, b) {
+  var A = a === '' ? [] : a.split('\n'), B = b === '' ? [] : b.split('\n'), n = A.length, m = B.length, out = [];
+  if (n * m > 160000) return A.map(function (x) { return ['-', x]; }).concat(B.map(function (x) { return ['+', x]; }));
+  var w = m + 1, dp = new Uint32Array((n + 1) * (m + 1)), i, j;
+  for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) dp[i * w + j] = A[i] === B[j] ? dp[(i + 1) * w + j + 1] + 1 : Math.max(dp[(i + 1) * w + j], dp[i * w + j + 1]);
+  i = 0; j = 0;
+  while (i < n && j < m) {
+    if (A[i] === B[j]) { out.push([' ', A[i]]); i++; j++; }
+    else if (dp[(i + 1) * w + j] >= dp[i * w + j + 1]) out.push(['-', A[i++]]);
+    else out.push(['+', B[j++]]);
+  }
+  while (i < n) out.push(['-', A[i++]]); while (j < m) out.push(['+', B[j++]]);
+  return out;
+}
+function diffHTML(a, b) {
+  var rows = diffLines(String(a || ''), String(b || '')), h = '', run0 = -1, LIM = 220;
+  var flushCtx = function (from, to) {
+    var len = to - from;
+    if (len > 7) {
+      for (var q = from; q < from + 3; q++) h += '<div class="ctx">' + esc(rows[q][1]) + '</div>';
+      h += '<div class="gap">⋯ ' + (len - 6) + ' ⋯</div>';
+      for (q = to - 3; q < to; q++) h += '<div class="ctx">' + esc(rows[q][1]) + '</div>';
+    } else for (var r = from; r < to; r++) h += '<div class="ctx">' + esc(rows[r][1]) + '</div>';
+  };
+  var lim = Math.min(rows.length, LIM);
+  for (var k = 0; k < lim; k++) {
+    if (rows[k][0] === ' ') { if (run0 < 0) run0 = k; continue; }
+    if (run0 >= 0) { flushCtx(run0, k); run0 = -1; }
+    h += '<div class="' + (rows[k][0] === '+' ? 'add' : 'del') + '">' + (esc(rows[k][1]) || ' ') + '</div>';
+  }
+  if (run0 >= 0) flushCtx(run0, lim);
+  if (rows.length > LIM) h += '<div class="gap">+ ' + (rows.length - LIM) + ' …</div>';
+  return '<div class="diff">' + h + '</div>';
+}
+function toolShape(s) {
+  var inp = s.input && typeof s.input === 'object' ? s.input : {}, nm = String(s.name || '');
+  if (typeof inp.command === 'string' || typeof inp.cmd === 'string') return 'cmd';
+  if (Array.isArray(inp.edits)) return 'multiedit';
+  if (typeof inp.old_string === 'string' || typeof inp.new_string === 'string') return 'edit';
+  if (typeof inp.content === 'string' && (inp.file_path || inp.path)) return 'write';
+  if (Array.isArray(inp.todos)) return 'todos';
+  if (/read|view|open|cat/i.test(nm) && (inp.file_path || inp.path || inp.notebook_path)) return 'read';
+  if (inp.pattern != null || inp.query != null || inp.q != null || /grep|glob|search|find/i.test(nm)) return 'search';
+  return 'other';
+}
+function callBody(i) {
+  var s = run.steps[i], inp = s.input && typeof s.input === 'object' ? s.input : {}, shape = toolShape(s), h = '';
+  var path = inp.file_path || inp.path || inp.notebook_path;
+  if (shape === 'cmd') {
+    if (inp.description) h += '<p class="note">' + esc(inp.description) + '</p>';
+    h += clipped(String(inp.command || inp.cmd), i, 'cmd', 'term', 14, '<span class="ps">$ </span>');
+  } else if (shape === 'edit') {
+    h += '<span class="path">' + esc(path || '') + '</span>' + (inp.replace_all ? ' <span class="note">replace_all</span>' : '') + diffHTML(inp.old_string, inp.new_string);
+  } else if (shape === 'multiedit') {
+    h += '<span class="path">' + esc(path || '') + '</span>';
+    inp.edits.slice(0, 12).forEach(function (e, k) { h += (k ? '<div style="height:6px"></div>' : '') + diffHTML(e && e.old_string, e && e.new_string); });
+  } else if (shape === 'write') {
+    h += '<span class="path">' + esc(path) + '</span>' + diffHTML('', inp.content.split('\n').slice(0, 120).join('\n'));
+  } else if (shape === 'todos') {
+    h += '<ul class="todos">' + inp.todos.slice(0, 30).map(function (td) {
+      var st = td && td.status, cls = st === 'completed' ? 'done' : st === 'in_progress' ? 'doing' : '';
+      return '<li class="' + cls + '"><span class="st">' + (st === 'completed' ? '☑' : st === 'in_progress' ? '▶' : '☐') + '</span><span>' + esc(td && (td.content || td.text || '')) + '</span></li>';
+    }).join('') + '</ul>';
+  } else if (shape === 'read') {
+    var rng = inp.offset != null || inp.limit != null ? ' <span class="note">' + (inp.offset != null ? '@' + inp.offset : '') + (inp.limit != null ? ' +' + inp.limit : '') + '</span>' : '';
+    h += '<span class="path" style="margin:0">' + esc(path) + '</span>' + rng;
+  } else if (shape === 'search') {
+    var pat = inp.pattern != null ? inp.pattern : (inp.query != null ? inp.query : inp.q);
+    h += '<span class="path" style="margin:0">' + esc(typeof pat === 'string' ? pat : AR.str(pat)) + '</span>' + (path ? ' <span class="note">in ' + esc(path) + '</span>' : '') + (inp.glob ? ' <span class="note">' + esc(inp.glob) + '</span>' : '');
+  } else {
+    h += clipped(AR.str(s.input), i, 'json', 'pre-plain', 16);
+  }
+  return '<div class="cut-body">' + h + '</div>';
+}
+function takeHTML(ri) {
+  var r = run.steps[ri], c = r.pair != null ? run.steps[r.pair] : null, out = r.output || '', n = lineCount(out);
+  var shape = c ? toolShape(c) : 'other';
+  var tag = (r.err ? '✕ ' + esc(t('error_tag')) : esc(t('result_tag'))) + (c ? '<span class="mono" style="font-weight:400;letter-spacing:0;color:var(--ink-3)">' + AR.human(c.dur) + ' · ' + AR.tc(r.rt) + '</span>' : '');
+  var body;
+  if (!out.trim()) body = '<span class="quiet">—</span>';
+  else if (shape === 'cmd') body = clipped(out, ri, 'output', 'term out' + (r.err ? ' bad' : ''), 18);
+  else if (shape === 'read' && !r.err) body = '<div class="collapsed-read"><span>▸ ' + esc(t('read_lines', { n: n })) + '</span><button class="more" style="margin:0" data-expand="' + ri + '" data-f="output" data-mode="read">' + esc(t('open_read')) + '</button></div>';
+  else if ((shape === 'edit' || shape === 'multiedit' || shape === 'write' || shape === 'todos') && !r.err && n <= 3) body = '<pre class="pre-plain">✓ ' + esc(out) + '</pre>';
+  else if (shape === 'search' && !r.err) body = '<p class="note">' + esc(t('matches', { n: n })) + '</p>' + clipped(out, ri, 'output', 'pre-plain', 12);
+  else body = clipped(out, ri, 'output', r.err ? 'pre-plain' : 'pre-plain', 16);
+  return '<div class="take' + (r.err ? ' bad' : '') + '" data-take><div class="take-tag">' + tag + '</div>' + body + '</div>';
+}
+function slug(i, who, extra) {
+  var s = run.steps[i];
+  return '<div class="slug"><span class="who">' + esc(who) + '</span>' + (extra || '') + (s.side ? '<span class="retake" style="border-color:var(--ink-3);color:var(--ink-3)">' + esc(t('sidechain')) + '</span>' : '') + '<span class="tcode">' + AR.tc(s.rt) + '</span></div>';
+}
+function shotHTML(i) {
+  var s = run.steps[i];
+  if (s.k === 'call') {
+    var take;
+    if (s.pair != null && s.pair <= cur) take = takeHTML(s.pair);
+    else if (s.pair != null) take = '<div class="take" data-take><div class="rolling"><i></i>' + esc(t('running')) + '</div></div>';
+    else take = '<div class="take" data-take><span class="quiet">' + esc(t('no_result')) + '</span></div>';
+    return '<article class="shot shot--call" data-s="' + i + '"><div class="slug"><span class="chip"></span><span class="tool">' + esc(s.name) + '</span><span class="arg">' + esc(AR.firstLine(AR.keyArg(s.input), 120)) + '</span>'
+      + (s.retake ? '<span class="retake">↻ ' + esc(t('retry_tag')) + '</span>' : '') + (s.side ? '<span class="retake" style="border-color:var(--ink-3);color:var(--ink-3)">' + esc(t('sidechain')) + '</span>' : '') + '<span class="tcode">' + AR.tc(s.rt) + '</span></div>' + callBody(i) + take + '</article>';
+  }
+  if (s.k === 'result') {
+    return '<article class="shot shot--call" data-s="' + i + '"><div class="slug"><span class="chip" style="background:var(--v-res)"></span><span class="tool">' + esc(s.name || t('k_result')) + '</span><span class="tcode">' + AR.tc(s.rt) + '</span></div>' + takeHTML(i) + '</article>';
+  }
+  if (s.k === 'error') return '<article class="shot shot--err" data-s="' + i + '">' + slug(i, '✕ ' + t('k_error')) + '<div class="copy" data-copy>' + textBlock(i) + '</div></article>';
+  var who = t('k_' + s.k), extra = '';
+  if ((s.k === 'thought' || s.k === 'assistant') && s.dur > 0) extra = '<span class="dur">· ' + AR.human(s.dur) + '</span>';
+  return '<article class="shot shot--' + s.k + '" data-s="' + i + '">' + slug(i, who, extra) + '<div class="copy" data-copy>' + textBlock(i) + '</div></article>';
+}
+function streamable(s) { return (s.k === 'assistant' || s.k === 'thought' || s.k === 'user') && !s.hidden && (s.text || '').length > 0; }
+function streamMs(s) { return streamable(s) ? Math.min(2600, 240 + (s.text || '').length * 9) : 0; }
+function startStream(el, i, ms) {
+  finishStream();
+  var full = run.steps[i].text || '', plain = full.slice(0, 2400), node = document.createTextNode(''), caret = document.createElement('span');
+  caret.className = 'caret'; el.textContent = ''; el.appendChild(node); el.appendChild(caret);
+  var t0 = performance.now(), scr = $('#screen');
+  stream = { el: el, i: i, raf: 0 };
+  var fr = function (now) {
+    var p = Math.min(1, (now - t0) / ms);
+    node.data = plain.slice(0, Math.ceil(plain.length * p));
+    if (playing) scr.scrollTop = scr.scrollHeight;
+    if (p < 1) stream.raf = requestAnimationFrame(fr); else finishStream();
+  };
+  stream.raf = requestAnimationFrame(fr);
+}
+function finishStream() {
+  if (!stream) return;
+  cancelAnimationFrame(stream.raf);
+  if (stream.el.isConnected) stream.el.innerHTML = textBlock(stream.i);
+  stream = null;
+}
+function setLive(el) {
+  var prev = $('#screen .shot.is-live'); if (prev && prev !== el) prev.classList.remove('is-live');
+  if (el) el.classList.add('is-live');
+}
+function follow() { var scr = $('#screen'); scr.scrollTop = scr.scrollHeight; }
+function renderFeed(animate) {
+  var scr = $('#screen');
+  finishStream();
+  if (!run) { scr.innerHTML = ''; feedTo = -1; return; }
+  var s = run.steps[cur], el;
+  if (feedTo >= 0 && cur === feedTo + 1) {           // incremental: one step forward
+    if (s.k === 'result' && s.pair != null) {
+      var host = scr.querySelector('[data-s="' + s.pair + '"]');
+      if (host) {
+        var slot = host.querySelector('[data-take]');
+        if (slot) slot.outerHTML = takeHTML(cur);
+        feedTo = cur; setLive(host); trimFeed(); follow(); return;
+      }
+    }
+    scr.insertAdjacentHTML('beforeend', shotHTML(cur));
+    el = scr.lastElementChild; feedTo = cur; setLive(el);
+    if (animate && streamable(s)) startStream(el.querySelector('[data-copy]'), cur, streamMs(s) / speed);
+    trimFeed(); follow(); return;
+  }
+  var from = Math.max(0, cur - WINDOW + 1), h = from > 0 ? '<div class="feed-head">' + esc(t('earlier', { n: from })) + '</div>' : '';
+  for (var i = from; i <= cur; i++) {
+    var x = run.steps[i];
+    if (x.k === 'result' && x.pair != null && x.pair >= from) continue;
+    h += shotHTML(i);
+  }
+  scr.innerHTML = h; feedFrom = from; feedTo = cur;
+  var liveIdx = (s.k === 'result' && s.pair != null && s.pair >= from) ? s.pair : cur;
+  setLive(scr.querySelector('[data-s="' + liveIdx + '"]'));
+  follow();
+}
+function trimFeed() {
+  var scr = $('#screen'), shots = scr.querySelectorAll('.shot');
+  if (shots.length <= WINDOW + 30) return;
+  for (var k = 0; k < 30; k++) shots[k].remove();
+  feedFrom = +scr.querySelector('.shot').dataset.s;
+  var head = scr.querySelector('.feed-head');
+  if (!head) { scr.insertAdjacentHTML('afterbegin', '<div class="feed-head"></div>'); head = scr.querySelector('.feed-head'); }
+  head.textContent = t('earlier', { n: feedFrom });
+}
+$('#screen').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-expand]'); if (!b || !run) return;
+  var i = +b.dataset.expand, f = b.dataset.f, full = fullOf(i, f), mode = b.dataset.mode;
+  if (mode === 'pre') { var pre = b.previousElementSibling; pre.innerHTML = (b.dataset.prefix === '1' ? '<span class="ps">$ </span>' : '') + esc(full); b.remove(); }
+  else if (mode === 'copy') { b.closest('[data-copy]').innerHTML = fmtText(full); }
+  else if (mode === 'read') { b.closest('.collapsed-read').outerHTML = '<pre class="pre-plain">' + esc(full) + '</pre>'; }
+});
+
+/* ───────────── transport ───────────── */
+function updateTransport() {
+  if (!run) {
+    $('#tcBig').textContent = '00:00:00:00'; $('#burnTR').textContent = '00:00:00:00'; $('#tcSub').innerHTML = '';
+    $('#scrub').max = 0; $('#scrub').value = 0; $('#liveLbl').textContent = ''; setPlayIcon(); return;
+  }
+  var s = run.steps[cur], code = AR.tc(s.rt);
+  $('#tcBig').textContent = code; $('#burnTR').textContent = code;
+  var sub = '<b>' + esc(t('step_of', { a: cur + 1, b: N() })) + '</b><br>' + esc(t('k_' + kindKey(s)));
+  if (inMark != null || outMark != null) sub += ' · <span style="color:var(--tally)">' + (inMark != null ? 'I ' + (inMark + 1) : 'I —') + ' / ' + (outMark != null ? 'O ' + (outMark + 1) : 'O —') + '</span>';
+  $('#tcSub').innerHTML = sub;
+  $('#liveLbl').textContent = labels[cur] || '';
+  $('#scrub').max = N() - 1; $('#scrub').value = cur;
+  $('#markIn').classList.toggle('on', inMark != null); $('#markOut').classList.toggle('on', outMark != null);
+  setPlayIcon();
+}
+function setPlayIcon() {
+  $('#playIco').innerHTML = playing ? '<path d="M3 2h4v12H3zM9 2h4v12H9z"/>' : '<path d="M4 2l10 6-10 6z"/>';
+  $('#burnTL').classList.toggle('on-air', playing);
+}
+function syncAll() { updateTransport(); markBin(); keepPlayheadVisible(); drawTL(); drawLevels(); }
+function go(i, animate) {
+  if (!run) return;
+  i = Math.max(0, Math.min(N() - 1, i));
+  cur = i; renderFeed(!!animate); syncAll();
+}
+function gapDelay(i) {
+  var a = run.steps[i], b = run.steps[i + 1]; if (!b) return 0;
+  var g = Math.max(0, b.t - a.t);                       // real idle time, log-compressed: order kept, waits shortened
+  return Math.min(3800, 240 + 520 * Math.log2(1 + g / 400));
+}
+function schedule() {
+  clearTimeout(timer);
+  if (!playing) return;
+  var nxt = cur + dir;
+  if (nxt > hi() || nxt < lo()) { pause(); return; }
+  var d = dir > 0 ? Math.max(gapDelay(cur), streamMs(run.steps[cur]) + 160) / speed : 320 / speed;
+  timer = setTimeout(function () { go(nxt, dir > 0); schedule(); }, d);
+}
+function play(d) {
+  if (!run) return;
+  d = d || 1;
+  if (d > 0 && (cur >= hi() || cur < lo())) go(lo(), false);
+  if (d < 0 && (cur <= lo() || cur > hi())) go(hi(), false);
+  playing = true; dir = d; setPlayIcon(); schedule();
+}
+function pause() { playing = false; dir = 0; clearTimeout(timer); finishStream(); setPlayIcon(); }
+function toggle() { if (playing) pause(); else play(1); }
+function setSpeed(v) { speed = v; $('#speed').value = String(v); if (playing) schedule(); }
+function shuttle(d) {
+  if (!run) return;
+  if (playing && dir === d) { var k = SPEEDS.indexOf(speed); setSpeed(SPEEDS[Math.min(SPEEDS.length - 1, k + 1)]); }
+  else { setSpeed(1); play(d); }
+}
+function stepBy(d) { pause(); go(cur + d, false); }
+function markIn() { if (!run) return; inMark = inMark === cur ? null : cur; if (outMark != null && inMark != null && outMark < inMark) outMark = null; toast(inMark == null ? t('marks_cleared') : t('mark_in', { n: cur + 1 })); syncMenus(); syncAll(); }
+function markOut() { if (!run) return; outMark = outMark === cur ? null : cur; if (inMark != null && outMark != null && inMark > outMark) inMark = null; toast(outMark == null ? t('marks_cleared') : t('mark_out', { n: cur + 1 })); syncMenus(); syncAll(); }
+function clearMarks() { inMark = outMark = null; toast(t('marks_cleared')); syncMenus(); syncAll(); }
+$('#scrub').addEventListener('input', function (e) { pause(); go(+e.target.value, false); });
+$('#speed').addEventListener('change', function (e) { setSpeed(+e.target.value); e.target.blur(); });
+
+/* ───────────── timeline ───────────── */
+function span(i) {
+  var s = run.steps[i];
+  if (axis === 'step') return [i + 0.06, i + 0.94];
+  if (s.k === 'call') return [s.rt, s.rt + s.dur];
+  if ((s.k === 'thought' || s.k === 'assistant') && i > 0) return [run.steps[i - 1].rt, s.rt];
+  return [s.rt, s.rt];
+}
+function point(i) { return axis === 'step' ? i + 0.5 : run.steps[i].rt; }
+function extent() { return axis === 'step' ? [0, Math.max(1, N())] : [0, Math.max(1000, run.stats.duration)]; }
+function fitView() { var e = extent(), pad = (e[1] - e[0]) * 0.015; view = { a0: e[0] - pad, a1: e[1] + pad }; }
+function nearestStep(u) {
+  var a = 0, b = N() - 1;
+  while (a < b) { var m = (a + b) >> 1; if (point(m) < u) a = m + 1; else b = m; }
+  if (a > 0 && Math.abs(point(a - 1) - u) <= Math.abs(point(a) - u)) a--;
+  // in wall-clock mode several steps can share a timestamp; land on the first of them
+  while (a > 0 && point(a - 1) === point(a)) a--;
+  return a;
+}
+var tlCanvas = $('#tl'), tlWrap = $('#tlWrap');
+function tlW() { return tlWrap.clientWidth || 600; }
+function px(u, W) { return (u - view.a0) / (view.a1 - view.a0) * W; }
+function unit(x, W) { return view.a0 + x / W * (view.a1 - view.a0); }
+function niceTick(W) {
+  var per = (view.a1 - view.a0) / W * 96, cands = axis === 'step'
+    ? [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+    : [100, 250, 500, 1000, 2000, 5000, 10000, 15000, 30000, 60000, 120000, 300000, 600000, 900000, 1800000, 3600000, 7200000, 14400000];
+  for (var k = 0; k < cands.length; k++) if (cands[k] >= per) return cands[k];
+  return cands[cands.length - 1];
+}
+function drawTL() {
+  var W = tlW(), H = TL_H, dpr = window.devicePixelRatio || 1, ctx = tlCanvas.getContext('2d');
+  if (tlCanvas.width !== Math.round(W * dpr) || tlCanvas.height !== Math.round(H * dpr)) { tlCanvas.width = Math.round(W * dpr); tlCanvas.height = Math.round(H * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  var C = { deck: css('--deck'), deck2: css('--deck-2'), well: css('--well'), seam: css('--seam'), ink: css('--ink'), ink3: css('--ink-3'), ph: css('--ph'), tally: css('--tally'), up: css('--wave-up'), dn: css('--wave-dn') };
+  ctx.fillStyle = C.well; ctx.fillRect(0, 0, W, H);
+  // ruler
+  ctx.fillStyle = C.deck; ctx.fillRect(0, 0, W, RULER_H);
+  for (var r = 0; r < TRACKS.length; r++) { ctx.fillStyle = r % 2 ? C.well : C.deck2; ctx.fillRect(0, RULER_H + r * TRACK_H, W, TRACK_H); }
+  ctx.fillStyle = C.seam; for (r = 0; r <= TRACKS.length; r++) ctx.fillRect(0, RULER_H + r * TRACK_H - (r === 0 ? 1 : 0), W, 1);
+  if (!run) return;
+  var tick = niceTick(W), first = Math.ceil(view.a0 / tick) * tick;
+  ctx.font = '10px ' + css('--mono'); ctx.textBaseline = 'middle';
+  for (var u = first; u <= view.a1; u += tick) {
+    var x = Math.round(px(u, W)) + 0.5;
+    ctx.fillStyle = C.seam; ctx.fillRect(x, RULER_H, 1, H - RULER_H);
+    ctx.fillStyle = C.ink3; ctx.fillRect(x, RULER_H - 7, 1, 7);
+    ctx.fillText(axis === 'step' ? '#' + (u + 1) : (tick < 1000 ? AR.tc(u) : AR.hms(u)), x + 4, 9);
+    for (var mm = 1; mm < 4; mm++) { var xm = Math.round(px(u + tick * mm / 4, W)) + 0.5; ctx.fillRect(xm, RULER_H - 3, 1, 3); }
+  }
+  // clips
+  var steps = run.steps, n = steps.length, colors = TRACKS.map(function (tr) { return css(tr.v); });
+  ctx.textBaseline = 'middle'; ctx.font = '600 10px ' + css('--mono');
+  for (var i = 0; i < n; i++) {
+    var sp = span(i), x0 = px(sp[0], W), x1 = px(sp[1], W);
+    if (x1 < -4 || x0 > W + 4) continue;
+    var w = Math.max(2.5, x1 - x0), ti = trackOf[i], y = RULER_H + ti * TRACK_H + 4, h = TRACK_H - 8;
+    ctx.fillStyle = colors[ti];
+    if (steps[i].k === 'user') ctx.fillStyle = css('--v-user');
+    if (w > 6 && ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x0, y, w, h, 3); ctx.fill(); } else ctx.fillRect(x0, y, w, h);
+    if (ti === 4) { // error glyph
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; var cx = x0 + w / 2, cy = y + h / 2;
+      ctx.beginPath(); ctx.moveTo(cx - 3, cy - 3); ctx.lineTo(cx + 3, cy + 3); ctx.moveTo(cx + 3, cy - 3); ctx.lineTo(cx - 3, cy + 3); ctx.stroke();
+    }
+    if (steps[i].retake) { ctx.fillStyle = C.tally; ctx.fillRect(x0, y - 3, Math.max(4, Math.min(w, 10)), 2); }
+    if (ti === 2 && w > 44) {
+      ctx.save(); ctx.beginPath(); ctx.rect(x0 + 4, y, w - 8, h); ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillText(steps[i].name, x0 + 5, y + h / 2 + 0.5); ctx.restore();
+    }
+    if (i === cur) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(x0 - 1.5, y - 1.5, w + 3, h + 3); }
+  }
+  // A1 token waveform: output up, fresh input (+cache write) down; sqrt-scaled
+  var wy = RULER_H + TRACKS.length * TRACK_H, mid = wy + WAVE_H / 2, half = WAVE_H / 2 - 4, maxO = 1, maxI = 1;
+  for (i = 0; i < n; i++) { var tk = steps[i].tok; if (tk) { maxO = Math.max(maxO, tk.o); maxI = Math.max(maxI, tk.i + tk.cw); } }
+  ctx.fillStyle = C.seam; ctx.fillRect(0, mid, W, 1);
+  for (i = 0; i < n; i++) {
+    tk = steps[i].tok; if (!tk) continue;
+    var wx = px(point(i), W); if (wx < -2 || wx > W + 2) continue;
+    var hu = Math.sqrt(tk.o / maxO) * half, hd = Math.sqrt((tk.i + tk.cw) / maxI) * half;
+    ctx.fillStyle = C.up; ctx.fillRect(wx - 1, mid - hu, 2, hu);
+    ctx.fillStyle = C.dn; ctx.fillRect(wx - 1, mid + 1, 2, hd);
+  }
+  // in/out
+  if (inMark != null || outMark != null) {
+    var xi = inMark != null ? px(span(inMark)[0], W) : 0, xo = outMark != null ? px(Math.max(span(outMark)[1], point(outMark)), W) : W;
+    ctx.fillStyle = 'rgba(0,0,0,.38)';
+    if (xi > 0) ctx.fillRect(0, RULER_H, xi, H - RULER_H);
+    if (xo < W) ctx.fillRect(xo, RULER_H, W - xo, H - RULER_H);
+    ctx.fillStyle = C.tally; ctx.globalAlpha = 0.25; ctx.fillRect(xi, 0, xo - xi, RULER_H); ctx.globalAlpha = 1;
+    ctx.fillStyle = C.tally;
+    if (inMark != null) { ctx.fillRect(xi, 0, 2, H); ctx.fillRect(xi, 0, 7, 2); ctx.fillRect(xi, RULER_H - 2, 7, 2); }
+    if (outMark != null) { ctx.fillRect(xo - 2, 0, 2, H); ctx.fillRect(xo - 7, 0, 7, 2); ctx.fillRect(xo - 7, RULER_H - 2, 7, 2); }
+  }
+  // playhead
+  var phx = Math.round(px(point(cur), W)) + 0.5;
+  ctx.fillStyle = C.ph; ctx.fillRect(phx - 0.5, 0, 1.5, H);
+  ctx.beginPath(); ctx.moveTo(phx - 6, 0); ctx.lineTo(phx + 6, 0); ctx.lineTo(phx + 6, 8); ctx.lineTo(phx, 14); ctx.lineTo(phx - 6, 8); ctx.closePath(); ctx.fill();
+}
+function keepPlayheadVisible() {
+  if (!run) return;
+  var W = tlW(), x = px(point(cur), W);
+  if (x < 0 || x > W * 0.94) { var w = view.a1 - view.a0, u = point(cur); view.a0 = u - w * 0.15; view.a1 = view.a0 + w; }
+}
+function hitTL(x, y) {
+  if (!run) return null;
+  var W = tlW();
+  if (y < RULER_H) return { ruler: true };
+  var row = Math.floor((y - RULER_H) / TRACK_H), best = null, bd = 1e9, i;
+  if (row < TRACKS.length) {
+    for (i = 0; i < N(); i++) {
+      if (trackOf[i] !== row) continue;
+      var sp = span(i), x0 = px(sp[0], W), x1 = Math.max(x0 + 2.5, px(sp[1], W));
+      if (x < x0 - 4 || x > x1 + 4) continue;
+      var d = x < x0 ? x0 - x : x > x1 ? x - x1 : 0; d = d * 10 + Math.abs((x0 + x1) / 2 - x) / 100;
+      if (d < bd) { bd = d; best = i; }
+    }
+  } else {
+    for (i = 0; i < N(); i++) { if (!run.steps[i].tok) continue; var dx = Math.abs(px(point(i), W) - x); if (dx < 7 && dx < bd) { bd = dx; best = i; } }
+  }
+  return best == null ? null : { i: best };
+}
+function tipFor(i) {
+  var s = run.steps[i], lines = ['#' + (i + 1) + ' · ' + t('k_' + kindKey(s)) + ' · ' + AR.tc(s.rt), labels[i]];
+  if (s.dur) lines.push((s.k === 'call' ? t('lat_tool') : t('lat_model')) + ' ' + AR.human(s.dur));
+  if (s.tok) lines.push(t('tok_i') + ' ' + AR.kfmt(s.tok.i) + ' · ' + t('tok_o') + ' ' + AR.kfmt(s.tok.o) + ' · ' + t('tok_cr') + ' ' + AR.kfmt(s.tok.cr) + ' · ' + t('tok_cw') + ' ' + AR.kfmt(s.tok.cw));
+  return lines.join('\n');
+}
+(function wireTL() {
+  var tip = $('#tlTip'), dragging = false;
+  var rel = function (e) { var r = tlCanvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  var scrubTo = function (x) { pause(); go(nearestStep(unit(x, tlW())), false); };
+  tlCanvas.addEventListener('pointerdown', function (e) {
+    if (!run) return;
+    var p = rel(e), h = hitTL(p.x, p.y);
+    if (h && h.ruler) { dragging = true; tlCanvas.setPointerCapture(e.pointerId); scrubTo(p.x); return; }
+    pause();
+    if (h) go(h.i, false); else go(nearestStep(unit(p.x, tlW())), false);
+  });
+  tlCanvas.addEventListener('pointermove', function (e) {
+    if (!run) return;
+    var p = rel(e);
+    if (dragging) { scrubTo(p.x); return; }
+    var h = hitTL(p.x, p.y);
+    if (h && h.i != null) { tip.textContent = tipFor(h.i); tip.style.display = 'block'; var tx = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8); tip.style.left = tx + 'px'; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 12) + 'px'; }
+    else tip.style.display = 'none';
+  });
+  tlCanvas.addEventListener('pointerup', function () { dragging = false; });
+  tlCanvas.addEventListener('pointerleave', function () { tip.style.display = 'none'; });
+  tlCanvas.addEventListener('wheel', function (e) {
+    if (!run) return;
+    e.preventDefault();
+    var W = tlW(), p = rel(e), w = view.a1 - view.a0;
+    if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) { var dpx = e.shiftKey ? e.deltaY : e.deltaX, du = dpx / W * w; view.a0 += du; view.a1 += du; }
+    else { zoomAt(unit(p.x, W), e.deltaY > 0 ? 1.18 : 1 / 1.18); }
+    drawTL();
+  }, { passive: false });
+})();
+function zoomAt(u, f) {
+  var w = (view.a1 - view.a0) * f, e = extent(), minW = axis === 'step' ? 6 : 300, maxW = (e[1] - e[0]) * 1.6;
+  w = Math.max(minW, Math.min(maxW, w));
+  var frac = (u - view.a0) / (view.a1 - view.a0);
+  view.a0 = u - frac * w; view.a1 = view.a0 + w;
+}
+function setAxis(a) { axis = a; store.set('ar.axis', a); if (run) { fitView(); } syncMenus(); drawTL(); drawLevels(); }
+
+/* ───────────── bin ───────────── */
+var ROW_H = 26;
+function renderBinKinds() {
+  if (!run) { $('#binKinds').innerHTML = ''; return; }
+  var counts = {}; run.steps.forEach(function (s) { var k = kindKey(s); counts[k] = (counts[k] || 0) + 1; });
+  $('#binKinds').innerHTML = ['user', 'assistant', 'thought', 'call', 'result', 'error', 'system'].filter(function (k) { return counts[k]; }).map(function (k) {
+    return '<button class="kind-chip" data-kind="' + k + '" aria-pressed="' + (binKinds[k] ? 'true' : 'false') + '"><i style="background:var(' + KIND_VAR[k] + ')"></i>' + esc(t('k_' + k)) + ' <span class="mono">' + counts[k] + '</span></button>';
+  }).join('');
+}
+function rebuildBinIndex() {
+  binIdx = [];
+  if (!run) { $('#binRows').style.height = '0px'; $('#binRows').innerHTML = ''; return; }
+  var q = binQ.trim().toLowerCase();
+  for (var i = 0; i < N(); i++) {
+    if (!binKinds[kindKey(run.steps[i])]) continue;
+    if (q && labels[i].toLowerCase().indexOf(q) < 0) continue;
+    binIdx.push(i);
+  }
+  $('#binRows').style.height = (binIdx.length * ROW_H) + 'px';
+  renderBinRows();
+}
+function renderBinRows() {
+  if (!run) return;
+  var sc = $('#binScroll'), top = sc.scrollTop, hgt = sc.clientHeight || 400;
+  var a = Math.max(0, Math.floor(top / ROW_H) - 6), b = Math.min(binIdx.length, Math.ceil((top + hgt) / ROW_H) + 6), h = '';
+  for (var r = a; r < b; r++) {
+    var i = binIdx[r], s = run.steps[i], k = kindKey(s), lb;
+    if (s.k === 'call') lb = '<b>' + esc(s.name) + '</b> ' + esc(AR.firstLine(AR.keyArg(s.input), 80));
+    else lb = esc(labels[i]);
+    h += '<div class="bin-row' + (i === cur ? ' is-live' : '') + '" style="top:' + (r * ROW_H) + 'px" data-go="' + i + '"><span class="bar" style="background:var(' + KIND_VAR[k] + ')"></span><span class="tc">' + AR.hms(s.rt) + '</span><span class="lbl">' + lb + '</span>' + (s.retake ? '<span class="mono" style="color:var(--v-think)">↻</span>' : '') + (k === 'error' ? '<span class="x">✕</span>' : '') + '</div>';
+  }
+  $('#binRows').innerHTML = h;
+}
+function markBin() {
+  if (!run) return;
+  var sc = $('#binScroll');
+  var a = 0, b = binIdx.length - 1, pos = -1;
+  while (a <= b) { var m = (a + b) >> 1; if (binIdx[m] === cur) { pos = m; break; } if (binIdx[m] < cur) a = m + 1; else b = m - 1; }
+  if (pos < 0) pos = Math.min(a, binIdx.length - 1);
+  if (pos >= 0) {
+    var y = pos * ROW_H;
+    if (y < sc.scrollTop + 2 || y + ROW_H > sc.scrollTop + sc.clientHeight - 2) sc.scrollTop = Math.max(0, y - sc.clientHeight * 0.4);
+  }
+  renderBinRows();
+}
+$('#binScroll').addEventListener('scroll', function () { requestAnimationFrame(renderBinRows); });
+$('#binFind').addEventListener('input', function (e) { binQ = e.target.value; rebuildBinIndex(); markBin(); });
+$('#binKinds').addEventListener('click', function (e) {
+  var c = e.target.closest('[data-kind]'); if (!c) return;
+  binKinds[c.dataset.kind] = !binKinds[c.dataset.kind]; c.setAttribute('aria-pressed', String(!!binKinds[c.dataset.kind])); rebuildBinIndex(); markBin();
+});
+$$('.bin-tab').forEach(function (b) {
+  b.addEventListener('click', function () {
+    $$('.bin-tab').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+    var shots = b.dataset.tab === 'shots';
+    $('#paneShots').style.display = shots ? 'flex' : 'none'; $('#paneTools').hidden = shots;
+    if (shots) renderBinRows();
+  });
+});
+function renderTools() {
+  var p = $('#paneTools');
+  if (!run) { p.innerHTML = ''; return; }
+  var roster = run.stats.roster, max = roster.length ? roster[0].count : 1;
+  p.innerHTML = '<p class="quiet" style="margin:4px 8px 8px">' + esc(t('tl_hint')) + '</p>' + roster.map(function (r) {
+    return '<div class="tool-line" data-tool="' + esc(r.name) + '" tabindex="0"><span class="nm">' + esc(r.name) + '</span><span class="ct">' + r.count + '</span><span class="meter"><i style="width:' + (r.count / max * 100).toFixed(1) + '%"></i></span><span class="sub-info">' + esc(t('tl_avg', { d: AR.human(r.total / r.count) })) + (r.errors ? ' · <span style="color:var(--v-err)">✕ ' + esc(t('tl_err', { n: r.errors })) + '</span>' : '') + '</span></div>';
+  }).join('');
+}
+$('#paneTools').addEventListener('click', function (e) {
+  var l = e.target.closest('[data-tool]'); if (!l || !run) return;
+  var r = run.stats.roster.filter(function (x) { return x.name === l.dataset.tool; })[0]; if (!r) return;
+  var nxt = r.idx.filter(function (i) { return i > cur; })[0]; if (nxt == null) nxt = r.idx[0];
+  pause(); go(nxt, false); closeDrawers();
+});
+
+/* ───────────── inspector ───────────── */
+function renderInspector() {
+  var b = $('#inspBody');
+  if (!run) { b.innerHTML = '<p class="quiet">' + esc(t('empty_h')) + '</p>'; return; }
+  var st = run.stats, T = st.totals, tot = T.i + T.o + T.cr + T.cw;
+  var tile = function (k, v, s, bad) { return '<div class="tile"><div class="k">' + esc(k) + '</div><div class="v' + (bad ? ' bad' : '') + '">' + v + '</div>' + (s ? '<div class="s">' + s + '</div>' : '') + '</div>'; };
+  var mins = st.duration / 60000;
+  var h = '<section class="insp-sec"><h3>' + esc(t('sec_sheet')) + '</h3><div class="sheet">'
+    + tile(t('tile_runtime'), AR.hms(st.duration), esc(AR.human(st.duration)))
+    + tile(t('tile_steps'), st.steps, '')
+    + tile(t('tile_calls'), st.calls, esc(t('tile_calls_s', { n: st.roster.length })))
+    + tile(t('tile_err'), (st.errors ? '✕ ' : '') + st.errors, esc(t('tile_err_s')), st.errors > 0)
+    + tile(t('tile_retake'), st.retries, esc(t('tile_retake_s')))
+    + tile(t('tile_tok'), AR.kfmt(tot), esc(t('tile_tok_s', { o: AR.kfmt(T.o) })))
+    + '</div><div class="vitals">'
+    + '<span>' + esc(t('v_errrate')) + '</span><b>' + (st.calls ? Math.round(st.errors / st.calls * 100) : 0) + '%</b>'
+    + '<span>' + esc(t('v_medlat')) + '</span><b>' + AR.human(st.medianLatency) + '</b>'
+    + '<span>' + esc(t('v_outpm')) + '</span><b>' + (mins > 0 ? AR.kfmt(T.o / mins) : '—') + '</b>'
+    + '</div></section>';
+  h += '<section class="insp-sec"><h3>' + esc(t('sec_broke')) + '<span class="hint mono">' + st.breaks.length + '</span></h3>';
+  if (!st.breaks.length) h += '<p class="quiet">' + esc(t('no_breaks')) + '</p>';
+  st.breaks.slice(0, 60).forEach(function (br) {
+    var r = run.steps[br.i], c = br.call != null ? run.steps[br.call] : null;
+    h += '<div class="cue err" role="button" tabindex="0" data-go="' + br.i + '"><div class="top"><b>✕ ' + esc(c ? c.name : t('k_error')) + (c ? ' <span style="font-weight:400;color:var(--ink-2)">' + esc(AR.firstLine(AR.keyArg(c.input), 40)) + '</span>' : '') + '</b><span class="tc">' + AR.hms(r.rt) + '</span></div>'
+      + '<div class="msg">' + esc(AR.errLine(r.output || r.text)) + '</div>'
+      + (br.next != null ? '<div class="next" data-go="' + br.next + '"><em>' + esc(t('next_move')) + '</em>' + (br.retry != null ? '<span class="retake" style="margin-right:6px">↻ ' + esc(t('retry_tag')) + '</span>' : '') + esc(labels[br.next]) + '</div>' : '')
+      + '</div>';
+  });
+  if (st.breaks.length > 60) h += '<p class="quiet">+ ' + (st.breaks.length - 60) + '</p>';
+  h += '</section>';
+  h += '<section class="insp-sec"><h3>' + esc(t('sec_levels')) + '<span class="hint">' + esc(t('levels_hint')) + '</span></h3><div class="levels"><canvas id="levels"></canvas><div class="lv-tip" id="lvTip"></div></div></section>';
+  h += '<section class="insp-sec"><h3>' + esc(t('sec_longest')) + '</h3>';
+  st.longest.forEach(function (i) {
+    var s = run.steps[i];
+    h += '<button class="take-row" data-go="' + i + '"><span class="sw" style="background:var(' + KIND_VAR[s.k] + ')"></span><span class="lbl">' + esc(labels[i]) + '</span><span class="d">' + AR.human(s.dur) + '</span></button>';
+  });
+  h += '</section>';
+  b.innerHTML = h;
+  wireLevels();
+}
+var LV = [['i', '--tok-i', 'tok_i'], ['o', '--tok-o', 'tok_o'], ['cr', '--tok-cr', 'tok_cr'], ['cw', '--tok-cw', 'tok_cw']];
+function lvX(i, W) { var e = extent(); return 4 + (point(i) - e[0]) / (e[1] - e[0] || 1) * (W - 8); }
+function drawLevels() {
+  var cv = $('#levels'); if (!cv || !run) return;
+  var W = cv.clientWidth || 260, H = 176, dpr = window.devicePixelRatio || 1, ctx = cv.getContext('2d');
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  var cum = run.stats.cum, n = N(), rh = H / 4, ink = css('--ink'), ink2 = css('--ink-2'), seam = css('--seam'), mono = css('--mono');
+  // step every few steps when the run is much wider than the canvas
+  var stride = Math.max(1, Math.floor(n / (W * 2)));
+  LV.forEach(function (sv, r) {
+    var top = r * rh, base = top + rh - 5, hh = rh - 22, arr = cum[sv[0]], max = arr[n - 1] || 0, col = css(sv[1]);
+    ctx.fillStyle = col; ctx.fillRect(0, top + 7, 8, 8);
+    ctx.font = '10.5px ' + mono; ctx.textBaseline = 'middle'; ctx.fillStyle = ink2; ctx.fillText(t(sv[2]), 13, top + 11);
+    ctx.textAlign = 'right'; ctx.fillStyle = ink; ctx.font = '600 10.5px ' + mono; ctx.fillText(AR.kfmt(max), W - 2, top + 11); ctx.textAlign = 'left';
+    ctx.fillStyle = seam; ctx.fillRect(0, base, W, 1);
+    if (!max) return;
+    ctx.beginPath(); ctx.moveTo(lvX(0, W), base);
+    var py = base;
+    for (var i = 0; i < n; i += stride) { var x = lvX(i, W), y = base - arr[i] / max * hh; ctx.lineTo(x, py); ctx.lineTo(x, y); py = y; }
+    var xl = lvX(n - 1, W), yl = base - arr[n - 1] / max * hh; ctx.lineTo(xl, py); ctx.lineTo(xl, yl);
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.lineTo(xl, base); ctx.lineTo(lvX(0, W), base); ctx.closePath(); ctx.globalAlpha = 0.16; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1;
+  });
+  var phx = Math.round(lvX(cur, W)) + 0.5; ctx.fillStyle = css('--ph'); ctx.fillRect(phx - 0.5, 0, 1.5, H);
+  if (lastHoverLv != null) { var hx = Math.round(lvX(lastHoverLv, W)) + 0.5; ctx.fillStyle = css('--ink-3'); for (var yy = 0; yy < H; yy += 4) ctx.fillRect(hx, yy, 1, 2); }
+}
+function wireLevels() {
+  var cv = $('#levels'), tip = $('#lvTip'); if (!cv) return;
+  var at = function (e) {
+    var r = cv.getBoundingClientRect(), x = e.clientX - r.left, W = r.width, e2 = extent();
+    return nearestStep(e2[0] + (x - 4) / (W - 8) * (e2[1] - e2[0]));
+  };
+  cv.addEventListener('pointermove', function (e) {
+    if (!run) return;
+    var i = at(e), c = run.stats.cum; lastHoverLv = i; drawLevels();
+    tip.innerHTML = '<div style="color:var(--ink-3)">#' + (i + 1) + ' · ' + AR.tc(run.steps[i].rt) + '</div>' + LV.map(function (sv) { return '<div><span class="sw" style="background:var(' + sv[1] + ');margin-right:6px"></span>' + esc(t(sv[2])) + ' <b>' + AR.kfmt(c[sv[0]][i]) + '</b></div>'; }).join('');
+    tip.style.display = 'block';
+    var r = cv.getBoundingClientRect(), x = e.clientX - r.left;
+    tip.style.left = Math.max(0, Math.min(r.width - tip.offsetWidth, x + 10)) + 'px'; tip.style.top = '4px';
+  });
+  cv.addEventListener('pointerleave', function () { lastHoverLv = null; tip.style.display = 'none'; drawLevels(); });
+  cv.addEventListener('click', function (e) { if (!run) return; pause(); go(at(e), false); });
+}
+document.addEventListener('click', function (e) {
+  var g = e.target.closest('[data-go]'); if (!g || !run) return;
+  if (g.closest('.bin-rows') || g.closest('#inspBody')) { pause(); go(+g.dataset.go, false); closeDrawers(); }
+});
+document.addEventListener('keydown', function (e) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.cue,.tool-line')) { e.preventDefault(); e.stopPropagation(); e.target.click(); }
+}, true);
+
+/* ───────────── loading ───────────── */
+function setIngest(p) { var el = $('#ingest'); el.style.display = 'block'; $('i', el).style.width = Math.round(p * 100) + '%'; }
+async function loadText(text, name) {
+  pause(); setIngest(0.04);
+  var t0 = performance.now();
+  await new Promise(function (r) { setTimeout(r, 16); });
+  try {
+    var r = await AR.parseText(text, setIngest);
+    if (name && (!r.meta.title || r.meta.title === 'Untitled run')) r.meta.title = name;
+    setRun(r);
+    toast(t('loaded', { n: r.steps.length, ms: AR.human(performance.now() - t0) }));
+  } catch (err) {
+    var code = err && /^(empty|unknown|nosteps)$/.test(err.message) ? err.message : 'unknown';
+    if (!(err && /^(empty|unknown|nosteps)$/.test(err.message))) console.error(err);
+    toast(t('err_' + code));
+  } finally {
+    setIngest(1); setTimeout(function () { $('#ingest').style.display = 'none'; $('#ingest i').style.width = '0'; }, 350);
+  }
+}
+async function loadFile(f) {
+  if (!f) return;
+  setIngest(0.02);
+  var text = await f.text();
+  loadText(text, f.name.replace(/\.(jsonl|json|ndjson|txt|html)$/i, ''));
+}
+function setRun(r) {
+  run = r; cur = 0; inMark = outMark = null; feedTo = -1;
+  labels = r.steps.map(AR.label);
+  trackOf = new Int8Array(r.steps.length); r.steps.forEach(function (s, i) { trackOf[i] = trackIndex(s); });
+  fitView();
+  $('#slate').hidden = true;
+  renderSlate(); renderBinKinds(); rebuildBinIndex(); renderTools(); renderInspector(); syncMenus();
+  renderFeed(false); syncAll();
+}
+function eject() {
+  pause(); run = null; cur = 0; inMark = outMark = null; feedTo = -1; labels = [];
+  $('#slate').hidden = false; renderFeed(false); renderSlate(); renderBinKinds(); rebuildBinIndex(); renderTools(); renderInspector(); syncMenus(); syncAll();
+}
+$('#fileIn').addEventListener('change', function (e) { loadFile(e.target.files[0]); e.target.value = ''; });
+(function dnd() {
+  var depth = 0, suite = $('#suite');
+  document.addEventListener('dragenter', function (e) { if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0) { depth++; suite.classList.add('dropping'); } });
+  document.addEventListener('dragleave', function () { depth = Math.max(0, depth - 1); if (!depth) suite.classList.remove('dropping'); });
+  document.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.addEventListener('drop', function (e) { e.preventDefault(); depth = 0; suite.classList.remove('dropping'); var f = e.dataTransfer && e.dataTransfer.files[0]; if (f) loadFile(f); });
+})();
+
+/* ───────────── render / export ───────────── */
+function slugName() {
+  var s = String(run.meta.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 42);
+  return s || 'agent-run';
+}
+function download(blob, name) {
+  var url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+}
+var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+function rq(title, sub, pct) {
+  var q = $('#renderQ'); q.classList.add('show');
+  if (title != null) $('#rqTitle').textContent = title;
+  if (sub != null) $('#rqSub').textContent = sub;
+  $('#rqBar').style.width = pct + '%'; $('#rqPct').textContent = Math.round(pct) + '%';
+}
+var rqHide = null;
+async function doRender() {
+  if (!run) return;
+  clearTimeout(rqHide);
+  var a = lo(), b = hi();
+  rq(t('rq_title'), t('rq_s0'), 6); await wait(160);
+  var data = AR.portable(run, a, b);
+  rq(null, t('rq_s1', { n: data.steps.length }), 34); await wait(180);
+  var json = JSON.stringify(data).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, function (c) { return c === '\u2028' ? '\\u2028' : '\\u2029'; });
+  rq(null, t('rq_s2'), 63); await wait(180);
+  var p = APP_SRC.indexOf(OPEN_TAG), q = APP_SRC.indexOf(CLOSE_TAG, p);
+  var html = APP_SRC.slice(0, p + OPEN_TAG.length) + json + APP_SRC.slice(q);
+  rq(null, t('rq_s3'), 86); await wait(140);
+  var name = 'replay-' + slugName() + (a > 0 || b < N() - 1 ? '-' + (a + 1) + '-' + (b + 1) : '') + '.html';
+  var blob = new Blob([html], { type: 'text/html' });
+  download(blob, name);
+  rq(t('rq_done'), name + ' · ' + AR.kfmt(blob.size) + 'B', 100);
+  rqHide = setTimeout(function () { $('#renderQ').classList.remove('show'); }, 2600);
+}
+async function doNotes() {
+  if (!run) return;
+  clearTimeout(rqHide);
+  rq(t('rq_notes'), t('rq_s0'), 30); await wait(160);
+  var md = AR.toMarkdown(run, I18N[lang].md);
+  var name = 'cut-notes-' + slugName() + '.md';
+  rq(null, t('rq_s3'), 80); await wait(120);
+  download(new Blob([md], { type: 'text/markdown' }), name);
+  rq(t('rq_done'), name, 100);
+  rqHide = setTimeout(function () { $('#renderQ').classList.remove('show'); }, 2200);
+}
+
+/* ───────────── menus, drawers, dialogs ───────────── */
+function closeMenus() { $$('.menu.open').forEach(function (m) { m.classList.remove('open'); }); $$('.sub.open').forEach(function (m) { m.classList.remove('open'); }); }
+$$('[data-menu]').forEach(function (m) {
+  var title = $('.menu-title', m);
+  title.addEventListener('click', function (e) { e.stopPropagation(); var was = m.classList.contains('open'); closeMenus(); if (!was) m.classList.add('open'); });
+  title.addEventListener('mouseenter', function () { if ($('.menu.open') && !m.classList.contains('open')) { closeMenus(); m.classList.add('open'); } });
+});
+$$('[data-subopen]').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); b.parentElement.classList.toggle('open'); }); });
+document.addEventListener('click', function (e) { if (!e.target.closest('.menu')) closeMenus(); });
+function act(name) {
+  closeMenus();
+  if (name === 'open') $('#fileIn').click();
+  else if (name === 'paste') { $('#dlgPaste').showModal(); setTimeout(function () { $('#pasteArea').focus(); }, 30); }
+  else if (name === 'sample') loadText(AR.buildSample(), null);
+  else if (name === 'eject') eject();
+  else if (name === 'render') doRender();
+  else if (name === 'notes') doNotes();
+  else if (name === 'axis-wall') setAxis('wall');
+  else if (name === 'axis-step') setAxis('step');
+  else if (name === 'fit') { if (run) { fitView(); drawTL(); } }
+  else if (name === 'formats') $('#dlgFormats').showModal();
+  else if (name === 'keys') $('#dlgKeys').showModal();
+  else if (name === 'toggle') toggle();
+  else if (name === 'home') { pause(); go(lo(), false); }
+  else if (name === 'end') { pause(); go(hi(), false); }
+  else if (name === 'back') stepBy(-1);
+  else if (name === 'fwd') stepBy(1);
+  else if (name === 'mark-in') markIn();
+  else if (name === 'mark-out') markOut();
+}
+document.addEventListener('click', function (e) { var b = e.target.closest('[data-act]'); if (b && !b.disabled) act(b.dataset.act); });
+$$('[data-lang]').forEach(function (b) { b.addEventListener('click', function () { lang = b.dataset.lang; store.set('ar.lang', lang); closeMenus(); applyI18n(); }); });
+$$('[data-theme-pick]').forEach(function (b) { b.addEventListener('click', function () { store.set('ar.theme', b.dataset.themePick); closeMenus(); applyTheme(); }); });
+$$('[data-axis]').forEach(function (b) { b.addEventListener('click', function () { setAxis(b.dataset.axis); }); });
+$$('[data-zoom]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    if (!run) return;
+    var z = b.dataset.zoom;
+    if (z === 'fit') fitView(); else zoomAt(point(cur), z === 'in' ? 1 / 1.6 : 1.6);
+    drawTL();
+  });
+});
+$$('dialog [data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
+$('#pasteGo').addEventListener('click', function () { var v = $('#pasteArea').value; $('#dlgPaste').close(); if (v.trim()) { loadText(v, null); $('#pasteArea').value = ''; } });
+function closeDrawers() { $('#suite').classList.remove('show-bin', 'show-insp'); }
+$$('[data-drawer]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var cls = b.dataset.drawer === 'bin' ? 'show-bin' : 'show-insp', s = $('#suite'), on = s.classList.contains(cls);
+    closeDrawers(); if (!on) s.classList.add(cls);
+    if (!on) requestAnimationFrame(function () { renderBinRows(); drawLevels(); });
+  });
+});
+$('#scrim').addEventListener('click', closeDrawers);
+
+var toastT = null;
+function toast(msg) { var el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove('show'); }, 2600); }
+
+/* ───────────── keyboard (editor-style) ───────────── */
+document.addEventListener('keydown', function (e) {
+  var tg = e.target, typing = tg && (tg.tagName === 'INPUT' && tg.type !== 'range' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable);
+  if ($('dialog[open]')) return;
+  if (e.key === 'Escape') { closeMenus(); closeDrawers(); return; }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'o' || e.key === 'O')) { e.preventDefault(); act('open'); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  var k = e.key;
+  if (k === '?') { act('keys'); return; }
+  if (k === 'R' && e.shiftKey) { e.preventDefault(); doRender(); return; }
+  if (!run) return;
+  var handled = true;
+  if (k === ' ' || k === 'Spacebar') toggle();
+  else if (k === 'k' || k === 'K') pause();
+  else if (k === 'l' || k === 'L') shuttle(1);
+  else if (k === 'j' || k === 'J') shuttle(-1);
+  else if (k === 'ArrowRight') stepBy(e.shiftKey ? 10 : 1);
+  else if (k === 'ArrowLeft') stepBy(e.shiftKey ? -10 : -1);
+  else if (k === 'Home') { pause(); go(lo(), false); }
+  else if (k === 'End') { pause(); go(hi(), false); }
+  else if (k === 'i' || k === 'I') markIn();
+  else if (k === 'o' || k === 'O') markOut();
+  else if (k === 'x' || k === 'X') clearMarks();
+  else if (k === 'f' || k === 'F') { fitView(); drawTL(); }
+  else handled = false;
+  if (handled) e.preventDefault();
+});
+
+/* ───────────── redraw hooks ───────────── */
+function redrawAll() { drawTL(); drawLevels(); }
+document.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.closest('.transport, .tl-bar, .slate-actions, .menubar')) b.blur(); });
+if (window.ResizeObserver) {
+  new ResizeObserver(function () { requestAnimationFrame(function () { redrawAll(); renderBinRows(); }); }).observe(document.body);
+} else window.addEventListener('resize', redrawAll);
+try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { requestAnimationFrame(redrawAll); }); } catch (e) {}
+
+/* ───────────── boot ───────────── */
+applyTheme(); applyI18n(); renderInspector(); updateTransport(); drawTL();
+var emb = document.getElementById('embedded-run'), embText = emb ? emb.textContent.trim() : '';
+if (embText) loadText(embText, null);
+})();
+</script>
+</body>
+</html>

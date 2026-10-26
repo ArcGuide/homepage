@@ -1,0 +1,1559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Field Guide</title>
+<meta name="description" content="A field guide to the AI agents visiting your website: read your access log locally and see which agents came, what they read, and what they missed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23f4ecd8' stroke='%232a2118' stroke-width='2'/%3E%3Cellipse cx='16' cy='18' rx='7' ry='5' fill='none' stroke='%232a2118' stroke-width='2'/%3E%3Ccircle cx='16' cy='10' r='3' fill='%232a2118'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#f4ecd8; --paper-2:#efe4cb; --paper-3:#e7d9ba;
+  --ink:#2a2118; --ink-2:#5a4b3b; --ink-3:#8a7a64;
+  --rule:#bfae8c; --rule-soft:#d9cba9;
+  --accent:#8c2f1b; --accent-soft:#8c2f1b1a;
+  --ok:#2f6b3a; --warn:#9a3412;
+  --c-user:#00785a; --c-aisearch:#1f5f99; --c-train:#b4501d; --c-search:#a87d12;
+  --c-bot:#7b7468; --c-unknown:#9b5b86; --c-human:#cdbd98;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#0d1611; --paper-2:#122019; --paper-3:#192a21;
+    --ink:#e3e8d6; --ink-2:#b4bfa7; --ink-3:#7f8d78;
+    --rule:#3c5045; --rule-soft:#26372d;
+    --accent:#e0a36b; --accent-soft:#e0a36b22;
+    --ok:#8fd19e; --warn:#f0a07a;
+    --c-user:#4cc79e; --c-aisearch:#76b3e3; --c-train:#ec8c57; --c-search:#e2bd59;
+    --c-bot:#a29c8c; --c-unknown:#cc93bd; --c-human:#3a4d42;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.5;
+  background-image:radial-gradient(ellipse at 20% 0%,var(--paper-2),transparent 60%),radial-gradient(ellipse at 100% 100%,var(--paper-2),transparent 55%);
+  background-attachment:fixed;overflow-x:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.sc{font-variant:small-caps;letter-spacing:.06em;text-transform:lowercase}
+.folio{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+@media (min-width:720px){.folio{padding:40px 32px 80px}}
+
+/* ---------- masthead ---------- */
+.masthead{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:6px 40px;border-bottom:3px double var(--ink);padding-bottom:22px}
+@media (min-width:900px){.masthead{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);align-items:end}}
+.edition{font-size:13px;color:var(--ink-2);border-top:1px solid var(--ink);border-bottom:1px solid var(--rule);padding:4px 0;display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between;grid-column:1/-1}
+.masthead h1{font-weight:400;font-size:clamp(34px,6.4vw,68px);line-height:1.02;margin:18px 0 6px;letter-spacing:-.01em}
+.masthead h1 em{font-style:italic;color:var(--accent)}
+.dek{font-size:clamp(17px,2vw,20px);font-style:italic;color:var(--ink-2);margin:0;max-width:34em}
+.oath{margin:0;padding:14px 0 4px;border-left:0;font-size:15px}
+.oath strong{display:block;font-size:19px;font-weight:600;line-height:1.25;margin-bottom:4px}
+.oath .seal{display:inline-block;vertical-align:-3px;margin-right:6px}
+@media (min-width:900px){.oath{border-left:1px solid var(--rule);padding:0 0 4px 22px}}
+.stamp{position:absolute;right:0;top:44px;transform:rotate(-7deg);border:2px solid var(--accent);color:var(--accent);background:transparent;
+  border-radius:50%;width:74px;height:74px;display:grid;place-items:center;cursor:pointer;font-size:14px;line-height:1.05;
+  box-shadow:inset 0 0 0 3px var(--paper),inset 0 0 0 4px var(--accent);opacity:.88;transition:transform .2s}
+.stamp:hover{transform:rotate(-2deg) scale(1.05);opacity:1}
+.stamp:focus-visible{outline:2px dashed var(--accent);outline-offset:4px}
+.stamp b{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.stamp span{opacity:.55}
+.stamp small{display:block;font-size:9px;letter-spacing:.14em;margin-top:2px}
+/* reserve room for the stamp so it never covers the headline (320px-1400px) */
+@media (max-width:899px){.masthead h1{padding-right:96px}}
+@media (min-width:900px){.oath{align-self:stretch;display:flex;flex-direction:column;justify-content:flex-end;padding-top:100px}}
+@media (max-width:560px){.stamp{width:60px;height:60px;font-size:12px;top:36px}.masthead h1{padding-right:74px}.edition{flex-direction:column;align-items:flex-start;gap:0;padding-right:74px}}
+
+/* ---------- plates (generic section frame) ---------- */
+.plate{padding:26px 0 30px;border-bottom:1px solid var(--rule)}
+.plate:last-child{border-bottom:0}
+.plate-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.plate-no{font-size:13px;color:var(--accent);letter-spacing:.14em;font-variant:small-caps;text-transform:lowercase;white-space:nowrap}
+.plate h2{font-weight:400;font-size:clamp(24px,3vw,31px);line-height:1.15;margin:0}
+.plate .gloss{color:var(--ink-2);font-style:italic;margin:2px 0 16px;max-width:42em;font-size:16px}
+.marg h3{font-weight:400;font-size:20px;margin:0 0 4px}
+.marg .gloss{font-size:15px;margin-bottom:10px}
+
+/* ---------- collecting (input) ---------- */
+.collect{display:grid;gap:22px;grid-template-columns:minmax(0,1fr);padding-top:30px}
+@media (min-width:900px){.collect{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}}
+.jar{position:relative;border:1.5px dashed var(--ink-3);border-radius:4px;padding:34px 22px;text-align:center;background:var(--paper-2);
+  transition:background .15s,border-color .15s;min-height:230px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px}
+.jar.over{background:var(--accent-soft);border-color:var(--accent);border-style:solid}
+.jar .big{font-size:24px;line-height:1.2}
+.jar .fine{font-size:14px;color:var(--ink-2);max-width:30em}
+.btn-ink{border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);padding:9px 18px;border-radius:2px;cursor:pointer;font-size:16px;letter-spacing:.02em}
+.btn-ink:hover{background:var(--accent);border-color:var(--accent)}
+.btn-line{border:1px solid var(--ink-2);background:transparent;padding:7px 14px;border-radius:2px;cursor:pointer;font-size:15px}
+.btn-line:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ink:focus-visible,.btn-line:focus-visible,.jar:focus-within{outline:2px dashed var(--accent);outline-offset:3px}
+.notebook{display:flex;flex-direction:column;gap:10px}
+.notebook textarea{width:100%;min-height:150px;resize:vertical;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:10px 12px;
+  font-family:var(--mono);font-size:12.5px;line-height:1.55;
+  background-image:repeating-linear-gradient(transparent 0 19px,var(--rule-soft) 19px 20px);background-attachment:local;background-position:0 9px}
+.notebook textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.or-rule{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-style:italic;font-size:14px}
+.or-rule:before,.or-rule:after{content:"";flex:1;border-top:1px solid var(--rule)}
+.specimen-btn{display:flex;gap:14px;align-items:center;text-align:left;border:1px solid var(--ink);background:transparent;padding:12px 14px;cursor:pointer;border-radius:2px}
+.specimen-btn:hover{background:var(--paper-2)}
+.specimen-btn strong{display:block;font-size:17px}
+.specimen-btn small{color:var(--ink-2);font-style:italic;font-size:14px}
+.progress{margin:18px 0 0;display:none}
+.progress.on{display:block}
+.progress .track{height:6px;border:1px solid var(--ink);border-radius:0;overflow:hidden;background:var(--paper)}
+.progress .fill{height:100%;width:0;background:repeating-linear-gradient(-45deg,var(--ink) 0 4px,var(--ink-2) 4px 8px);transition:width .12s}
+.progress .what{font-size:14px;color:var(--ink-2);font-style:italic;margin-top:6px}
+.status-line{font-size:14px;color:var(--ink-2);margin:10px 0 0;min-height:1.5em}
+.status-line.err{color:var(--warn)}
+
+/* ---------- report spread ---------- */
+.spread{display:none;grid-template-columns:minmax(0,1fr);gap:0 52px}
+.spread.on{display:grid}
+@media (min-width:980px){
+  .spread{grid-template-columns:minmax(0,2.15fr) minmax(0,1fr);grid-template-rows:auto 1fr}
+  .spread>.main{grid-column:1;grid-row:1/3}
+  .spread>.marg-top{grid-column:2;grid-row:1;align-self:start}
+  .spread>.marg-bot{grid-column:2;grid-row:2;align-self:start}
+  .marg{border-left:1px solid var(--rule);padding-left:26px}
+}
+.marg>section{padding:24px 0;border-bottom:1px solid var(--rule)}
+.marg>section:last-child{border-bottom:0}
+.filedline{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule);font-size:14px;color:var(--ink-2);grid-column:1/-1}
+.filedline .acts{display:flex;gap:8px;flex-wrap:wrap}
+
+/* census ledger */
+.ledger{list-style:none;margin:6px 0 0;padding:0}
+.ledger li{display:flex;align-items:baseline;gap:6px;padding:7px 0}
+.ledger .lbl{white-space:nowrap}
+.ledger .dots{flex:1;border-bottom:1.5px dotted var(--ink-3);transform:translateY(-4px);min-width:12px}
+.ledger .val{font-size:26px;font-variant-numeric:oldstyle-nums tabular-nums;line-height:1}
+.ledger .sub{display:block;font-size:13px;color:var(--ink-2);font-style:italic;padding-left:0;margin-top:-4px}
+.ledger li.wrap{flex-wrap:wrap}
+.ledger li.wrap .sub{flex-basis:100%}
+
+.pursuit{display:none;margin:12px 0 0;padding:10px 12px;border:1px solid var(--accent);background:var(--accent-soft);font-size:15px;gap:10px;align-items:center;flex-wrap:wrap}
+.pursuit.on{display:flex}
+.pursuit button{margin-left:auto}
+
+/* field notes */
+.notes{margin:0;padding:0;list-style:none;counter-reset:n}
+.notes li{position:relative;padding:8px 0 8px 30px;font-size:15.5px;border-bottom:1px dotted var(--rule)}
+.notes li:last-child{border-bottom:0}
+.notes li:before{counter-increment:n;content:counter(n,lower-roman)".";position:absolute;left:0;top:8px;color:var(--accent);font-style:italic}
+.notes code,.mono{font-family:var(--mono);font-size:.86em;word-break:break-all}
+
+/* chart */
+.chart-tools{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 10px}
+.seg{border:1px solid var(--rule);background:transparent;padding:4px 12px;cursor:pointer;font-size:14px;border-radius:999px}
+.seg[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.chart-box{position:relative;width:100%}
+.chart-box svg{display:block;width:100%;height:auto;overflow:visible}
+.axis text{font-family:var(--serif);font-size:12px;fill:var(--ink-2)}
+.axis .ttl{font-style:italic;font-size:12.5px;fill:var(--ink-3)}
+.tally-legend{display:flex;flex-wrap:wrap;gap:6px 22px;margin:12px 0 0;padding:10px 0 0;border-top:1px solid var(--rule-soft);font-size:14px}
+.tally-legend .t{display:flex;align-items:center;gap:8px}
+.tally-legend .t em{color:var(--ink-3);font-style:normal;font-variant-numeric:tabular-nums}
+.tally-legend svg{flex:none}
+
+/* species cards */
+.menagerie{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,232px),1fr))}
+.specimen{position:relative;text-align:left;border:1px solid var(--rule);background:var(--paper);padding:14px 14px 12px;cursor:pointer;border-radius:2px;
+  display:flex;flex-direction:column;gap:2px;transition:border-color .15s,box-shadow .15s}
+.specimen:hover{border-color:var(--ink-2)}
+.specimen[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),4px 4px 0 var(--accent-soft)}
+.specimen:focus-visible{outline:2px dashed var(--accent);outline-offset:3px}
+.specimen .no{position:absolute;top:8px;right:10px;font-size:12px;color:var(--ink-3);font-style:italic}
+.specimen .glyph{width:92px;height:92px;margin:0 auto 4px;display:block}
+.specimen .latin{font-style:italic;font-size:14px;color:var(--ink-2);text-align:center}
+.specimen .common{font-size:19px;text-align:center;line-height:1.2;word-break:break-word}
+.specimen .vendor{text-align:center;font-size:13px;color:var(--ink-3);margin-bottom:6px}
+.specimen dl{margin:6px 0 0;padding:8px 0 0;border-top:1px solid var(--rule-soft);display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13.5px}
+.specimen dt{color:var(--ink-3);font-variant:small-caps;text-transform:lowercase;letter-spacing:.05em}
+.specimen dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;word-break:break-word}
+.behav{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
+.behav i{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--cc);box-shadow:0 0 0 1px var(--ink-3) inset}
+.more-specimens{margin-top:12px}
+
+/* tables */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--rule-soft);white-space:nowrap}
+th{font-weight:400;font-variant:small-caps;text-transform:lowercase;letter-spacing:.06em;color:var(--ink-2);border-bottom:1px solid var(--ink-3)}
+th.n,td.n{text-align:right}
+tbody tr:last-child td{border-bottom:0}
+tr.pick{cursor:pointer}
+tr.pick:hover td{background:var(--paper-2)}
+tr.pick[aria-selected="true"] td{background:var(--accent-soft)}
+tr.pick:focus-visible{outline:2px dashed var(--accent);outline-offset:-2px}
+td.path{white-space:normal;word-break:break-all;min-width:160px;font-family:var(--mono);font-size:12.5px}
+.index-tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:14px}
+.index-tools label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.bar-in{display:inline-block;height:6px;background:var(--ink-2);vertical-align:middle;margin-left:6px;opacity:.55}
+
+/* habitat */
+.habitat-grid{display:grid;gap:26px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){.habitat-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+.duo{display:grid;grid-template-columns:minmax(70px,9em) minmax(0,1fr);gap:4px 10px;align-items:center;font-size:13.5px}
+.duo .sec{font-family:var(--mono);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duo .bars{display:flex;flex-direction:column;gap:2px}
+.duo .b{height:9px;position:relative}
+.duo .b span{display:block;height:100%}
+.duo .b.ai span{background:var(--c-aisearch)}
+.duo .b.hu span{background:repeating-linear-gradient(-45deg,var(--ink-3) 0 2px,transparent 2px 4px);border:1px solid var(--ink-3)}
+.duo .b b{position:absolute;left:calc(var(--w) + 6px);top:-4px;font-weight:400;font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+.mini-key{display:flex;gap:16px;font-size:13px;color:var(--ink-2);margin:0 0 10px;flex-wrap:wrap}
+.mini-key i{display:inline-block;width:14px;height:9px;margin-right:6px;vertical-align:middle}
+.mini-key .ai i{background:var(--c-aisearch)}
+.mini-key .hu i{background:repeating-linear-gradient(-45deg,var(--ink-3) 0 2px,transparent 2px 4px);border:1px solid var(--ink-3)}
+.forage{list-style:none;margin:0;padding:0;font-size:14px}
+.forage li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:5px 0;border-bottom:1px dotted var(--rule)}
+.forage .p{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.forage .c{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.h4{font-variant:small-caps;text-transform:lowercase;letter-spacing:.07em;color:var(--ink-2);font-size:15px;margin:0 0 8px}
+
+/* signposts */
+.post-ok{color:var(--ok)} .post-miss{color:var(--warn);font-weight:600} .post-none{color:var(--ink-3)}
+.signposts td,.signposts th{padding:5px 6px;font-size:13px}
+.signposts td.c,.signposts th.c{text-align:center}
+
+/* regulations */
+.regs{display:grid;gap:22px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){.regs{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.reg-group{margin-bottom:14px}
+.reg-group header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--ink-3);padding-bottom:3px;margin-bottom:4px}
+.reg-group header .ttl{font-size:16px}
+.reg-group header .qa{display:flex;gap:6px}
+.reg-group header .qa button{font-size:12.5px;padding:2px 8px}
+.reg{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dotted var(--rule-soft);font-size:14.5px}
+.reg .nm{flex:1;min-width:0}
+.reg .nm small{display:block;color:var(--ink-3);font-size:12.5px;font-style:italic}
+.toggle{display:inline-flex;border:1px solid var(--ink-2);border-radius:2px;overflow:hidden;flex:none}
+.toggle button{border:0;background:transparent;padding:3px 9px;font-size:13px;cursor:pointer}
+.toggle button[aria-pressed="true"].al{background:var(--ok);color:var(--paper)}
+.toggle button[aria-pressed="true"].bl{background:var(--warn);color:var(--paper)}
+.token-tag{font-size:11px;border:1px solid var(--ink-3);padding:0 5px;border-radius:2px;color:var(--ink-2);cursor:help;margin-left:4px;font-style:normal}
+.robots-out{width:100%;min-height:300px;font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--paper-2);border:1px solid var(--rule);padding:12px;border-radius:2px;resize:vertical}
+.fine-print{font-size:13.5px;color:var(--ink-2);font-style:italic}
+
+/* key / signature table */
+.key{list-style:none;margin:0;padding:0;font-size:14.5px}
+.key li{padding:6px 0;border-bottom:1px dotted var(--rule)}
+.key li b{font-weight:600}
+details.sigs{margin-top:12px;font-size:14px}
+details.sigs summary{cursor:pointer;color:var(--accent)}
+details.sigs .scroll{max-height:340px;overflow:auto;margin-top:8px}
+details.sigs td,details.sigs th{padding:4px 6px;font-size:12.5px}
+
+/* tooltip */
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--paper);color:var(--ink);border:1px solid var(--ink);padding:8px 10px;font-size:13px;
+  line-height:1.45;white-space:pre-line;max-width:280px;box-shadow:3px 3px 0 var(--rule-soft);display:none}
+.tip.on{display:block}
+.tip .tt{font-weight:600;display:block;margin-bottom:2px}
+.colophon{margin-top:40px;padding-top:12px;border-top:3px double var(--ink);font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.empty-note{font-style:italic;color:var(--ink-3);font-size:14.5px;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="folio">
+
+<header class="masthead">
+  <div class="edition"><span data-i="edition"></span><span data-i="edition2"></span></div>
+  <div>
+    <h1 data-ih="title"></h1>
+    <p class="dek" data-i="dek"></p>
+  </div>
+  <p class="oath">
+    <strong><svg class="seal" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg><span data-i="oath"></span></strong>
+    <span data-i="oathMore"></span>
+  </p>
+  <button class="stamp" id="langStamp" type="button"><span id="stampInner"></span></button>
+</header>
+
+<section class="collect" id="collect" aria-labelledby="collectTitle">
+  <div>
+    <div class="plate-head"><span class="plate-no" data-i="collectNo"></span><h2 id="collectTitle" class="sr" data-i="collectTitle"></h2></div>
+    <label class="jar" id="jar">
+      <svg width="58" height="58" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 8h20v6H22z"/><path d="M20 14h24c2 4 4 6 4 12v26a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V26c0-6 2-8 4-12z"/><path d="M16 30h32" stroke-dasharray="2 3"/><ellipse cx="32" cy="42" rx="6" ry="4"/><path d="M26 40l-4-3M38 40l4-3M27 45l-4 3M37 45l4 3M32 38v-4"/></svg>
+      <span class="big" data-i="dropBig"></span>
+      <span class="fine" data-i="dropFine"></span>
+      <span class="row-btns" style="justify-content:center"><span class="btn-ink" role="button" tabindex="0" id="chooseBtn" data-i="choose"></span></span>
+      <input type="file" id="fileIn" multiple accept=".log,.txt,.gz,.access,text/plain,application/gzip" class="sr">
+    </label>
+    <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="track"><div class="fill" id="progFill"></div></div>
+      <div class="what" id="progWhat"></div>
+    </div>
+    <p class="status-line" id="statusLine" aria-live="polite"></p>
+  </div>
+  <div class="notebook">
+    <button class="specimen-btn" id="sampleBtn" type="button">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="4" width="30" height="32" rx="1"/><path d="M10 11h20M10 16h20M10 21h14"/><circle cx="27" cy="27" r="5"/><path d="M31 31l4 4"/></svg>
+      <span><strong data-i="sample"></strong><small data-i="sampleFine"></small></span>
+    </button>
+    <div class="or-rule" data-i="orPaste"></div>
+    <label for="pasteBox" class="sr" data-i="pasteLabel"></label>
+    <textarea id="pasteBox" spellcheck="false" data-iph="pastePh"></textarea>
+    <div class="row-btns"><button class="btn-line" id="pasteBtn" type="button" data-i="pasteGo"></button></div>
+  </div>
+</section>
+
+<div class="spread" id="spread">
+  <div class="filedline">
+    <span id="filedText"></span>
+    <span class="acts">
+      <button class="btn-line" type="button" id="addMoreBtn" data-i="addMore"></button>
+      <button class="btn-line" type="button" id="resetBtn" data-i="reset"></button>
+    </span>
+  </div>
+
+  <div class="main">
+    <section class="plate" aria-labelledby="p1">
+      <div class="plate-head"><span class="plate-no" data-roman="I">Plate I</span><h2 id="p1" data-i="p1"></h2></div>
+      <p class="gloss" data-i="p1gloss"></p>
+      <div class="chart-tools" role="group" id="viewSeg">
+        <button class="seg" type="button" data-view="ai" data-i="viewAi"></button>
+        <button class="seg" type="button" data-view="bots" data-i="viewBots"></button>
+        <button class="seg" type="button" data-view="all" data-i="viewAll"></button>
+      </div>
+      <div class="chart-box" id="chartBox"></div>
+      <div class="tally-legend" id="tallyLegend"></div>
+    </section>
+
+    <section class="plate" aria-labelledby="p2">
+      <div class="plate-head"><span class="plate-no" data-roman="II">Plate II</span><h2 id="p2" data-i="p2"></h2></div>
+      <p class="gloss" data-i="p2gloss"></p>
+      <div class="menagerie" id="menagerie"></div>
+      <div class="more-specimens" id="moreSpecimens"></div>
+    </section>
+
+    <section class="plate" aria-labelledby="p3">
+      <div class="plate-head"><span class="plate-no" data-roman="III">Plate III</span><h2 id="p3" data-i="p3"></h2></div>
+      <p class="gloss" data-i="p3gloss"></p>
+      <div class="index-tools"><label><input type="checkbox" id="aiOnly" checked> <span data-i="aiOnly"></span></label></div>
+      <div class="scroll"><table id="indexTable"></table></div>
+    </section>
+
+    <section class="plate" aria-labelledby="p4">
+      <div class="plate-head"><span class="plate-no" data-roman="IV">Plate IV</span><h2 id="p4" data-i="p4"></h2></div>
+      <p class="gloss" data-i="p4gloss"></p>
+      <div class="habitat-grid">
+        <div>
+          <p class="h4" data-i="sectionsTtl"></p>
+          <div class="mini-key"><span class="ai"><i></i><span data-i="keyAi"></span></span><span class="hu"><i></i><span data-i="keyHu"></span></span></div>
+          <div class="duo" id="duo"></div>
+        </div>
+        <div>
+          <p class="h4" id="forageTtl"></p>
+          <ul class="forage" id="forage"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="plate" aria-labelledby="p5">
+      <div class="plate-head"><span class="plate-no" data-roman="V">Plate V</span><h2 id="p5" data-i="p5"></h2></div>
+      <p class="gloss" data-i="p5gloss"></p>
+      <div class="scroll"><table id="missTable"></table></div>
+    </section>
+
+    <section class="plate" aria-labelledby="p6">
+      <div class="plate-head"><span class="plate-no" data-roman="VI">Plate VI</span><h2 id="p6" data-i="p6"></h2></div>
+      <p class="gloss" data-i="p6gloss"></p>
+      <div class="regs">
+        <div id="regList"></div>
+        <div>
+          <label class="h4" for="robotsOut" data-i="robotsOutLbl" style="display:block"></label>
+          <textarea class="robots-out" id="robotsOut" readonly spellcheck="false"></textarea>
+          <div class="row-btns" style="margin-top:8px"><button class="btn-ink" type="button" id="copyBtn" data-i="copy"></button><span id="copyMsg" class="fine-print" aria-live="polite"></span></div>
+          <p class="fine-print" data-i="robotsNote"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="marg marg-top">
+    <section aria-labelledby="censusT">
+      <h3 id="censusT" data-i="census"></h3>
+      <div class="pursuit" id="pursuit"><span id="pursuitTxt"></span><button class="btn-line" type="button" id="clearSel" data-i="clearSel"></button></div>
+      <ul class="ledger" id="ledger"></ul>
+    </section>
+    <section aria-labelledby="notesT">
+      <h3 id="notesT" data-i="notes"></h3>
+      <ol class="notes" id="notes"></ol>
+    </section>
+  </aside>
+
+  <aside class="marg marg-bot">
+    <section aria-labelledby="postsT">
+      <h3 id="postsT" data-i="posts"></h3>
+      <p class="gloss" data-i="postsGloss"></p>
+      <div class="scroll"><table class="signposts" id="postTable"></table></div>
+      <p class="fine-print" id="postSummary"></p>
+    </section>
+    <section aria-labelledby="keyT">
+      <h3 id="keyT" data-i="keyTtl"></h3>
+      <ul class="key" id="keyList"></ul>
+      <p class="fine-print" data-i="tokenNote"></p>
+      <p class="fine-print" data-i="spoofNote"></p>
+      <details class="sigs"><summary data-i="sigSummary"></summary><div class="scroll"><table id="sigTable"></table></div></details>
+    </section>
+    <section aria-labelledby="takeT">
+      <h3 id="takeT" data-i="takeHome"></h3>
+      <p class="gloss" data-i="takeGloss"></p>
+      <div class="row-btns"><button class="btn-line" type="button" id="csvAgents" data-i="csvAgents"></button><button class="btn-line" type="button" id="csvPaths" data-i="csvPaths"></button></div>
+    </section>
+  </aside>
+</div>
+
+<footer class="colophon"><span data-i="colophon1"></span><span data-i="colophon2"></span></footer>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="inkwobble" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ===================== CORE (no DOM; also tested under node) ===================== -->
+<script id="core">
+var CATS = ['user','aisearch','train','search','bot','unknown','human'];
+var AI_CATS = {user:1, aisearch:1, train:1};
+
+/* Signature table. Matched as case-insensitive substrings, first hit wins (specific before generic).
+   k = lowercase match key, n = bot name / robots.txt token, v = vendor, c = purpose category. Last reviewed Oct 2026. */
+var SIGNATURES = [
+  {k:'chatgpt-user',          n:'ChatGPT-User',          v:'OpenAI',      c:'user'},
+  {k:'oai-searchbot',         n:'OAI-SearchBot',         v:'OpenAI',      c:'aisearch'},
+  {k:'gptbot',                n:'GPTBot',                v:'OpenAI',      c:'train'},
+  {k:'claude-user',           n:'Claude-User',           v:'Anthropic',   c:'user'},
+  {k:'claude-searchbot',      n:'Claude-SearchBot',      v:'Anthropic',   c:'aisearch'},
+  {k:'claudebot',             n:'ClaudeBot',             v:'Anthropic',   c:'train'},
+  {k:'claude-web',            n:'Claude-Web',            v:'Anthropic',   c:'user',   legacy:1},
+  {k:'anthropic-ai',          n:'anthropic-ai',          v:'Anthropic',   c:'train',  legacy:1},
+  {k:'perplexity-user',       n:'Perplexity-User',       v:'Perplexity',  c:'user'},
+  {k:'perplexitybot',         n:'PerplexityBot',         v:'Perplexity',  c:'aisearch'},
+  {k:'google-cloudvertexbot', n:'Google-CloudVertexBot', v:'Google',      c:'aisearch'},
+  {k:'mistralai-user',        n:'MistralAI-User',        v:'Mistral AI',  c:'user'},
+  {k:'duckassistbot',         n:'DuckAssistBot',         v:'DuckDuckGo',  c:'user'},
+  {k:'cohere-training-data-crawler', n:'cohere-training-data-crawler', v:'Cohere', c:'train'},
+  {k:'cohere-ai',             n:'cohere-ai',             v:'Cohere',      c:'user'},
+  {k:'meta-externalfetcher',  n:'meta-externalfetcher',  v:'Meta',        c:'user'},
+  {k:'meta-externalagent',    n:'meta-externalagent',    v:'Meta',        c:'train'},
+  {k:'facebookbot',           n:'FacebookBot',           v:'Meta',        c:'train'},
+  {k:'amazonbot',             n:'Amazonbot',             v:'Amazon',      c:'aisearch'},
+  {k:'youbot',                n:'YouBot',                v:'You.com',     c:'aisearch'},
+  {k:'bytespider',            n:'Bytespider',            v:'ByteDance',   c:'train'},
+  {k:'ccbot',                 n:'CCBot',                 v:'Common Crawl',c:'train'},
+  {k:'diffbot',               n:'Diffbot',               v:'Diffbot',     c:'train'},
+  {k:'timpibot',              n:'Timpibot',              v:'Timpi',       c:'train'},
+  {k:'imagesiftbot',          n:'ImagesiftBot',          v:'ImageSift',   c:'train'},
+  {k:'ai2bot',                n:'AI2Bot',                v:'Ai2',         c:'train'},
+  {k:'omgilibot',             n:'omgilibot',             v:'Webz.io',     c:'train'},
+  {k:'googlebot',             n:'Googlebot',             v:'Google',      c:'search'},
+  {k:'bingbot',               n:'Bingbot',               v:'Microsoft',   c:'search'},
+  {k:'applebot',              n:'Applebot',              v:'Apple',       c:'search'},
+  {k:'duckduckbot',           n:'DuckDuckBot',           v:'DuckDuckGo',  c:'search'},
+  {k:'yandexbot',             n:'YandexBot',             v:'Yandex',      c:'search'},
+  {k:'baiduspider',           n:'Baiduspider',           v:'Baidu',       c:'search'},
+  {k:'petalbot',              n:'PetalBot',              v:'Huawei',      c:'search'},
+  {k:'slurp',                 n:'Yahoo Slurp',           v:'Yahoo',       c:'search'},
+  {k:'googleother',           n:'GoogleOther',           v:'Google',      c:'bot'},
+  {k:'facebookexternalhit',   n:'facebookexternalhit',   v:'Meta',        c:'bot'},
+  {k:'ahrefsbot',             n:'AhrefsBot',             v:'Ahrefs',      c:'bot'},
+  {k:'semrushbot',            n:'SemrushBot',            v:'Semrush',     c:'bot'},
+  {k:'mj12bot',               n:'MJ12bot',               v:'Majestic',    c:'bot'},
+  {k:'dotbot',                n:'DotBot',                v:'Moz',         c:'bot'}
+];
+/* robots.txt-only control tokens: never sent as a user agent, so they never appear in logs. */
+var ROBOTS_ONLY = [
+  {n:'Google-Extended',   v:'Google', c:'train', tokenOnly:1},
+  {n:'Applebot-Extended', v:'Apple',  c:'train', tokenOnly:1}
+];
+
+var BOTLIKE = /bot\b|bot\/|crawl|spider|scrap|slurp|fetch|curl|wget|python|java\/|go-http|okhttp|axios|node-fetch|undici|libwww|httpclient|http_client|headless|phantom|scan|zgrab|masscan|nmap|feed|monitor|uptime|preview|lighthouse|pingdom|statuscake|apache-httpclient|guzzle|ruby|perl|php\//i;
+
+function botToken(ua){
+  var m = /([A-Za-z0-9][\w.\-]*?(?:bot|crawler|spider))\b/i.exec(ua);
+  if (m) return m[1].slice(0,40);
+  m = /^\s*([^\s\/;()]+)/.exec(ua.replace(/^Mozilla\/[\d.]+\s*(\([^)]*\))?\s*/,''));
+  return (m ? m[1] : ua).slice(0,40) || 'unknown';
+}
+
+function classify(ua){
+  if (ua == null) return {name:'(no user agent)', vendor:'', c:'unknown', key:'~noua'};
+  var s = String(ua).trim();
+  if (!s || s === '-') return {name:'(no user agent)', vendor:'', c:'unknown', key:'~noua'};
+  var low = s.toLowerCase();
+  for (var i=0;i<SIGNATURES.length;i++){
+    var g = SIGNATURES[i];
+    if (low.indexOf(g.k) !== -1) return {name:g.n, vendor:g.v, c:g.c, key:g.n, sig:g};
+  }
+  if (BOTLIKE.test(s) || !/mozilla|opera/i.test(s)) {
+    var t = botToken(s);
+    return {name:t, vendor:'', c:'bot', key:'bot:'+t.toLowerCase()};
+  }
+  return {name:'Browsers', vendor:'', c:'human', key:'~human'};
+}
+
+var MON = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+function parseClfTime(s){
+  var m = /(\d{1,2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2})(?:\s*([+-])(\d{2}):?(\d{2}))?/.exec(s);
+  if (!m) return NaN;
+  var mo = MON[m[2].toLowerCase()]; if (mo == null) return NaN;
+  var t = Date.UTC(+m[3], mo, +m[1], +m[4], +m[5], +m[6]);
+  if (m[7]) t -= (m[7]==='-'?-1:1) * ((+m[8])*60 + (+m[9])) * 60000;
+  return t;
+}
+function parseIsoTime(s){
+  var m = /(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:[.,]\d+)?\s*(Z|[+-]\d{2}:?\d{2})?/.exec(s);
+  if (!m) return NaN;
+  var t = Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
+  if (m[7] && m[7] !== 'Z'){ var z = m[7].replace(':',''); var sg = z[0]==='-'?-1:1; t -= sg*((+z.slice(1,3))*60 + (+z.slice(3,5)))*60000; }
+  return t;
+}
+function unesc(s){ return s.replace(/\\x([0-9a-fA-F]{2})/g, function(_,h){return String.fromCharCode(parseInt(h,16));}).replace(/\\(.)/g,'$1'); }
+function cleanPath(p){
+  if (!p) return '-';
+  p = p.replace(/^https?:\/\/[^\/]+/i,'');
+  var q = p.search(/[?#]/); if (q !== -1) p = p.slice(0,q);
+  if (!p) p = '/';
+  if (p.length > 300) p = p.slice(0,300);
+  return p;
+}
+
+var RE_CLF = /(\S+)\s+\S+\s+\S+\s+\[([^\]]+)\]\s+"((?:[^"\\]|\\.)*)"\s+(\d{3}|-)\s+(\S+)(?:\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)")?/;
+var RE_REQ = /^([A-Z]{3,10})\s+(\S+)(?:\s+(\S+))?/;
+
+/* Returns {ip, t, method, path, status, ua, fmt} or null. ua === null means the line format has no UA field. */
+function parseLine(line){
+  if (!line) return null;
+  if (line.charCodeAt(line.length-1) === 13) line = line.slice(0,-1);
+  if (!line.trim() || line[0] === '#') return null;
+  var m = RE_CLF.exec(line);
+  if (m){
+    var req = unesc(m[3]), rm = RE_REQ.exec(req);
+    return {
+      ip: m[1], t: parseClfTime(m[2]),
+      method: rm ? rm[1] : '-', path: rm ? cleanPath(rm[2]) : '-',
+      status: m[4] === '-' ? 0 : +m[4],
+      ua: m[7] != null ? unesc(m[7]) : null,
+      fmt: m[7] != null ? 'combined' : 'common'
+    };
+  }
+  return parseLoose(line);
+}
+
+/* Fallback: any line holding a quoted user-agent (JSON logs, CDN exports, custom formats). */
+function parseLoose(line){
+  var ua = null, mm;
+  mm = /"(?:http_)?user[_\-]?agent"\s*:\s*"((?:[^"\\]|\\.)*)"/i.exec(line);
+  if (mm) ua = unesc(mm[1]);
+  if (ua == null){
+    var re = /"((?:[^"\\]|\\.)*)"/g, best = null, q;
+    while ((q = re.exec(line))){
+      var s = q[1];
+      if (/^[A-Z]{3,10}\s+\S+/.test(s)) continue;          // request line
+      if (/^(https?:\/\/|\/)/.test(s) && !/\s/.test(s)) continue; // a URL / referer
+      if (/^[\w\-]+$/.test(s) && !/bot|crawl|spider|agent|user|ai/i.test(s)) continue; // short key / token
+      if (/mozilla|bot|crawl|spider|\/\d|compatible|agent|-user\b|cohere-ai|curl|python/i.test(s)){
+        if (!best || s.length > best.length) best = s;
+      }
+    }
+    if (best != null) ua = unesc(best);
+  }
+  if (ua == null) return null;
+  var path = '-', method = '-', status = 0;
+  mm = /"([A-Z]{3,10})\s+(\S+)(?:\s+HTTP\/[\d.]+)?"/.exec(line);
+  if (mm){ method = mm[1]; path = cleanPath(mm[2]); }
+  else {
+    mm = /"(?:request_uri|uri|path|url|request_path|cs-uri-stem)"\s*:\s*"((?:[^"\\]|\\.)*)"/i.exec(line);
+    if (mm) path = cleanPath(unesc(mm[1]));
+    else { mm = /\s(\/[^\s"]*)/.exec(line); if (mm) path = cleanPath(mm[1]); }
+    var mt = /"(?:method|request_method)"\s*:\s*"([A-Z]+)"/i.exec(line); if (mt) method = mt[1];
+  }
+  mm = /"(?:status|status_code|response_code|sc-status)"\s*:\s*"?(\d{3})/i.exec(line) || /"\s+(\d{3})\s/.exec(line) || /\s\/[^\s"]*\s+(?:HTTP\/[\d.]+\s+)?(\d{3})\b/.exec(line);
+  if (mm) status = +mm[1];
+  var t = /\[[^\]]+\]/.test(line) ? parseClfTime(line) : NaN;
+  if (isNaN(t)) t = parseIsoTime(line);
+  var ipm = /\b(\d{1,3}(?:\.\d{1,3}){3})\b/.exec(line);
+  return {ip: ipm ? ipm[1] : '-', t: t, method: method, path: path, status: status, ua: ua, fmt: 'loose'};
+}
+
+/* ---------- dataset: compact columnar records + interned agents and paths ---------- */
+function newDataset(){
+  return {T:[], A:[], P:[], S:[], agents:[], agentIdx:{}, paths:[], pathIdx:{}, uaCache:new Map(),
+          lines:0, bad:0, fmt:{combined:0, common:0, loose:0}};
+}
+function ingestLine(ds, line){
+  var r = parseLine(line);
+  if (!r){ if (line && line.trim()) { ds.lines++; ds.bad++; } return; }
+  ds.lines++; ds.fmt[r.fmt]++;
+  var key = r.ua == null ? '\u0000' : r.ua;
+  var ai = ds.uaCache.get(key);
+  if (ai === undefined){
+    var c = classify(r.ua);
+    ai = ds.agentIdx[c.key];
+    if (ai === undefined){ ai = ds.agents.length; ds.agentIdx[c.key] = ai; ds.agents.push({name:c.name, vendor:c.vendor, c:c.c, key:c.key}); }
+    if (ds.uaCache.size < 200000) ds.uaCache.set(key, ai);
+  }
+  var pi = ds.pathIdx[r.path];
+  if (pi === undefined){ pi = ds.paths.length; ds.pathIdx[r.path] = pi; ds.paths.push(r.path); }
+  ds.T.push(r.t); ds.A.push(ai); ds.P.push(pi); ds.S.push(r.status);
+}
+
+var ASSET_RE = /\.(?:css|js|mjs|map|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|eot|mp4|webm|mp3)$/i;
+function isAsset(p){ return ASSET_RE.test(p); }
+function discoveryKind(p){
+  var l = p.toLowerCase();
+  if (l === '/robots.txt') return 'robots';
+  if (l === '/llms.txt') return 'llms';
+  if (l === '/llms-full.txt') return 'llmsfull';
+  if (/^\/[\w\-\/]*sitemap[\w\-]*\.xml(\.gz)?$/.test(l)) return 'sitemap';
+  return null;
+}
+function sectionOf(p){
+  if (p === '-' ) return '-';
+  var m = /^\/([^\/]+)(\/)?/.exec(p);
+  if (!m) return '/';
+  return '/' + m[1] + (m[2] ? '/' : '');
+}
+
+/* ---------- analysis: everything the page shows, for an optional selected agent ---------- */
+function analyze(ds, sel){
+  var n = ds.T.length, ags = ds.agents, A = ds.A, P = ds.P, S = ds.S, T = ds.T;
+  var per = ags.map(function(){ return {hits:0, paths:new Map(), first:Infinity, last:-Infinity, n404:0, disc:{robots:[0,0],llms:[0,0],llmsfull:[0,0],sitemap:[0,0]}, sec:new Map()}; });
+  var byCat = {}; CATS.forEach(function(c){ byCat[c]=0; });
+  var tmin = Infinity, tmax = -Infinity;
+  for (var i=0;i<n;i++){
+    var a = A[i], g = per[a], t = T[i], p = P[i], s = S[i];
+    g.hits++; byCat[ags[a].c]++;
+    g.paths.set(p, (g.paths.get(p)||0)+1);
+    if (t === t){ if (t<g.first) g.first=t; if (t>g.last) g.last=t; if (t<tmin) tmin=t; if (t>tmax) tmax=t; }
+    if (s === 404) g.n404++;
+  }
+  // per agent: discovery, sections (pages only)
+  for (var k=0;k<ags.length;k++){
+    per[k].paths.forEach(function(cnt, pi){
+      var path = ds.paths[pi], d = discoveryKind(path);
+      if (d){ per[k].disc[d][0] += cnt; }
+      else if (!isAsset(path) && path !== '-'){ var sc = sectionOf(path); per[k].sec.set(sc, (per[k].sec.get(sc)||0)+cnt); }
+    });
+  }
+  // discovery success needs statuses: second pass only over discovery paths
+  var discPaths = {}; ds.paths.forEach(function(p,i){ var d = discoveryKind(p); if (d) discPaths[i]=d; });
+  for (i=0;i<n;i++){ var dk = discPaths[P[i]]; if (dk && S[i] >= 200 && S[i] < 400) per[A[i]].disc[dk][1]++; }
+
+  // time buckets
+  var span = tmax - tmin, hourly = isFinite(span) && span <= 3*864e5;
+  var bsize = hourly ? 36e5 : 864e5;
+  var b0 = isFinite(tmin) ? Math.floor(tmin/bsize)*bsize : 0;
+  var nb = isFinite(tmin) ? Math.floor((tmax - b0)/bsize)+1 : 0;
+  if (nb > 400){ bsize = 864e5*Math.ceil(nb*bsize/864e5/400); b0 = Math.floor(tmin/bsize)*bsize; nb = Math.floor((tmax-b0)/bsize)+1; }
+  var buckets = []; for (var b=0;b<nb;b++){ var o={t:b0+b*bsize}; CATS.forEach(function(c){o[c]=0;}); buckets.push(o); }
+  // filtered pass
+  var selSet = sel != null && sel >= 0 ? sel : -1;
+  var pathAgg = new Map(), miss = new Map(), secAI = new Map(), secHu = new Map(), aiTot = 0, huTot = 0;
+  for (i=0;i<n;i++){
+    a = A[i]; var c = ags[a].c;
+    if (nb && T[i] === T[i]){ buckets[Math.floor((T[i]-b0)/bsize)][c] += (selSet<0 || a===selSet) ? 1 : 0; }
+    var path2 = ds.paths[P[i]], page = !isAsset(path2) && !discoveryKind(path2) && path2 !== '-';
+    var inScope = selSet >= 0 ? a === selSet : AI_CATS[c];
+    if (inScope){
+      if (page){ var pa = pathAgg.get(P[i]); if (!pa){ pa=[0,0]; pathAgg.set(P[i],pa);} pa[0]++; if (S[i]===404) pa[1]++; }
+      if (S[i] === 404){ var ms = miss.get(P[i]); if (!ms){ ms={n:0, who:new Map()}; miss.set(P[i],ms);} ms.n++; ms.who.set(a,(ms.who.get(a)||0)+1); }
+    }
+    if (page){
+      var sc2 = sectionOf(path2);
+      if (selSet >= 0 ? a === selSet : AI_CATS[c]){ secAI.set(sc2,(secAI.get(sc2)||0)+1); aiTot++; }
+      if (c === 'human'){ secHu.set(sc2,(secHu.get(sc2)||0)+1); huTot++; }
+    }
+  }
+  var agentRows = ags.map(function(ag,k){
+    var g = per[k], secs = Array.from(g.sec.entries()).sort(function(x,y){return y[1]-x[1];});
+    return {idx:k, name:ag.name, vendor:ag.vendor, c:ag.c, hits:g.hits, pages:g.paths.size, first:g.first, last:g.last,
+            n404:g.n404, p404: g.hits ? g.n404/g.hits : 0, disc:g.disc, habitat:secs.slice(0,3).map(function(e){return e[0];})};
+  }).filter(function(r){return r.hits>0;}).sort(function(x,y){return y.hits-x.hits;});
+  var topPages = Array.from(pathAgg.entries()).map(function(e){return {path:ds.paths[e[0]], n:e[1][0], n404:e[1][1]};}).sort(function(x,y){return y.n-x.n;});
+  var misses = Array.from(miss.entries()).map(function(e){
+    return {path:ds.paths[e[0]], n:e[1].n, who:Array.from(e[1].who.entries()).sort(function(x,y){return y[1]-x[1];}).map(function(w){return ags[w[0]].name;})};
+  }).sort(function(x,y){return y.n-x.n;});
+  var secKeys = new Set();
+  Array.from(secAI.entries()).sort(function(x,y){return y[1]-x[1];}).slice(0,8).forEach(function(e){secKeys.add(e[0]);});
+  Array.from(secHu.entries()).sort(function(x,y){return y[1]-x[1];}).slice(0,4).forEach(function(e){secKeys.add(e[0]);});
+  var sections = Array.from(secKeys).map(function(s){ return {sec:s, ai: aiTot ? (secAI.get(s)||0)/aiTot : 0, hu: huTot ? (secHu.get(s)||0)/huTot : 0, aiN:secAI.get(s)||0, huN:secHu.get(s)||0}; })
+    .sort(function(x,y){return y.ai-x.ai || y.hu-x.hu;});
+  return {total:n, byCat:byCat, tmin:tmin, tmax:tmax, hourly: bsize===36e5, bsize:bsize, buckets:buckets, agents:agentRows,
+          topPages:topPages, misses:misses, sections:sections, aiTot:aiTot, huTot:huTot};
+}
+
+/* ---------- synthetic sample log ---------- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+var MON_N = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pad2(x){ return x<10?'0'+x:''+x; }
+function clfTime(t){ var d=new Date(t); return pad2(d.getUTCDate())+'/'+MON_N[d.getUTCMonth()]+'/'+d.getUTCFullYear()+':'+pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes())+':'+pad2(d.getUTCSeconds())+' +0000'; }
+
+function generateSample(seed, endMs){
+  var R = mulberry32(seed || 20261026), DAY = 864e5, HOUR = 36e5;
+  var end = Math.floor((endMs || Date.now())/HOUR)*HOUR, start = end - 14*DAY;
+  var ev = [];
+  function pick(a){ return a[Math.floor(R()*a.length)]; }
+  function wpick(list){ var s=0,i; for(i=0;i<list.length;i++) s+=list[i][1]; var r=R()*s; for(i=0;i<list.length;i++){ r-=list[i][1]; if(r<=0) return list[i][0]; } return list[0][0]; }
+  function ipFrom(pre){ return pre + '.' + (1+Math.floor(R()*253)); }
+  function rndIp(){ return (20+Math.floor(R()*200))+'.'+Math.floor(R()*256)+'.'+Math.floor(R()*256)+'.'+(1+Math.floor(R()*253)); }
+  var PAGES = [['/',30],['/pricing',14],['/features',8],['/about',4],['/changelog',4],['/customers',3],['/contact',2],['/security',2],['/careers',1],['/privacy',1],['/terms',1]];
+  var BLOG = [['/blog/',4],['/blog/how-we-cut-onboarding-time-in-half',6],['/blog/postgres-vs-sqlite-for-side-projects',9],['/blog/pricing-page-teardown',7],
+              ['/blog/what-is-llms-txt',8],['/blog/shipping-solo',5],['/blog/cold-email-templates-that-work',6],['/blog/building-in-public-lessons',4],['/blog/webhooks-retry-strategies',5]];
+  var DOCS = [['/docs/',3],['/docs/getting-started',9],['/docs/api/authentication',8],['/docs/api/webhooks',7],['/docs/api/rate-limits',6],['/docs/api/errors',4],
+              ['/docs/integrations/slack',4],['/docs/integrations/zapier',3],['/docs/self-hosting',5],['/docs/faq',4]];
+  var DEAD = [['/blog/2021/our-old-roadmap',4],['/docs/v1/api',5],['/docs/api/v1/users',4],['/resources/state-of-saas-report.pdf',3],['/pricing/enterprise',4],['/blog/tag/ai',2],['/integrations',3],['/docs/api/graphql',3]];
+  var IMGS = [['/img/hero.webp',5],['/img/dashboard-screenshot.png',4],['/img/blog/onboarding-chart.png',2],['/img/blog/sqlite-benchmark.png',2],['/img/team.jpg',1]];
+  var DEADSET = {}; DEAD.forEach(function(d){ DEADSET[d[0]]=1; }); DEADSET['/llms-full.txt']=1; DEADSET['/wp-login.php']=1; DEADSET['/.env']=1; DEADSET['/xmlrpc.php']=1; DEADSET['/.git/config']=1;
+  function pathByMix(w){
+    var k = wpick([['p',w[0]],['b',w[1]],['d',w[2]],['x',w[3]||0],['i',w[4]||0]]);
+    return k==='p'?wpick(PAGES):k==='b'?wpick(BLOG):k==='d'?wpick(DOCS):k==='x'?wpick(DEAD):wpick(IMGS);
+  }
+  function statusOf(p){ return DEADSET[p] ? 404 : (R()<0.012 ? (R()<0.5?500:503) : 200); }
+  function bytesOf(p, st){ if (st===404) return 153+Math.floor(R()*40); if (st===304) return 0; if (/\.(png|jpg|webp)$/.test(p)) return 40000+Math.floor(R()*180000); if (/\.txt$/.test(p)) return 600+Math.floor(R()*3000); return 8000+Math.floor(R()*42000); }
+  function add(t, ip, path, ua, ref, st){ st = st || statusOf(path); ev.push({t:Math.floor(t), ip:ip, path:path, ua:ua, ref:ref||'-', st:st, b:bytesOf(path,st)}); }
+  function dayHourT(d, peakish){ // US-daytime-ish hours in UTC (13:00-04:00 next), as a soft curve
+    var h = peakish ? (13 + R()*15 + (R()-0.5)*3) : R()*24; return start + d*DAY + ((h%24)*HOUR) + R()*HOUR;
+  }
+
+  // ---- people ----
+  var BROWSERS = [
+    ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',30],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1',22],
+    ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0',12],
+    ['Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0',8],
+    ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15',12],
+    ['Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36',10]
+  ];
+  var REFS = [['-',40],['https://www.google.com/',30],['https://duckduckgo.com/',4],['https://news.ycombinator.com/',5],['https://x.com/',5],['https://www.linkedin.com/',4],['https://chatgpt.com/',5],['https://www.perplexity.ai/',2],['https://www.bing.com/',5]];
+  for (var d=0; d<14; d++){
+    var dow = new Date(start + d*DAY).getUTCDay(), sessions = Math.round((dow===0||dow===6 ? 13 : 23) * (0.8 + R()*0.4));
+    for (var s=0; s<sessions; s++){
+      var ua = wpick(BROWSERS), ip = rndIp(), t = dayHourT(d, true), ref = wpick(REFS);
+      var land = ref.indexOf('google')>0 || ref.indexOf('chatgpt')>0 ? pathByMix([3,6,4,0.4]) : pathByMix([8,3,2,0.2]);
+      var views = 1 + Math.floor(R()*R()*6);
+      for (var v=0; v<views; v++){
+        var p = v===0 ? land : pathByMix([6,3,3,0.15]);
+        add(t, ip, p, ua, v===0 ? ref : 'https://example.com'+land);
+        if (v===0 || R()<0.25){ add(t+300, ip, '/assets/app.css', ua, 'https://example.com'+p, R()<0.3?304:200); add(t+420, ip, '/assets/app.js', ua, 'https://example.com'+p, R()<0.3?304:200); }
+        if (R()<0.3) add(t+700, ip, wpick(IMGS), ua, 'https://example.com'+p);
+        t += 20000 + R()*120000;
+      }
+      if (R()<0.15) add(t, ip, '/favicon.ico', ua);
+    }
+  }
+
+  // ---- bots ----
+  function bot(ua, pre, n, o){
+    o = o || {};
+    var days = o.days || null, active = {};
+    for (var i=0;i<n;i++){
+      var d = days ? pick(days) : Math.floor(R()*14);
+      var t = o.burst && days ? start + d*DAY + (o.burstHour||3)*HOUR + R()*o.burst*HOUR : dayHourT(d, !!o.daytime);
+      if (t >= end) t = end - R()*HOUR*3;
+      var ip = ipFrom(pre);
+      if (!active[d] || t < active[d].t) active[d] = {t:t, ip:ip};
+      add(t, ip, o.paths ? wpick(o.paths) : pathByMix(o.mix || [4,4,4,0.6]), ua, o.ref ? pick(o.ref) : '-');
+    }
+    Object.keys(active).forEach(function(d){
+      var a = active[d];
+      if (o.robots && R() < o.robots) add(a.t - 4000, a.ip, '/robots.txt', ua);
+      if (o.llms && R() < o.llms) add(a.t - 2500, a.ip, '/llms.txt', ua);
+      if (o.llmsFull && R() < o.llmsFull) add(a.t - 2000, a.ip, '/llms-full.txt', ua);
+      if (o.sitemap && R() < o.sitemap) add(a.t - 1500, a.ip, '/sitemap.xml', ua);
+    });
+  }
+  var ALL = [];
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/141.0.7390.122 Safari/537.36','66.249.66', 330, {mix:[5,4,4,0.5,0.4], robots:1, sitemap:0.9});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0.1938.76 Safari/537.36','40.77.167', 165, {mix:[5,4,3,0.6], robots:0.9, sitemap:0.6});
+  bot('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15 (Applebot/0.1; +http://www.apple.com/go/applebot)','17.241.219', 42, {robots:0.8, sitemap:0.4});
+  bot('Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)','114.119.140', 24, {robots:0.7});
+  bot('DuckDuckBot/1.1; (+http://duckduckgo.com/duckduckbot.html)','20.191.45', 12, {robots:0.6});
+  // AI: training crawlers
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot','20.171.207', 150, {days:[2,3,9], burst:5, mix:[3,5,5,1.2], robots:1, sitemap:0.7});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)','216.73.216', 135, {mix:[3,5,5,1], robots:0.9, llms:0.5, sitemap:0.5});
+  bot('Mozilla/5.0 (Linux; Android 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; Bytespider; spider-feedback@bytedance.com)','110.249.201', 290, {days:[1,5,6,11], burst:3, mix:[3,4,4,1.5,1]});
+  bot('CCBot/2.0 (https://commoncrawl.org/faq/)','18.97.14', 85, {days:[7], burst:6, mix:[3,5,5,1.5], robots:1});
+  bot('meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)','57.141.0', 62, {mix:[3,5,4,1], robots:0.7});
+  bot('Mozilla/5.0 (compatible; FacebookBot/1.0; +https://developers.facebook.com/docs/sharing/webmasters/facebookbot/)','173.252.83', 6, {});
+  bot('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36 (compatible; Diffbot/0.1; +http://www.diffbot.com)','35.161.10', 11, {mix:[2,5,2,0.5]});
+  bot('Timpibot/0.9 (+http://www.timpi.io)','5.161.75', 16, {mix:[4,4,4,1], robots:0.5});
+  bot('Mozilla/5.0 (compatible; ImagesiftBot; +imagesift.com)','34.82.48', 14, {paths:IMGS.concat([['/blog/',1]])});
+  // AI: search indexers
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; OAI-SearchBot/1.3; +https://openai.com/searchbot','74.7.227', 64, {mix:[3,5,4,0.4], robots:0.8, sitemap:0.5, llms:0.3});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-SearchBot/1.0; +claude-searchbot@anthropic.com)','216.73.216', 28, {mix:[3,5,5,0.4], robots:0.8, llms:0.6});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)','44.221.181', 52, {mix:[3,6,4,0.5], robots:0.9, llms:0.4});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot) Chrome/119.0.6045.214 Safari/537.36','52.70.240', 41, {mix:[4,4,3,0.6], robots:1});
+  bot('Mozilla/5.0 (compatible; YouBot (+http://www.you.com))','34.41.12', 8, {robots:0.5});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Google-CloudVertexBot; +https://cloud.google.com/enterprise-search)','34.64.82', 6, {mix:[0,0,1]});
+  // AI: user-triggered fetches (live, people-driven, daytime, deep pages)
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot','23.98.142', 128, {daytime:1, mix:[2,4,6,0.6], llmsFull:0.15});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-User/1.0; +Claude-User@anthropic.com)','216.73.216', 46, {daytime:1, mix:[1,4,7,0.5], llms:0.4, llmsFull:0.3});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)','44.208.29', 49, {daytime:1, mix:[3,5,4,0.4]});
+  bot('meta-externalfetcher/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)','57.141.4', 10, {daytime:1});
+  bot('DuckAssistBot/1.2; (+http://duckduckgo.com/duckassistbot.html)','20.12.141', 15, {daytime:1, mix:[2,5,3,0.2]});
+  bot('Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; MistralAI-User/1.0; +https://docs.mistral.ai/robots)','51.159.1', 8, {daytime:1, mix:[1,3,5]});
+  bot('cohere-ai','35.203.9', 5, {daytime:1, mix:[1,3,3]});
+  // other bots and scripts
+  bot('Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)','54.36.148', 82, {mix:[4,4,4,1.5], robots:1});
+  bot('Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)','185.191.171', 48, {mix:[4,4,4,1.5], robots:1});
+  bot('python-requests/2.32.3','45.33.90', 28, {mix:[3,2,4,0.5]});
+  bot('curl/8.7.1','98.42.17', 9, {paths:[['/',3],['/pricing',1],['/llms.txt',1]]});
+  bot('Mozilla/5.0 zgrab/0.x','193.46.255', 22, {paths:[['/wp-login.php',4],['/.env',4],['/xmlrpc.php',2],['/.git/config',2]]});
+  bot('facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)','69.171.249', 14, {paths:BLOG});
+  bot('-','91.92.240', 6, {paths:[['/',1],['/.env',1]]});
+
+  ev.sort(function(a,b){ return a.t-b.t; });
+  return ev.filter(function(e){ return e.t < end && e.t >= start; }).map(function(e){
+    var proto = 'HTTP/' + (R()<0.7 ? '1.1' : '2.0');
+    return e.ip + ' - - [' + clfTime(e.t) + '] "GET ' + e.path + ' ' + proto + '" ' + e.st + ' ' + e.b + ' "' + e.ref + '" "' + e.ua + '"';
+  }).join('\n');
+}
+
+/* ---------- specimen naming & glyph (deterministic from bot name) ---------- */
+function hashStr(s){ var h = 2166136261; for (var i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h>>>0; }
+var GENUS = {train:'Crawlerus', aisearch:'Indexator', user:'Emissarius', search:'Quaesitor', bot:'Automaton', unknown:'Incognitus', human:'Homo'};
+function latinName(a){
+  var g = GENUS[a.c] || 'Automaton';
+  if (a.c === 'human') return 'Homo navigans';
+  var base = (a.vendor || a.name).toLowerCase().replace(/[^a-z]/g,'') || 'ignotus';
+  if (base.length > 12) base = base.slice(0,12);
+  var ep = /i$/.test(base) ? base + 'i' : /[aeou]$/.test(base) ? base.slice(0,-1) + 'ii' : base + 'ii';
+  return g + ' ' + ep;
+}
+</script>
+
+<!-- ===================== UI ===================== -->
+<script>
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------------- dictionary ---------------- */
+var I18N = {
+ en: {
+  plate:'Plate',
+  edition:'Field Guide · Volume I',
+  edition2:'Observations recorded on this device only',
+  title:'A field guide to the <em>agents</em> at your door',
+  dek:'Bring in your server’s access log. We’ll identify every AI crawler, search indexer and live errand-runner that came by, note where it fed, and show what it went looking for.',
+  oath:'Your log never leaves your browser.',
+  oathMore:'Every line is read and sorted right here on this page. No uploads, no tracking, not a single network call.',
+  collectNo:'Collecting specimens',
+  collectTitle:'Add a log',
+  dropBig:'Drop your access logs here',
+  dropFine:'Nginx or Apache, combined or common format, plain text or .gz. Large files are read in pieces, so 100 MB is fine.',
+  choose:'Choose files',
+  sample:'Study a sample log',
+  sampleFine:'Two weeks on a small software site, about 4,000 requests',
+  orPaste:'or copy lines straight into the notebook',
+  pasteLabel:'Paste log lines',
+  pastePh:'203.0.113.7 - - [14/Oct/2026:16:02:11 +0000] "GET /docs/api/webhooks HTTP/1.1" 200 18342 "-" "Mozilla/5.0 … ChatGPT-User/1.0; +https://openai.com/bot"',
+  pasteGo:'Identify these lines',
+  pasteEmpty:'The notebook is empty. Paste a few log lines first.',
+  noGz:'This browser can’t unpack .gz files. Decompress the log first, then try again.',
+  readFail:'That file couldn’t be read.',
+  reading:'Reading {name}… {pct}',
+  sorting:'Sorting the sightings…',
+  noRows:'No requests recognized. Is this a web server access log?',
+  filed:'{lines} lines examined · {from} to {to} · {bad}',
+  filedBad:'{n} lines could not be read',
+  filedBadNone:'every line accounted for',
+  addMore:'Add more logs',
+  reset:'Start a new survey',
+  p1:'Sightings by day',
+  p1gloss:'Each column is a day of visits, stacked by what the visitor came to do.',
+  viewAi:'AI agents',
+  viewBots:'All bots',
+  viewAll:'Everyone',
+  axisReq:'requests',
+  axisDay:'day (UTC)',
+  axisHour:'hour (UTC)',
+  tipTotal:'Total',
+  p2:'The specimens',
+  p2gloss:'Every AI agent spotted in the log. Tap a card to follow that one agent through the rest of the guide.',
+  p2none:'No AI agents in this log. Either they haven’t found you yet, or your logs filter them out upstream.',
+  moreSpecimens:'{n} more AI species in the index below.',
+  habitat:'habitat',
+  behavior:'behavior',
+  sightings:'sightings',
+  firstSeen:'first seen',
+  lastSeen:'last seen',
+  miss404:'dead ends',
+  p3:'Index of visitors',
+  p3gloss:'The full register, from the commonest species to the rarest. Click a row to follow it.',
+  aiOnly:'AI agents only',
+  colAgent:'agent', colVendor:'vendor', colPurpose:'purpose', colHits:'hits', colPages:'pages', colLast:'last seen', col404:'% 404',
+  p4:'Habitat & forage',
+  p4gloss:'Where agents spend their time, compared with where people do. Big gaps are worth a look.',
+  sectionsTtl:'share of page views by section',
+  keyAi:'AI agents', keyAiSel:'{a}', keyHu:'people',
+  forageAll:'pages AI agents fed on most',
+  forageSel:'pages {a} fed on most',
+  forageNone:'Nothing recorded.',
+  p5:'Dead ends',
+  p5gloss:'Pages agents asked for that came back 404. Each one is an answer you could have given. Redirect it, or publish it.',
+  p5none:'No AI agent hit a 404. A well-kept trail.',
+  colPath:'path', colAgents:'who asked',
+  p6:'Rules for the grounds',
+  p6gloss:'Choose who may come in. Search indexers and errand-runners are welcome by default; whether training crawlers may feed here is up to you.',
+  grpUser:'Errand-runners (user-triggered)',
+  grpSearch:'AI search indexers',
+  grpTrain:'Training crawlers: your call',
+  allow:'Allow', block:'Block', allowAll:'allow all', blockAll:'block all',
+  seenN:'seen {n}×', notSeen:'not in this log',
+  tokenTag:'token',
+  tokenTip:'A robots.txt token only. It is never sent as a user agent, so it can’t appear in logs. Blocking it opts you out of that company’s AI training without touching search.',
+  robotsOutLbl:'your robots.txt addition',
+  robotsHead:'# AI agent rules, drafted from your access log',
+  robotsBlockedNone:'# Nothing blocked. Every listed agent is welcome.',
+  robotsSitemap:'# Sitemap: https://your-site.example/sitemap.xml',
+  copy:'Copy', copied:'Copied to clipboard.', copyFail:'Select the text and copy it by hand.',
+  robotsNote:'Paste this into your existing robots.txt. It is a request, not a fence: reputable crawlers honor it, but an errand-runner fetching a page for one person may not treat robots.txt as applying to it.',
+  census:'Census',
+  cTotal:'requests', cTotalSub:'{h} from people',
+  cShare:'AI agent share', cShareSub:'{n} requests from AI agents',
+  cSpecies:'AI species', cSpeciesSub:'from {v} vendors',
+  cErrands:'errands run', cErrandsSub:'an agent reading a page live, for a person',
+  cSelHits:'sightings', cSelShare:'share of all traffic', cSelPages:'distinct pages', cSel404:'dead ends hit',
+  following:'Following {a}', clearSel:'Stop following',
+  notes:'Field notes',
+  nErrands:'{n} page reads were errands run live for people, most often by {a}. Those are readers, not robots.',
+  nTrain:'Training crawlers made {n} requests, {p} of all AI traffic. Plate VI is where you decide whether they stay.',
+  nMiss:'{n} AI requests dead-ended on a 404. The most-wanted missing page: {path}.',
+  nLlms:'{n} agent species asked for /llms.txt.',
+  nLlmsNone:'No agent asked for /llms.txt in this period.',
+  nSection:'Agents favor {s}: {p} of their page views, versus {h} for people.',
+  nRobotsSkip:'{n} AI species never checked robots.txt before reading.',
+  nNoAi:'No AI agents turned up in this log.',
+  posts:'Signposts',
+  postsGloss:'Did agents read the files that tell them what’s allowed and what matters?',
+  postsNone:'No AI agent visits to tabulate.',
+  postsSum:'{r} of {n} AI species read robots.txt; {l} asked for llms.txt.',
+  okT:'fetched {n}×', missT:'requested {n}× and it came back missing', noneT:'never requested',
+  keyTtl:'Key to behavior',
+  kd_user:'fetches a page right now because a person asked an AI about it.',
+  kd_aisearch:'maps your site so an AI search product can cite it later.',
+  kd_train:'collects pages to train future models.',
+  kd_search:'classic search indexing.',
+  kd_bot:'SEO tools, monitors, scripts and scanners.',
+  kd_unknown:'the log line carried no user agent at all.',
+  kd_human:'a regular browser, most likely a person.',
+  tokenNote:'Google-Extended and Applebot-Extended are robots.txt tokens, not user agents. They never show up in a log, but you can still block them in Plate VI.',
+  spoofNote:'Identification goes by user-agent string, which anyone can fake. Before blocking by IP, check the vendor’s published IP ranges or a reverse DNS lookup.',
+  sigSummary:'The signature table ({n} entries)',
+  takeHome:'Take notes home',
+  takeGloss:'Download what you see as CSV, for a spreadsheet or your own scripts.',
+  csvAgents:'Agents CSV',
+  csvPaths:'Agent × page CSV',
+  colophon1:'Signature table reviewed Oct 2026. Identification by user-agent string.',
+  colophon2:'Runs offline. Nothing is stored except your language choice.',
+  stampSub:'language',
+  cat_user:'User-triggered fetch', cat_aisearch:'AI search indexer', cat_train:'Training crawler', cat_search:'Search engine', cat_bot:'Other bot', cat_unknown:'No user agent', cat_human:'Likely human',
+  humanName:'Browsers (people)', noUaName:'(no user agent)', vendorNone:'unknown'
+ },
+ zh: {
+  plate:'图版',
+  edition:'野外观察手册 · 第一卷',
+  edition2:'全部观察记录只保存在本机',
+  title:'来访<em>智能体</em>野外图鉴',
+  dek:'把服务器访问日志带进来。我们会认出每一只来过的 AI 爬虫、AI 搜索索引器和替人跑腿的智能体,记下它们在哪儿觅食、想找什么。',
+  oath:'日志不会离开你的浏览器。',
+  oathMore:'每一行日志都在这个页面里就地读取、分类。不上传、不追踪,一次网络请求都没有。',
+  collectNo:'采集标本',
+  collectTitle:'添加日志',
+  dropBig:'把访问日志拖到这里',
+  dropFine:'支持 Nginx / Apache 的 combined 与 common 格式,纯文本或 .gz 均可。大文件分块读取,100 MB 也不卡。',
+  choose:'选择文件',
+  sample:'先看一份示例日志',
+  sampleFine:'一个小型软件网站两周的访问,约 4,000 条请求',
+  orPaste:'或者直接把日志行抄进笔记本',
+  pasteLabel:'粘贴日志行',
+  pastePh:'203.0.113.7 - - [14/Oct/2026:16:02:11 +0000] "GET /docs/api/webhooks HTTP/1.1" 200 18342 "-" "Mozilla/5.0 … ChatGPT-User/1.0; +https://openai.com/bot"',
+  pasteGo:'辨认这些日志',
+  pasteEmpty:'笔记本还是空的,先粘贴几行日志吧。',
+  noGz:'这个浏览器无法解压 .gz 文件。请先解压日志再试。',
+  readFail:'这个文件读不了。',
+  reading:'正在读取 {name}…… {pct}',
+  sorting:'正在整理观察记录……',
+  noRows:'没有识别出任何请求。确认一下这是网站服务器的访问日志吗?',
+  filed:'共检查 {lines} 行 · {from} 至 {to} · {bad}',
+  filedBad:'{n} 行无法解析',
+  filedBadNone:'每一行都已归档',
+  addMore:'追加日志',
+  reset:'开始新的观察',
+  p1:'每日目击记录',
+  p1gloss:'每一列是一天的来访,按来访者的目的分层堆叠。',
+  viewAi:'AI 智能体',
+  viewBots:'全部机器人',
+  viewAll:'所有来访',
+  axisReq:'请求数',
+  axisDay:'日期(UTC)',
+  axisHour:'小时(UTC)',
+  tipTotal:'合计',
+  p2:'标本陈列',
+  p2gloss:'日志里出现过的每一种 AI 智能体。点一张卡片,整本图鉴就只追踪它一个。',
+  p2none:'这份日志里没有 AI 智能体。要么它们还没发现你,要么上游已经把它们过滤掉了。',
+  moreSpecimens:'另有 {n} 种 AI 智能体收录在下方索引中。',
+  habitat:'栖息地',
+  behavior:'习性',
+  sightings:'目击次数',
+  firstSeen:'首次目击',
+  lastSeen:'最近目击',
+  miss404:'碰壁',
+  p3:'来访者索引',
+  p3gloss:'完整名录,从最常见到最罕见。点击任意一行即可追踪。',
+  aiOnly:'只看 AI 智能体',
+  colAgent:'智能体', colVendor:'所属公司', colPurpose:'用途', colHits:'请求', colPages:'页面', colLast:'最近目击', col404:'404 占比',
+  p4:'栖息地与觅食',
+  p4gloss:'智能体的时间花在哪些栏目,和真人对比一下。差距大的地方值得细看。',
+  sectionsTtl:'各栏目页面浏览占比',
+  keyAi:'AI 智能体', keyAiSel:'{a}', keyHu:'真人',
+  forageAll:'AI 智能体最常觅食的页面',
+  forageSel:'{a} 最常觅食的页面',
+  forageNone:'暂无记录。',
+  p5:'死胡同',
+  p5gloss:'智能体请求了、却返回 404 的页面。每一个都是你本可以给出的答案:加个重定向,或者把内容补上。',
+  p5none:'没有 AI 智能体碰到 404,小径维护得很好。',
+  colPath:'路径', colAgents:'谁来找过',
+  p6:'园区守则',
+  p6gloss:'决定谁可以进来。AI 搜索索引器和替人跑腿的智能体默认放行;训练爬虫能不能在这里觅食,由你决定。',
+  grpUser:'跑腿者(用户触发)',
+  grpSearch:'AI 搜索索引器',
+  grpTrain:'训练爬虫:由你决定',
+  allow:'允许', block:'屏蔽', allowAll:'全部允许', blockAll:'全部屏蔽',
+  seenN:'目击 {n} 次', notSeen:'本日志未出现',
+  tokenTag:'令牌',
+  tokenTip:'这只是 robots.txt 里的控制令牌,从不作为 UA 发送,所以日志里永远看不到它。屏蔽它即可拒绝该公司拿你的内容训练 AI,而不影响搜索收录。',
+  robotsOutLbl:'要加进 robots.txt 的内容',
+  robotsHead:'# AI 智能体规则,依据访问日志起草',
+  robotsBlockedNone:'# 没有屏蔽任何智能体,所列来访者均可进入。',
+  robotsSitemap:'# Sitemap: https://your-site.example/sitemap.xml',
+  copy:'复制', copied:'已复制到剪贴板。', copyFail:'请手动选中文本复制。',
+  robotsNote:'把它合并进你现有的 robots.txt。这是一份请求,而不是围栏:守规矩的爬虫会遵守,但替某个人实时取页的跑腿智能体,未必认为 robots.txt 适用于自己。',
+  census:'普查',
+  cTotal:'总请求', cTotalSub:'其中 {h} 来自真人',
+  cShare:'AI 智能体占比', cShareSub:'AI 智能体请求 {n} 次',
+  cSpecies:'AI 物种数', cSpeciesSub:'来自 {v} 家公司',
+  cErrands:'跑腿次数', cErrandsSub:'智能体正替某个人实时读你的页面',
+  cSelHits:'目击次数', cSelShare:'占全部流量', cSelPages:'不同页面', cSel404:'碰壁次数',
+  following:'正在追踪 {a}', clearSel:'停止追踪',
+  notes:'观察笔记',
+  nErrands:'有 {n} 次页面读取是智能体替真人实时跑腿,{a} 跑得最勤。这些是读者,不是机器噪音。',
+  nTrain:'训练爬虫请求了 {n} 次,占全部 AI 流量的 {p}。要不要继续放行,在图版 VI 决定。',
+  nMiss:'AI 智能体有 {n} 次请求撞上 404。最想要却缺失的页面:{path}。',
+  nLlms:'有 {n} 种智能体请求过 /llms.txt。',
+  nLlmsNone:'这段时间没有智能体请求 /llms.txt。',
+  nSection:'智能体最爱 {s}:占它们页面浏览的 {p},真人只有 {h}。',
+  nRobotsSkip:'有 {n} 种 AI 智能体从没看过 robots.txt 就直接读页面。',
+  nNoAi:'这份日志里没有出现 AI 智能体。',
+  posts:'路标文件',
+  postsGloss:'智能体有没有读那些告诉它们“能看什么、什么重要”的文件?',
+  postsNone:'没有 AI 智能体来访记录可以统计。',
+  postsSum:'{n} 种 AI 智能体中,{r} 种读过 robots.txt;{l} 种请求过 llms.txt。',
+  okT:'取到 {n} 次', missT:'请求 {n} 次,但文件不存在', noneT:'从未请求',
+  keyTtl:'习性图例',
+  kd_user:'有人向 AI 提问,它此刻就来取这一页。',
+  kd_aisearch:'给你的网站绘制地图,方便 AI 搜索之后引用。',
+  kd_train:'收集网页,用于训练未来的模型。',
+  kd_search:'传统搜索引擎收录。',
+  kd_bot:'SEO 工具、监控、脚本和扫描器。',
+  kd_unknown:'这一行日志根本没有 UA 字段。',
+  kd_human:'普通浏览器,大概率是真人。',
+  tokenNote:'Google-Extended 和 Applebot-Extended 是 robots.txt 令牌,不是 UA,日志里永远不会出现;但你仍可以在图版 VI 里屏蔽它们。',
+  spoofNote:'识别依据是 UA 字符串,而 UA 谁都能伪造。要按 IP 屏蔽之前,先核对厂商公布的 IP 段或做反向 DNS 查询。',
+  sigSummary:'签名表({n} 条)',
+  takeHome:'带走笔记',
+  takeGloss:'把看到的数据下载为 CSV,放进表格或你自己的脚本。',
+  csvAgents:'智能体汇总 CSV',
+  csvPaths:'智能体 × 页面 CSV',
+  colophon1:'签名表更新于 2026 年 10 月。按 UA 字符串识别。',
+  colophon2:'离线运行。除语言偏好外不保存任何东西。',
+  stampSub:'语言',
+  cat_user:'用户触发抓取', cat_aisearch:'AI 搜索索引', cat_train:'训练爬虫', cat_search:'传统搜索引擎', cat_bot:'其他机器人', cat_unknown:'无 UA', cat_human:'疑似真人',
+  humanName:'浏览器(真人)', noUaName:'(无 UA)', vendorNone:'未知'
+ }
+};
+var lang = 'en';
+try { var saved = localStorage.getItem('agentFieldGuide.lang'); if (saved === 'zh' || saved === 'en') lang = saved; else if (/^zh/i.test(navigator.language||'')) lang = 'zh'; } catch(e){}
+function t(k, vars){
+  var s = (I18N[lang][k] != null ? I18N[lang][k] : I18N.en[k]);
+  if (s == null) return k;
+  if (vars) s = s.replace(/\{(\w+)\}/g, function(_,v){ return vars[v] != null ? vars[v] : ''; });
+  return s;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function fmtN(n){ return new Intl.NumberFormat(lang==='zh'?'zh':'en-US').format(n); }
+function fmtP(x){ if (!isFinite(x)) return '–'; var v = x*100; return (v>0 && v<1 ? v.toFixed(1) : v<10 ? v.toFixed(1).replace(/\.0$/,'') : Math.round(v)) + '%'; }
+function fmtD(ts, withTime){
+  if (!isFinite(ts)) return '–';
+  var o = {timeZone:'UTC', month:'short', day:'numeric'}; if (withTime){ o.hour='2-digit'; o.minute='2-digit'; o.hour12=false; }
+  return new Date(ts).toLocaleString(lang==='zh'?'zh':'en-US', o);
+}
+function catName(c){ return t('cat_'+c); }
+function agentName(a){ return a.c==='human' ? t('humanName') : a.c==='unknown' ? t('noUaName') : a.name; }
+
+/* ---------------- state ---------------- */
+var addMode = false, ds = null, res = null, sel = -1, view = 'ai', aiOnly = true, robotsChoice = {}, busy = false;
+
+/* ---------------- static i18n ---------------- */
+function applyStatic(){
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en';
+  document.querySelectorAll('[data-i]').forEach(function(el){
+    var k = el.getAttribute('data-i');
+    if (k === 'sigSummary') el.textContent = t(k,{n:SIGNATURES.length});
+    else el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-ih]').forEach(function(el){ el.innerHTML = t(el.getAttribute('data-ih')); });
+  document.querySelectorAll('[data-roman]').forEach(function(el){ el.textContent = t('plate') + ' ' + el.getAttribute('data-roman'); });
+  document.querySelectorAll('[data-iph]').forEach(function(el){ el.placeholder = t(el.getAttribute('data-iph')); });
+  $('stampInner').innerHTML = (lang==='en' ? '<b>EN</b> · <span>中</span>' : '<span>EN</span> · <b>中</b>') + '<small>' + esc(t('stampSub')) + '</small>';
+  $('langStamp').setAttribute('aria-label', lang==='en' ? '切换到中文' : 'Switch to English');
+  document.title = lang==='zh' ? '智能体野外图鉴' : 'Agent Field Guide';
+  renderKey(); renderSigTable();
+}
+$('langStamp').addEventListener('click', function(){
+  lang = lang === 'en' ? 'zh' : 'en';
+  try { localStorage.setItem('agentFieldGuide.lang', lang); } catch(e){}
+  applyStatic(); if (res) renderAll();
+});
+
+/* ---------------- input ---------------- */
+var jar = $('jar'), fileIn = $('fileIn');
+$('chooseBtn').addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); fileIn.click(); } });
+fileIn.addEventListener('change', function(){ if (fileIn.files.length) loadFiles(Array.from(fileIn.files), false); fileIn.value=''; });
+['dragenter','dragover'].forEach(function(ev){ jar.addEventListener(ev, function(e){ e.preventDefault(); jar.classList.add('over'); }); });
+['dragleave','drop'].forEach(function(ev){ jar.addEventListener(ev, function(e){ e.preventDefault(); jar.classList.remove('over'); }); });
+jar.addEventListener('drop', function(e){ var f = e.dataTransfer && e.dataTransfer.files; if (f && f.length) loadFiles(Array.from(f), false); });
+document.addEventListener('dragover', function(e){ e.preventDefault(); });
+document.addEventListener('drop', function(e){ e.preventDefault(); if (e.target.closest && e.target.closest('#jar')) return; var f = e.dataTransfer && e.dataTransfer.files; if (f && f.length) loadFiles(Array.from(f), !!ds); });
+$('pasteBtn').addEventListener('click', function(){
+  var txt = $('pasteBox').value; if (!txt.trim()){ setStatus(t('pasteEmpty'), true); return; }
+  loadText(txt, 'paste');
+});
+$('sampleBtn').addEventListener('click', function(){ loadText(generateSample(20261026, Date.now()), 'sample'); });
+$('addMoreBtn').addEventListener('click', function(){ addMode = true; fileIn.click(); });
+$('resetBtn').addEventListener('click', function(){
+  ds = null; res = null; sel = -1; $('spread').classList.remove('on'); $('collect').style.display=''; setStatus('');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+function setStatus(msg, err){ var s=$('statusLine'); s.textContent = msg||''; s.classList.toggle('err', !!err); }
+function progress(frac, label){
+  var p = $('progress'); p.classList.add('on');
+  var pct = Math.max(0, Math.min(100, Math.round(frac*100)));
+  $('progFill').style.width = pct + '%'; p.setAttribute('aria-valuenow', pct);
+  $('progWhat').textContent = label;
+}
+function progressDone(){ $('progress').classList.remove('on'); }
+function tick(){ return new Promise(function(r){ setTimeout(r,0); }); }
+
+async function readFileInto(file, target){
+  var dec = new TextDecoder('utf-8'), carry = '', size = file.size || 1;
+  function feed(text){ var parts = (carry + text).split('\n'); carry = parts.pop(); for (var i=0;i<parts.length;i++) ingestLine(target, parts[i]); }
+  var isGz = /\.gz$/i.test(file.name);
+  if (isGz && typeof DecompressionStream === 'undefined') throw new Error('gz');
+  if (isGz){
+    var read = 0, last = 0;
+    var counter = new TransformStream({transform:function(ch, ctl){ read += ch.byteLength; ctl.enqueue(ch); }});
+    var reader = file.stream().pipeThrough(counter).pipeThrough(new DecompressionStream('gzip')).getReader();
+    for(;;){
+      var r = await reader.read(); if (r.done) break;
+      feed(dec.decode(r.value, {stream:true}));
+      if (performance.now() - last > 60){ last = performance.now(); progress(read/size, t('reading',{name:file.name, pct:fmtP(read/size)})); await tick(); }
+    }
+  } else {
+    var CH = 4*1024*1024;
+    for (var off=0; off<file.size; off+=CH){
+      var buf = await file.slice(off, off+CH).arrayBuffer();
+      feed(dec.decode(buf, {stream:true}));
+      progress(Math.min(1,(off+CH)/size), t('reading',{name:file.name, pct:fmtP(Math.min(1,(off+CH)/size))}));
+      await tick();
+    }
+  }
+  feed(dec.decode()); if (carry) ingestLine(target, carry);
+}
+
+async function loadFiles(files, append){
+  if (busy) return; busy = true;
+  var add = append || addMode; addMode = false;
+  var target = add && ds ? ds : newDataset();
+  setStatus('');
+  try {
+    for (var i=0;i<files.length;i++) await readFileInto(files[i], target);
+    finish(target);
+  } catch(e){
+    setStatus(e && e.message === 'gz' ? t('noGz') : t('readFail') + ' ' + String(e && e.message || e), true);
+  } finally { progressDone(); busy = false; }
+}
+async function loadText(txt, label){
+  if (busy) return; busy = true;
+  var target = newDataset();
+  try {
+    var lines = txt.split('\n'), STEP = 20000;
+    for (var i=0;i<lines.length;i+=STEP){
+      var end = Math.min(lines.length, i+STEP);
+      for (var j=i;j<end;j++) ingestLine(target, lines[j]);
+      progress(end/lines.length, t('sorting')); await tick();
+    }
+    finish(target);
+  } finally { progressDone(); busy = false; }
+}
+function finish(target){
+  if (!target.T.length){ setStatus(t('noRows'), true); return; }
+  ds = target; sel = -1;
+  initRobotsChoice();
+  $('collect').style.display = 'none';
+  $('spread').classList.add('on');
+  renderAll();
+  window.scrollTo({top: $('spread').offsetTop - 10, behavior:'smooth'});
+}
+
+/* ---------------- rendering ---------------- */
+function renderAll(){
+  res = analyze(ds, sel);
+  renderFiled(); renderCensus(); renderNotes(); renderChart(); renderSpecimens(); renderIndex(); renderHabitat(); renderMisses(); renderPosts(); renderRegs();
+}
+function select(idx){
+  sel = (sel === idx) ? -1 : idx;
+  var y = window.scrollY; renderAll(); window.scrollTo(0, y);
+}
+$('clearSel').addEventListener('click', function(){ select(-1); });
+
+function renderFiled(){
+  $('filedText').textContent = t('filed', {lines:fmtN(ds.lines), from:fmtD(res.tmin), to:fmtD(res.tmax), bad: ds.bad ? t('filedBad',{n:fmtN(ds.bad)}) : t('filedBadNone')});
+}
+function aiAgents(){ return res.agents.filter(function(a){ return AI_CATS[a.c]; }); }
+
+function renderCensus(){
+  var L = $('ledger'), html = '';
+  function row(lbl, val, sub, tip){ return '<li class="wrap"'+(tip?' data-tip="'+esc(tip)+'"':'')+'><span class="lbl">'+esc(lbl)+'</span><span class="dots"></span><span class="val">'+esc(val)+'</span>'+(sub?'<span class="sub">'+esc(sub)+'</span>':'')+'</li>'; }
+  var bc = res.byCat, aiN = bc.user+bc.aisearch+bc.train;
+  if (sel >= 0){
+    var a = res.agents.find(function(r){ return r.idx===sel; }) || {hits:0,pages:0,n404:0};
+    var nm = agentName(ds.agents[sel]);
+    $('pursuit').classList.add('on'); $('pursuitTxt').textContent = t('following',{a:nm});
+    html += row(t('cSelHits'), fmtN(a.hits), fmtD(a.first)+' – '+fmtD(a.last));
+    html += row(t('cSelShare'), fmtP(a.hits/res.total));
+    html += row(t('cSelPages'), fmtN(a.pages));
+    html += row(t('cSel404'), fmtN(a.n404), fmtP(a.p404));
+  } else {
+    $('pursuit').classList.remove('on');
+    var ai = aiAgents(), vendors = new Set(ai.map(function(a){return a.vendor;}));
+    html += row(t('cTotal'), fmtN(res.total), t('cTotalSub',{h:fmtN(bc.human)}));
+    html += row(t('cShare'), fmtP(aiN/res.total), t('cShareSub',{n:fmtN(aiN)}));
+    html += row(t('cSpecies'), fmtN(ai.length), t('cSpeciesSub',{v:fmtN(vendors.size)}));
+    html += row(t('cErrands'), fmtN(bc.user), t('cErrandsSub'));
+  }
+  L.innerHTML = html;
+}
+
+function renderNotes(){
+  var out = [], bc = res.byCat, aiN = bc.user+bc.aisearch+bc.train, ai = aiAgents();
+  if (!ai.length){ $('notes').innerHTML = '<li>'+esc(t('nNoAi'))+'</li>'; return; }
+  var users = ai.filter(function(a){return a.c==='user';});
+  if (users.length) out.push(t('nErrands',{n:fmtN(bc.user), a:users[0].name}));
+  if (bc.train) out.push(t('nTrain',{n:fmtN(bc.train), p:fmtP(bc.train/aiN)}));
+  var full = analyze(ds, -1);
+  if (full.misses.length){ var mt = full.misses.reduce(function(s,m){return s+m.n;},0); out.push(t('nMiss',{n:fmtN(mt), path:full.misses[0].path})); }
+  var llms = ai.filter(function(a){ return a.disc.llms[0]>0 || a.disc.llmsfull[0]>0; }).length;
+  out.push(llms ? t('nLlms',{n:llms}) : t('nLlmsNone'));
+  var skip = ai.filter(function(a){ return a.disc.robots[0]===0; }).length;
+  if (skip) out.push(t('nRobotsSkip',{n:skip}));
+  var best = full.sections.filter(function(s){return s.sec!=='/';}).sort(function(x,y){ return (y.ai-y.hu)-(x.ai-x.hu); })[0];
+  if (best && best.ai > best.hu) out.push(t('nSection',{s:best.sec, p:fmtP(best.ai), h:fmtP(best.hu)}));
+  $('notes').innerHTML = out.map(function(s){ return '<li>'+esc(s).replace(/(\/[\w.\-\/]*)/g,'<code>$1</code>')+'</li>'; }).join('');
+}
+
+/* chart */
+document.querySelectorAll('#viewSeg .seg').forEach(function(b){ b.addEventListener('click', function(){ view = b.getAttribute('data-view'); renderChart(); }); });
+function catsForView(){ return view==='ai' ? ['user','aisearch','train'] : view==='bots' ? ['user','aisearch','train','search','bot','unknown'] : CATS.slice(); }
+function niceMax(v){ if (v<=5) return 5; var p = Math.pow(10, Math.floor(Math.log10(v))), f = v/p; return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p; }
+function tallySvg(n, color){
+  var w = Math.max(14, Math.ceil(n/5)*14 + (n%5? (n%5)*3 : 0)), parts = [], x = 2;
+  for (var i=0;i<n;i++){
+    var inG = i%5;
+    if (inG === 4){ parts.push('<line x1="'+(x-13)+'" y1="13" x2="'+(x-1)+'" y2="3"/>'); x += 6; }
+    else { parts.push('<line x1="'+x+'" y1="2" x2="'+(x+ (i%2?0.6:-0.4))+'" y2="14"/>'); x += 3; }
+  }
+  return '<svg width="'+Math.max(x,14)+'" height="16" viewBox="0 0 '+Math.max(x,14)+' 16" aria-hidden="true" stroke="'+color+'" stroke-width="1.7" stroke-linecap="round" fill="none">'+parts.join('')+'</svg>';
+}
+function renderChart(){
+  document.querySelectorAll('#viewSeg .seg').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-view')===view)); });
+  var box = $('chartBox'), cats = catsForView(), B = res.buckets;
+  var W = Math.max(300, box.clientWidth || 640), H = W < 520 ? 230 : 280;
+  var m = {l:46, r:10, t:14, b:42}, iw = W-m.l-m.r, ih = H-m.t-m.b;
+  var maxV = 0; B.forEach(function(b){ var s=0; cats.forEach(function(c){ s+=b[c]; }); if (s>maxV) maxV=s; });
+  var ym = niceMax(Math.max(1,maxV)), step = iw/Math.max(1,B.length), bw = Math.max(1, step*0.68);
+  var css = getComputedStyle(document.documentElement);
+  var col = {}; CATS.forEach(function(c){ col[c] = css.getPropertyValue('--c-'+c).trim(); });
+  var ink = css.getPropertyValue('--ink').trim();
+  var g = [];
+  g.push('<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(t('p1'))+'">');
+  // grid + y axis
+  g.push('<g class="axis">');
+  for (var i=0;i<=4;i++){
+    var v = ym*i/4, y = m.t + ih - ih*i/4;
+    g.push('<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y+'" y2="'+y+'" stroke="'+ink+'" stroke-opacity="'+(i===0?0.9:0.14)+'" stroke-width="'+(i===0?1.2:0.8)+'" '+(i?'stroke-dasharray="1 3"':'')+'/>');
+    g.push('<text x="'+(m.l-6)+'" y="'+(y+4)+'" text-anchor="end">'+fmtN(Math.round(v))+'</text>');
+  }
+  g.push('<text class="ttl" transform="translate(12,'+(m.t+ih/2)+') rotate(-90)" text-anchor="middle">'+esc(t('axisReq'))+'</text>');
+  var every = Math.max(1, Math.ceil(B.length / Math.max(2, Math.floor(iw/62))));
+  B.forEach(function(b, k){
+    if (k % every) return;
+    var x = m.l + step*k + step/2;
+    g.push('<line x1="'+x+'" x2="'+x+'" y1="'+(m.t+ih)+'" y2="'+(m.t+ih+4)+'" stroke="'+ink+'" stroke-opacity=".6"/>');
+    g.push('<text x="'+x+'" y="'+(m.t+ih+17)+'" text-anchor="middle">'+esc(fmtD(b.t, res.hourly).replace(/,/,''))+'</text>');
+  });
+  g.push('<text class="ttl" x="'+(m.l+iw/2)+'" y="'+(H-4)+'" text-anchor="middle">'+esc(t(res.hourly?'axisHour':'axisDay'))+'</text>');
+  g.push('</g>');
+  // bars (ink wobble)
+  g.push('<g filter="url(#inkwobble)">');
+  B.forEach(function(b, k){
+    var x = m.l + step*k + (step-bw)/2, y = m.t+ih;
+    cats.forEach(function(c){
+      if (!b[c]) return; var h = ih*b[c]/ym;
+      g.push('<rect x="'+x.toFixed(1)+'" y="'+(y-h).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="'+col[c]+'" fill-opacity=".86" stroke="'+ink+'" stroke-width="'+(bw>6?0.7:0)+'" stroke-opacity=".75"/>');
+      y -= h;
+    });
+  });
+  g.push('</g>');
+  // hit areas
+  B.forEach(function(b, k){
+    var lines = [], tot = 0;
+    cats.slice().reverse().forEach(function(c){ if (b[c]){ lines.push(catName(c)+': '+fmtN(b[c])); tot += b[c]; } });
+    var tip = fmtD(b.t, res.hourly) + '\n' + (lines.length ? lines.join('\n') + '\n' + t('tipTotal') + ': ' + fmtN(tot) : '0');
+    g.push('<rect x="'+(m.l+step*k)+'" y="'+m.t+'" width="'+step+'" height="'+ih+'" fill="transparent" data-tip="'+esc(tip)+'"/>');
+  });
+  g.push('</svg>');
+  box.innerHTML = g.join('');
+  // tally legend
+  var tot = {}, mx = 0; cats.forEach(function(c){ tot[c]=0; B.forEach(function(b){ tot[c]+=b[c]; }); if (tot[c]>mx) mx=tot[c]; });
+  $('tallyLegend').innerHTML = cats.slice().map(function(c){
+    var marks = tot[c] ? Math.max(1, Math.round(15*tot[c]/Math.max(1,mx))) : 0;
+    return '<span class="t" data-tip="'+esc(catName(c)+': '+t('kd_'+c))+'">'+(marks?tallySvg(marks, col[c]):'<svg width="14" height="16" aria-hidden="true"><line x1="2" y1="8" x2="12" y2="8" stroke="'+col[c]+'" stroke-width="1.7"/></svg>')+'<span>'+esc(catName(c))+'</span><em>'+fmtN(tot[c])+'</em></span>';
+  }).join('');
+}
+var rT; window.addEventListener('resize', function(){ clearTimeout(rT); rT = setTimeout(function(){ if (res) renderChart(); }, 120); });
+
+/* specimen glyph */
+function glyph(name, c){
+  var R = mulberry32(hashStr(name)), col = 'var(--c-'+c+')', ink = 'var(--ink)';
+  var p = [], cx = 50, cy = 54;
+  var bodyRx = 10 + R()*8, bodyRy = 15 + R()*9, segs = 1 + Math.floor(R()*3);
+  var wingPairs = c==='user' || c==='aisearch' || R()<0.5 ? 1 + Math.floor(R()*2) : 0;
+  var legs = 2 + Math.floor(R()*3), spots = Math.floor(R()*5), antC = R()*16;
+  for (var w=0; w<wingPairs; w++){
+    var span = 26 + R()*14 - w*8, wy = cy - 6 + w*12, lift = 14 + R()*14;
+    [-1,1].forEach(function(s){
+      var tipX = cx + s*(bodyRx + span), tipY = wy - lift + w*18;
+      p.push('<path d="M'+(cx+s*bodyRx*0.6)+' '+wy+' Q '+(cx+s*(bodyRx+span*0.4))+' '+(tipY-10)+' '+tipX+' '+tipY+' Q '+(cx+s*(bodyRx+span*0.7))+' '+(wy+10)+' '+(cx+s*bodyRx*0.6)+' '+(wy+6)+' Z" fill="'+col+'" fill-opacity="'+(0.18+w*0.1)+'" stroke="'+ink+'" stroke-width="1"/>');
+      p.push('<path d="M'+(cx+s*bodyRx*0.6)+' '+(wy+2)+' L '+(tipX - s*span*0.25)+' '+(tipY+3)+'" stroke="'+ink+'" stroke-width=".6" fill="none" opacity=".7"/>');
+    });
+  }
+  for (var l=0; l<legs; l++){
+    var ly = cy - bodyRy*0.4 + l*(bodyRy*0.9/legs), reach = 12 + R()*8;
+    [-1,1].forEach(function(s){
+      p.push('<path d="M'+(cx+s*bodyRx*0.8)+' '+ly+' l '+(s*reach*0.6)+' '+(-4+R()*4)+' l '+(s*reach*0.4)+' '+(6+R()*6)+'" stroke="'+ink+'" stroke-width="1" fill="none" stroke-linecap="round"/>');
+    });
+  }
+  p.push('<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+bodyRx.toFixed(1)+'" ry="'+bodyRy.toFixed(1)+'" fill="'+col+'" fill-opacity=".55" stroke="'+ink+'" stroke-width="1.3"/>');
+  for (var sg=1; sg<=segs; sg++){ var yy = cy - bodyRy + (2*bodyRy)*sg/(segs+1); var half = bodyRx*Math.sqrt(Math.max(0,1-Math.pow((yy-cy)/bodyRy,2))); p.push('<path d="M'+(cx-half)+' '+yy+' Q '+cx+' '+(yy+3)+' '+(cx+half)+' '+yy+'" stroke="'+ink+'" stroke-width=".7" fill="none"/>'); }
+  for (var sp=0; sp<spots; sp++){ p.push('<circle cx="'+(cx+(R()-0.5)*bodyRx)+'" cy="'+(cy+(R()-0.3)*bodyRy)+'" r="'+(0.8+R()*1.6)+'" fill="'+ink+'"/>'); }
+  var hy = cy - bodyRy - 5, hr = 5 + R()*3;
+  [-1,1].forEach(function(s){ p.push('<path d="M'+(cx+s*2)+' '+(hy-hr+1)+' Q '+(cx+s*(6+antC))+' '+(hy-hr-12)+' '+(cx+s*(9+antC*0.8))+' '+(hy-hr-4-R()*8)+'" stroke="'+ink+'" stroke-width=".9" fill="none"/>'); });
+  p.push('<circle cx="'+cx+'" cy="'+hy+'" r="'+hr.toFixed(1)+'" fill="var(--paper)" stroke="'+ink+'" stroke-width="1.3"/><circle cx="'+(cx-2)+'" cy="'+(hy-1)+'" r="1.1" fill="'+ink+'"/><circle cx="'+(cx+2)+'" cy="'+(hy-1)+'" r="1.1" fill="'+ink+'"/>');
+  return '<svg class="glyph" viewBox="0 0 100 100" aria-hidden="true">'+p.join('')+'<line x1="20" y1="94" x2="80" y2="94" stroke="'+ink+'" stroke-width=".5" stroke-dasharray="2 2"/></svg>';
+}
+var ROMAN = ['','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii','xiii','xiv','xv','xvi','xvii','xviii','xix','xx','xxi','xxii','xxiii','xxiv','xxv','xxvi','xxvii','xxviii','xxix','xxx'];
+function renderSpecimens(){
+  var ai = aiAgents(), MAX = 12, shown = ai.slice(0, MAX);
+  if (!ai.length){ $('menagerie').innerHTML = '<p class="empty-note">'+esc(t('p2none'))+'</p>'; $('moreSpecimens').textContent=''; return; }
+  $('menagerie').innerHTML = shown.map(function(a, i){
+    var hab = a.habitat.length ? a.habitat.join(' ') : '–';
+    return '<button type="button" class="specimen" data-idx="'+a.idx+'" aria-pressed="'+(sel===a.idx)+'">'+
+      '<span class="no">No. '+(ROMAN[i+1]||i+1)+'</span>'+glyph(a.name, a.c)+
+      '<span class="latin">'+esc(latinName(a))+'</span><span class="common">'+esc(a.name)+'</span><span class="vendor">'+esc(a.vendor)+'</span>'+
+      '<dl><dt>'+esc(t('behavior'))+'</dt><dd><span class="behav" style="--cc:var(--c-'+a.c+')"><i></i>'+esc(catName(a.c))+'</span></dd>'+
+      '<dt>'+esc(t('habitat'))+'</dt><dd class="mono">'+esc(hab)+'</dd>'+
+      '<dt>'+esc(t('sightings'))+'</dt><dd>'+fmtN(a.hits)+'</dd>'+
+      '<dt>'+esc(t('firstSeen'))+'</dt><dd>'+esc(fmtD(a.first,true))+'</dd>'+
+      '<dt>'+esc(t('lastSeen'))+'</dt><dd>'+esc(fmtD(a.last,true))+'</dd>'+
+      '<dt>'+esc(t('miss404'))+'</dt><dd>'+fmtN(a.n404)+' · '+fmtP(a.p404)+'</dd></dl></button>';
+  }).join('');
+  $('moreSpecimens').innerHTML = ai.length > MAX ? '<p class="empty-note">'+esc(t('moreSpecimens',{n:ai.length-MAX}))+'</p>' : '';
+}
+$('menagerie').addEventListener('click', function(e){ var b = e.target.closest('.specimen'); if (b) select(+b.getAttribute('data-idx')); });
+
+/* index */
+$('aiOnly').addEventListener('change', function(){ aiOnly = this.checked; renderIndex(); });
+function renderIndex(){
+  var rows = res.agents.filter(function(a){ return !aiOnly || AI_CATS[a.c]; });
+  var mx = rows.reduce(function(m,a){ return Math.max(m,a.hits); }, 1);
+  var h = '<thead><tr><th>'+esc(t('colAgent'))+'</th><th>'+esc(t('colVendor'))+'</th><th>'+esc(t('colPurpose'))+'</th><th class="n">'+esc(t('colHits'))+'</th><th class="n">'+esc(t('colPages'))+'</th><th>'+esc(t('colLast'))+'</th><th class="n">'+esc(t('col404'))+'</th></tr></thead><tbody>';
+  if (!rows.length) h += '<tr><td colspan="7" class="empty-note">'+esc(t('p2none'))+'</td></tr>';
+  rows.forEach(function(a){
+    h += '<tr class="pick" tabindex="0" data-idx="'+a.idx+'" aria-selected="'+(sel===a.idx)+'"><td>'+esc(agentName(a))+'</td><td>'+esc(a.vendor||'–')+'</td><td><span class="behav" style="--cc:var(--c-'+a.c+')"><i></i>'+esc(catName(a.c))+'</span></td>'+
+      '<td class="n">'+fmtN(a.hits)+'<span class="bar-in" style="width:'+Math.max(1,Math.round(40*a.hits/mx))+'px"></span></td><td class="n">'+fmtN(a.pages)+'</td><td>'+esc(fmtD(a.last,true))+'</td><td class="n">'+fmtP(a.p404)+'</td></tr>';
+  });
+  $('indexTable').innerHTML = h + '</tbody>';
+}
+$('indexTable').addEventListener('click', function(e){ var r = e.target.closest('tr.pick'); if (r) select(+r.getAttribute('data-idx')); });
+$('indexTable').addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ var r = e.target.closest('tr.pick'); if (r){ e.preventDefault(); select(+r.getAttribute('data-idx')); } } });
+
+/* habitat */
+function renderHabitat(){
+  var selName = sel>=0 ? agentName(ds.agents[sel]) : null;
+  document.querySelector('.mini-key .ai span').textContent = selName || t('keyAi');
+  var S = res.sections, mx = S.reduce(function(m,s){ return Math.max(m,s.ai,s.hu); }, 0.0001);
+  $('duo').innerHTML = S.length ? S.map(function(s){
+    var wa = (70*s.ai/mx).toFixed(1)+'%', wh = (70*s.hu/mx).toFixed(1)+'%';
+    var tip = s.sec+'\n'+(selName||t('keyAi'))+': '+fmtP(s.ai)+' ('+fmtN(s.aiN)+')\n'+t('keyHu')+': '+fmtP(s.hu)+' ('+fmtN(s.huN)+')';
+    return '<span class="sec" title="'+esc(s.sec)+'">'+esc(s.sec)+'</span><span class="bars" data-tip="'+esc(tip)+'"><span class="b ai" style="--w:'+wa+'"><span style="width:'+wa+'"></span><b>'+fmtP(s.ai)+'</b></span><span class="b hu" style="--w:'+wh+'"><span style="width:'+wh+'"></span><b>'+fmtP(s.hu)+'</b></span></span>';
+  }).join('') : '<p class="empty-note">'+esc(t('forageNone'))+'</p>';
+  $('forageTtl').textContent = selName ? t('forageSel',{a:selName}) : t('forageAll');
+  var top = res.topPages.slice(0, 12);
+  $('forage').innerHTML = top.length ? top.map(function(p){ return '<li><span class="p">'+esc(p.path)+'</span><span class="c">'+fmtN(p.n)+(p.n404?' · 404':'')+'</span></li>'; }).join('') : '<li class="empty-note">'+esc(t('forageNone'))+'</li>';
+}
+
+/* misses */
+function renderMisses(){
+  var M = res.misses.slice(0, 15);
+  if (!M.length){ $('missTable').innerHTML = '<tbody><tr><td class="empty-note">'+esc(t('p5none'))+'</td></tr></tbody>'; return; }
+  $('missTable').innerHTML = '<thead><tr><th>'+esc(t('colPath'))+'</th><th class="n">'+esc(t('colHits'))+'</th><th>'+esc(t('colAgents'))+'</th></tr></thead><tbody>'+
+    M.map(function(m){ return '<tr><td class="path">'+esc(m.path)+'</td><td class="n">'+fmtN(m.n)+'</td><td style="white-space:normal;min-width:160px">'+esc(m.who.slice(0,4).join(', ')+(m.who.length>4?' +'+(m.who.length-4):''))+'</td></tr>'; }).join('')+'</tbody>';
+}
+
+/* signposts */
+function renderPosts(){
+  var rows = aiAgents(); if (sel>=0) rows = rows.filter(function(a){ return a.idx===sel; });
+  if (!rows.length){ $('postTable').innerHTML = '<tbody><tr><td class="empty-note">'+esc(t('postsNone'))+'</td></tr></tbody>'; $('postSummary').textContent=''; return; }
+  var K = [['robots','robots'],['llms','llms'],['llmsfull','llms-full'],['sitemap','sitemap']];
+  function cell(d){
+    if (!d[0]) return '<td class="c post-none" data-tip="'+esc(t('noneT'))+'">·</td>';
+    if (d[1]) return '<td class="c post-ok" data-tip="'+esc(t('okT',{n:d[0]}))+'">✓<sub>'+d[0]+'</sub></td>';
+    return '<td class="c post-miss" data-tip="'+esc(t('missT',{n:d[0]}))+'">✗<sub>'+d[0]+'</sub></td>';
+  }
+  $('postTable').innerHTML = '<thead><tr><th>'+esc(t('colAgent'))+'</th>'+K.map(function(k){return '<th class="c">'+k[1]+'</th>';}).join('')+'</tr></thead><tbody>'+
+    rows.map(function(a){ return '<tr><td>'+esc(a.name)+'</td>'+K.map(function(k){ return cell(a.disc[k[0]]); }).join('')+'</tr>'; }).join('')+'</tbody>';
+  var all = aiAgents();
+  $('postSummary').textContent = t('postsSum',{r:all.filter(function(a){return a.disc.robots[0];}).length, n:all.length, l:all.filter(function(a){return a.disc.llms[0];}).length});
+}
+
+/* robots builder */
+function regCandidates(){
+  var seen = {}; res && res.agents.forEach(function(a){ seen[a.name] = a.hits; });
+  var list = SIGNATURES.filter(function(s){ return AI_CATS[s.c]; }).map(function(s){ return {n:s.n, v:s.v, c:s.c, legacy:s.legacy, seen:seen[s.n]||0}; })
+    .concat(ROBOTS_ONLY.map(function(s){ return {n:s.n, v:s.v, c:s.c, tokenOnly:1, seen:0}; }));
+  return list;
+}
+function initRobotsChoice(){
+  robotsChoice = {};
+  regCandidates().forEach(function(r){ robotsChoice[r.n] = r.c === 'train' ? (robotsChoice[r.n] || 'allow') : 'allow'; });
+}
+function renderRegs(){
+  var list = regCandidates();
+  var groups = [['user','grpUser'],['aisearch','grpSearch'],['train','grpTrain']];
+  $('regList').innerHTML = groups.map(function(g){
+    var items = list.filter(function(r){ return r.c===g[0]; }).sort(function(a,b){ return b.seen-a.seen || a.n.localeCompare(b.n); });
+    return '<div class="reg-group"><header><span class="ttl">'+esc(t(g[1]))+'</span><span class="qa"><button class="btn-line" type="button" data-all="allow" data-grp="'+g[0]+'">'+esc(t('allowAll'))+'</button><button class="btn-line" type="button" data-all="block" data-grp="'+g[0]+'">'+esc(t('blockAll'))+'</button></span></header>'+
+      items.map(function(r){
+        var ch = robotsChoice[r.n] || 'allow';
+        return '<div class="reg"><span class="nm">'+esc(r.n)+(r.tokenOnly?'<em class="token-tag" tabindex="0" data-tip="'+esc(t('tokenTip'))+'">'+esc(t('tokenTag'))+'</em>':'')+'<small>'+esc(r.v)+' · '+esc(r.tokenOnly ? t('notSeen') : r.seen ? t('seenN',{n:fmtN(r.seen)}) : t('notSeen'))+'</small></span>'+
+          '<span class="toggle" role="group" aria-label="'+esc(r.n)+'"><button type="button" class="al" data-n="'+esc(r.n)+'" data-v="allow" aria-pressed="'+(ch==='allow')+'">'+esc(t('allow'))+'</button><button type="button" class="bl" data-n="'+esc(r.n)+'" data-v="block" aria-pressed="'+(ch==='block')+'">'+esc(t('block'))+'</button></span></div>';
+      }).join('')+'</div>';
+  }).join('');
+  renderRobotsOut();
+}
+$('regList').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if (!b) return;
+  if (b.hasAttribute('data-all')){ var grp = b.getAttribute('data-grp'), v = b.getAttribute('data-all'); regCandidates().forEach(function(r){ if (r.c===grp) robotsChoice[r.n]=v; }); renderRegs(); return; }
+  if (b.hasAttribute('data-n')){ robotsChoice[b.getAttribute('data-n')] = b.getAttribute('data-v'); renderRegs(); }
+});
+function renderRobotsOut(){
+  var list = regCandidates(), out = [t('robotsHead'), ''];
+  var blocked = list.filter(function(r){ return robotsChoice[r.n]==='block'; }), allowed = list.filter(function(r){ return robotsChoice[r.n]!=='block' && (r.seen || r.c!=='train' || r.tokenOnly); });
+  var label = {user:catName('user'), aisearch:catName('aisearch'), train:catName('train')};
+  ['user','aisearch','train'].forEach(function(c){
+    var A = allowed.filter(function(r){ return r.c===c; }), Bk = blocked.filter(function(r){ return r.c===c; });
+    if (!A.length && !Bk.length) return;
+    out.push('# ' + label[c]);
+    if (A.length){ A.forEach(function(r){ out.push('User-agent: '+r.n); }); out.push('Allow: /', ''); }
+    if (Bk.length){ Bk.forEach(function(r){ out.push('User-agent: '+r.n); }); out.push('Disallow: /', ''); }
+  });
+  if (!blocked.length) out.push(t('robotsBlockedNone'), '');
+  out.push(t('robotsSitemap'));
+  $('robotsOut').value = out.join('\n');
+}
+$('copyBtn').addEventListener('click', function(){
+  var ta = $('robotsOut'), msg = $('copyMsg');
+  function ok(){ msg.textContent = t('copied'); setTimeout(function(){ msg.textContent=''; }, 2200); }
+  function fallback(){ try { ta.focus(); ta.select(); if (document.execCommand('copy')) ok(); else msg.textContent = t('copyFail'); } catch(e){ msg.textContent = t('copyFail'); } }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(ok, fallback); else fallback();
+});
+
+/* key + signature table */
+function renderKey(){
+  $('keyList').innerHTML = CATS.map(function(c){ return '<li><span class="behav" style="--cc:var(--c-'+c+')"><i></i><b>'+esc(catName(c))+'</b></span>: '+esc(t('kd_'+c))+'</li>'; }).join('');
+}
+function renderSigTable(){
+  $('sigTable').innerHTML = '<thead><tr><th>'+esc(t('colAgent'))+'</th><th>'+esc(t('colVendor'))+'</th><th>'+esc(t('colPurpose'))+'</th></tr></thead><tbody>'+
+    SIGNATURES.concat(ROBOTS_ONLY).map(function(s){ return '<tr><td>'+esc(s.n)+(s.tokenOnly?' <em class="token-tag" tabindex="0" data-tip="'+esc(t('tokenTip'))+'">'+esc(t('tokenTag'))+'</em>':'')+'</td><td>'+esc(s.v)+'</td><td>'+esc(catName(s.c))+'</td></tr>'; }).join('')+'</tbody>';
+}
+
+/* CSV export */
+function csvCell(v){ v = v == null ? '' : String(v); return /[",\n\r]/.test(v) || /^[=+\-@]/.test(v) ? '"'+v.replace(/"/g,'""').replace(/^([=+\-@])/,"'$1")+'"' : v; }
+function download(name, rows){
+  var blob = new Blob(['﻿' + rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n')], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function iso(ts){ return isFinite(ts) ? new Date(ts).toISOString() : ''; }
+$('csvAgents').addEventListener('click', function(){
+  if (!ds) return; var full = analyze(ds, -1);
+  var rows = [['agent','vendor','purpose','hits','unique_paths','first_seen_utc','last_seen_utc','n_404','pct_404','robots_txt','llms_txt','llms_full_txt','sitemap']];
+  full.agents.forEach(function(a){ rows.push([agentName(a), a.vendor, a.c, a.hits, a.pages, iso(a.first), iso(a.last), a.n404, (a.p404*100).toFixed(2), a.disc.robots[0], a.disc.llms[0], a.disc.llmsfull[0], a.disc.sitemap[0]]); });
+  download('agent-field-guide-agents.csv', rows);
+});
+$('csvPaths').addEventListener('click', function(){
+  if (!ds) return;
+  var m = new Map();
+  for (var i=0;i<ds.T.length;i++){ var k = ds.A[i]*1e7 + ds.P[i]; var v = m.get(k); if (!v){ v=[0,0]; m.set(k,v); } v[0]++; if (ds.S[i]===404) v[1]++; }
+  var rows = [['agent','vendor','purpose','path','hits','n_404']];
+  Array.from(m.entries()).sort(function(a,b){ return b[1][0]-a[1][0]; }).forEach(function(e){
+    var ag = ds.agents[Math.floor(e[0]/1e7)], p = ds.paths[e[0]%1e7];
+    rows.push([agentName(ag), ag.vendor, ag.c, p, e[1][0], e[1][1]]);
+  });
+  download('agent-field-guide-agent-pages.csv', rows);
+});
+
+/* tooltip */
+var tip = $('tip');
+function showTip(el, x, y){
+  var s = el.getAttribute('data-tip'); if (!s) return;
+  var parts = s.split('\n'); tip.innerHTML = '<span class="tt">'+esc(parts[0])+'</span>'+esc(parts.slice(1).join('\n'));
+  tip.classList.add('on');
+  var r = tip.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+  var L = x + 14, T = y + 14; if (L + r.width > vw - 8) L = x - r.width - 14; if (L < 8) L = 8; if (T + r.height > vh - 8) T = y - r.height - 14;
+  tip.style.left = L + 'px'; tip.style.top = T + 'px';
+}
+document.addEventListener('pointermove', function(e){ var el = e.target.closest && e.target.closest('[data-tip]'); if (el) showTip(el, e.clientX, e.clientY); else tip.classList.remove('on'); });
+document.addEventListener('focusin', function(e){ var el = e.target.closest && e.target.closest('[data-tip]'); if (el){ var r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom); } });
+document.addEventListener('focusout', function(){ tip.classList.remove('on'); });
+document.addEventListener('scroll', function(){ tip.classList.remove('on'); }, {passive:true});
+
+applyStatic();
+})();
+</script>
+</body>
+</html>

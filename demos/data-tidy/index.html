@@ -1,0 +1,1790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tidy Data Ritual</title>
+<meta name="description" content="Tidy a messy spreadsheet so AI agents can actually use it. Runs entirely in your browser.">
+<style>
+:root{
+  --linen:#f4efe6; --linen-deep:#ece5d8; --paper:#fbf8f2; --ink:#2d2a26; --ink-soft:#544d46; --ink-faint:#6e6559;
+  --thread:#ddd4c5; --clay:#a8603f; --clay-soft:#efdccf; --clay-ink:#8f5236; --sage:#6f8a6c; --sage-ink:#4c6849; --sage-soft:#dfe7da;
+  --sand:#c9a46a; --sand-ink:#7e5f27; --sand-soft:#f3e7cf; --rose:#9b443d; --on-clay:#ffffff; --rose-soft:#f3dcd7; --fold:#f6e9c9; --shadow:0 1px 2px rgba(60,44,30,.05),0 8px 28px -12px rgba(60,44,30,.18);
+  --sans:"Avenir Next","Avenir","Hiragino Sans","PingFang SC","Noto Sans CJK SC","Segoe UI",system-ui,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype","Palatino","Songti SC","Noto Serif CJK SC",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --linen:#1f1b18; --linen-deep:#28231f; --paper:#2a2521; --ink:#ece4d8; --ink-soft:#c4b8a9; --ink-faint:#b0a495;
+  --thread:#3b342e; --clay:#d39a7c; --clay-soft:#43302a; --clay-ink:#e8b89e; --sage:#9db597; --sage-ink:#aac2a4; --sage-soft:#2c362b;
+  --sand:#d8b57a; --sand-ink:#e2c38e; --sand-soft:#3b3224; --rose:#e39389; --on-clay:#1f1b18; --rose-soft:#43292a; --fold:#3f3421; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --linen:#1f1b18; --linen-deep:#28231f; --paper:#2a2521; --ink:#ece4d8; --ink-soft:#c4b8a9; --ink-faint:#b0a495;
+  --thread:#3b342e; --clay:#d39a7c; --clay-soft:#43302a; --clay-ink:#e8b89e; --sage:#9db597; --sage-ink:#aac2a4; --sage-soft:#2c362b;
+  --sand:#d8b57a; --sand-ink:#e2c38e; --sand-soft:#3b3224; --rose:#e39389; --on-clay:#1f1b18; --rose-soft:#43292a; --fold:#3f3421; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--linen);color:var(--ink);font:400 16px/1.65 var(--sans);letter-spacing:.005em;
+  background-image:repeating-linear-gradient(0deg,transparent 0 3px,rgba(120,100,70,.018) 3px 4px),repeating-linear-gradient(90deg,transparent 0 3px,rgba(120,100,70,.014) 3px 4px)}
+b,strong{font-weight:600}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--clay-ink)}
+.serif{font-family:var(--serif);font-weight:400}
+.hush{color:var(--ink-faint)}
+.soft{color:var(--ink-soft)}
+.mono{font-family:var(--mono);font-size:.86em}
+
+/* ---------- top band ---------- */
+.mantle{max-width:1080px;margin:0 auto;padding:22px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seal{display:flex;align-items:center;gap:12px;min-width:0}
+.seal svg{flex:none}
+.seal-name{font-family:var(--serif);font-size:20px;line-height:1.1;font-weight:400}
+.seal-line{font-size:12.5px;color:var(--ink-faint);line-height:1.3}
+.tongue{display:flex;gap:2px;font-size:13px;color:var(--ink-faint);flex:none}
+.tongue button{background:none;border:0;padding:4px 6px;cursor:pointer;color:var(--ink-faint);border-bottom:1px solid transparent}
+.tongue button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--clay)}
+.tongue span{padding:4px 0}
+
+.promise{max-width:1080px;margin:14px auto 0;padding:0 16px}
+.promise-inner{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--thread);border-radius:999px;background:var(--paper);font-size:14px;width:fit-content;max-width:100%}
+.promise-inner svg{flex:none;color:var(--sage-ink)}
+.promise-inner b{font-weight:500}
+
+/* ---------- ritual path ---------- */
+.path{max-width:1080px;margin:28px auto 0;padding:0 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.path::before{content:"";position:absolute;left:calc(12.5% + 0px);right:calc(12.5% + 0px);top:15px;height:1px;background:var(--thread)}
+.waypoint{position:relative;background:none;border:0;padding:0 4px;cursor:pointer;text-align:center;color:var(--ink-faint);display:flex;flex-direction:column;align-items:center;gap:6px}
+.waypoint[disabled]{cursor:default}
+.waypoint .pebble{width:31px;height:31px;border-radius:50%;background:var(--linen);border:1px solid var(--thread);display:grid;place-items:center;font-family:var(--serif);font-size:14px;transition:all .4s ease;position:relative;z-index:1}
+.waypoint.here .pebble{background:var(--clay);border-color:var(--clay);color:var(--on-clay)}
+.waypoint.walked .pebble{background:var(--sage-soft);border-color:var(--sage);color:var(--sage-ink)}
+.waypoint .wp-name{font-size:13.5px;line-height:1.25}
+.waypoint.here .wp-name{color:var(--ink);font-weight:500}
+
+main{max-width:1080px;margin:0 auto;padding:8px 16px 80px}
+.chapter{display:none;animation:rise .6s ease both}
+.chapter.open{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.verse{margin:44px 0 26px;max-width:720px}
+.verse .numeral{font-family:var(--serif);color:var(--clay-ink);font-size:15px;letter-spacing:.12em}
+.verse h1,.verse h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,4.6vw,42px);line-height:1.15;margin:6px 0 12px;letter-spacing:-.01em}
+.verse p{margin:0;color:var(--ink-soft);font-size:17px}
+
+.linen-card{background:var(--paper);border:1px solid var(--thread);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.gentle-btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:11px 22px;border:1px solid var(--ink);background:var(--ink);color:var(--linen);cursor:pointer;font-weight:500;font-size:15px;transition:transform .2s,opacity .2s}
+.gentle-btn:hover{transform:translateY(-1px)}
+.gentle-btn.quiet{background:transparent;color:var(--ink);border-color:var(--thread)}
+.gentle-btn.quiet:hover{border-color:var(--ink-soft)}
+.gentle-btn.clay{background:var(--clay);border-color:var(--clay);color:var(--on-clay)}
+.gentle-btn[disabled]{opacity:.45;cursor:default;transform:none}
+.row-gap{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* ---------- gather ---------- */
+.gather-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.basket{border:1.5px dashed var(--thread);border-radius:22px;padding:42px 22px;text-align:center;background:var(--paper);transition:all .3s;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:260px;justify-content:center}
+.basket.warm{border-color:var(--clay);background:var(--clay-soft)}
+.basket h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:4px 0 0}
+.basket p{margin:0;color:var(--ink-faint);font-size:13.5px}
+.pasteboard{display:flex;flex-direction:column;gap:10px}
+.pasteboard textarea{width:100%;min-height:170px;resize:vertical;border:1px solid var(--thread);border-radius:14px;background:var(--paper);padding:12px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.5}
+.pasteboard textarea:focus,.label-field:focus{outline:2px solid var(--clay-soft);border-color:var(--clay)}
+.label-small{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+.offering{margin-top:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:18px 20px;border-radius:18px;background:var(--linen-deep)}
+.offering p{margin:0;flex:1 1 260px;font-size:14.5px;color:var(--ink-soft)}
+
+/* ---------- score: filling bowl ---------- */
+.bowl-wrap{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.bowl{position:relative;width:150px;height:150px;flex:none}
+.bowl svg{display:block}
+.bowl .bowl-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--serif)}
+.bowl .bowl-num b{font-size:42px;font-weight:400;line-height:1}
+.bowl .bowl-num small{font-family:var(--sans);font-size:11px;color:var(--ink-soft);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.bowl.small{width:96px;height:96px}
+.bowl.small .bowl-num b{font-size:28px}
+.water{transition:transform 1.6s cubic-bezier(.3,.7,.2,1)}
+.wave{animation:drift 7s linear infinite}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-120px)}}
+.threads{display:flex;flex-direction:column;gap:12px;flex:1 1 280px;min-width:0}
+.thread-row{display:grid;grid-template-columns:minmax(120px,170px) 1fr 34px;gap:12px;align-items:center;font-size:14px}
+.thread-row .t-name{color:var(--ink-soft);line-height:1.25}
+.thread-bar{height:6px;border-radius:6px;background:var(--linen-deep);overflow:hidden}
+.thread-bar i{display:block;height:100%;border-radius:6px;background:var(--sage);transition:width 1.2s ease}
+.thread-bar i.mid{background:var(--sand)}
+.thread-bar i.low{background:var(--clay)}
+.thread-row .t-val{text-align:right;font-family:var(--serif);font-size:16px}
+.whisper{font-family:var(--serif);font-size:20px;margin:0 0 4px;font-weight:400}
+
+/* ---------- look: column cards ---------- */
+.overview{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center}
+.drawer-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;margin:22px 0 6px;scrollbar-width:thin}
+.tab-cloth{flex:none;border:1px solid var(--thread);background:var(--paper);border-radius:10px;padding:6px 10px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px;max-width:180px;color:var(--ink-soft)}
+.tab-cloth span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab-cloth.on{border-color:var(--ink);color:var(--ink)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--sage);flex:none}
+.dot.mid{background:var(--sand)} .dot.low{background:var(--clay)} .dot.none{background:var(--ink-faint)}
+.card-stage{perspective:1400px;position:relative}
+.column-leaf{background:var(--paper);border:1px solid var(--thread);border-radius:22px;padding:26px;box-shadow:var(--shadow);transform-origin:left center;min-height:380px}
+.column-leaf.turn-next{animation:turnNext .55s ease both}
+.column-leaf.turn-prev{animation:turnPrev .55s ease both}
+@keyframes turnNext{from{opacity:0;transform:rotateY(-14deg) translateX(30px)}to{opacity:1;transform:none}}
+@keyframes turnPrev{from{opacity:0;transform:rotateY(14deg) translateX(-30px)}to{opacity:1;transform:none}}
+.leaf-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.leaf-count{font-size:12.5px;color:var(--ink-faint);letter-spacing:.08em}
+.leaf-title{font-family:var(--mono);font-size:22px;margin:4px 0 2px;word-break:break-all}
+.leaf-title .ghost-space{background:var(--rose-soft);color:var(--rose);border-radius:3px;padding:0 2px}
+.leaf-q{font-family:var(--serif);font-size:19px;margin:18px 0 8px;font-style:italic;color:var(--ink-soft)}
+.leaf-answer{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;padding:6px 14px;border-radius:999px;background:var(--sage-soft);color:var(--sage-ink)}
+.leaf-answer.mid{background:var(--sand-soft);color:var(--sand-ink)}
+.leaf-answer.low{background:var(--clay-soft);color:var(--clay-ink)}
+.leaf-body{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:22px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.fact{border-top:1px solid var(--thread);padding-top:8px}
+.fact small{display:block;font-size:11.5px;color:var(--ink-faint);letter-spacing:.06em;text-transform:uppercase}
+.fact span{font-family:var(--serif);font-size:20px}
+.kind-chip{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--thread);color:var(--ink-soft)}
+.toplist{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.toplist .tv{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:center}
+.toplist .tv-label{position:relative;padding:3px 8px;border-radius:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.toplist .tv-label i{position:absolute;left:0;top:0;bottom:0;background:var(--linen-deep);z-index:0;border-radius:6px}
+.toplist .tv-label span{position:relative;z-index:1}
+.toplist .tv-n{text-align:right;color:var(--ink-faint);font-size:12.5px}
+.hist{margin-top:14px}
+.hist rect{fill:var(--sage);opacity:.75}
+.hist-axis{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-faint)}
+.notice-list{display:flex;flex-direction:column;gap:12px}
+.notice{border-left:2px solid var(--sage);padding:2px 0 2px 14px}
+.notice.high{border-color:var(--clay)} .notice.medium{border-color:var(--sand)} .notice.low{border-color:var(--sage)}
+.notice-h{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.notice-h b{font-weight:500}
+.weight{font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:1px 8px;border-radius:999px}
+.weight.high{background:var(--clay-soft);color:var(--clay-ink)} .weight.medium{background:var(--sand-soft);color:var(--sand-ink)} .weight.low{background:var(--sage-soft);color:var(--sage-ink)}
+.notice-n{font-size:12.5px;color:var(--ink-faint)}
+.samples{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.samples code{font-family:var(--mono);font-size:12px;background:var(--linen-deep);padding:1px 7px;border-radius:5px;white-space:pre;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.why{margin:0;font-size:14px;color:var(--ink-soft)}
+.why em{font-style:normal;color:var(--ink-faint)}
+.leaf-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px}
+.calm-empty{color:var(--ink-faint);font-style:italic;font-family:var(--serif)}
+.rename-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:16px;font-size:14px}
+.label-field{border:1px solid var(--thread);border-radius:10px;background:var(--linen);padding:7px 10px;font-family:var(--mono);font-size:13px;min-width:0}
+details.whole-list{margin-top:26px}
+details.whole-list summary{cursor:pointer;font-family:var(--serif);font-size:19px;list-style:none;display:flex;align-items:center;gap:8px}
+details.whole-list summary::before{content:"+";color:var(--clay-ink);font-family:var(--sans);width:16px}
+details.whole-list[open] summary::before{content:"–"}
+.whole-list .notice-list{margin-top:16px}
+
+/* ---------- tables ---------- */
+.tray{overflow:auto;max-height:520px;border:1px solid var(--thread);border-radius:14px;background:var(--paper);-webkit-overflow-scrolling:touch}
+.tray table{border-collapse:separate;border-spacing:0;font-size:12.8px;min-width:100%}
+.tray th,.tray td{padding:7px 12px;border-bottom:1px solid var(--thread);white-space:nowrap;text-align:left;vertical-align:top;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.tray th{position:sticky;top:0;background:var(--linen-deep);font-weight:500;z-index:1;font-family:var(--mono);font-size:12px}
+.tray th small{display:block;font-family:var(--sans);color:var(--ink-faint);font-weight:400;text-decoration:line-through}
+.tray td.rn,.tray th.rn{color:var(--ink-faint);text-align:right;font-family:var(--mono);font-size:11px;position:sticky;left:0;background:var(--paper)}
+.tray th.rn{background:var(--linen-deep);z-index:2}
+.c-null{color:var(--rose);font-style:italic}
+.c-ws{background:var(--rose-soft)}
+.c-junk{background:var(--sand-soft)}
+.c-flag{color:var(--clay-ink);font-size:12px}
+td.folded{background:var(--fold);animation:foldIn .7s ease both;animation-delay:var(--d,0s)}
+td.folded del{display:block;font-size:11px;color:var(--ink-faint);text-decoration-color:var(--clay)}
+@keyframes foldIn{0%{transform:rotateX(85deg);opacity:.2;background:var(--rose-soft)}60%{transform:rotateX(-8deg);opacity:1}100%{transform:none}}
+tr.let-go td{opacity:.45;text-decoration:line-through}
+
+/* ---------- let go ---------- */
+.letgo-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
+.gesture{display:grid;grid-template-columns:22px 1fr auto;gap:12px;padding:14px 0;border-bottom:1px solid var(--thread);align-items:start}
+.gesture:last-child{border-bottom:0}
+.gesture input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--clay)}
+.gesture label{cursor:pointer}
+.gesture .g-name{font-weight:400}
+.gesture .g-desc{font-size:13.5px;color:var(--ink-soft);display:block;margin-top:2px}
+.gesture .g-n{font-family:var(--serif);color:var(--clay-ink);font-size:15px;white-space:nowrap}
+.gesture.idle .g-n{color:var(--ink-faint)}
+.before-after{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.arrow-soft{font-family:var(--serif);font-size:28px;color:var(--ink-faint)}
+.delta{font-size:13px;color:var(--sage-ink)}
+.delta.neg{color:var(--rose)}
+.compare-rows{margin-top:16px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.compare-rows div{display:grid;grid-template-columns:1fr 40px 18px 40px 44px;gap:6px;align-items:center}
+.compare-rows .num{font-family:var(--serif);text-align:right}
+.pending-note{font-size:13px;color:var(--clay-ink);margin:0}
+.cluster{border:1px solid var(--thread);border-radius:14px;padding:14px;margin-top:12px;background:var(--linen)}
+.cluster-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13.5px}
+.pile{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pile label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--thread);border-radius:999px;padding:3px 10px 3px 6px;font-family:var(--mono);font-size:12px;cursor:pointer;background:var(--paper)}
+.pile label.off{color:var(--ink-faint);border-style:dashed;text-decoration:line-through}
+.pile input{accent-color:var(--clay);margin:0}
+.pile em{font-style:normal;color:var(--ink-faint);font-family:var(--sans)}
+.rename-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.rename-table td{padding:7px 6px;border-bottom:1px solid var(--thread);vertical-align:middle}
+.rename-table td:first-child{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);word-break:break-all}
+.rename-table .label-field{width:100%}
+.section-title{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 4px}
+.section-sub{margin:0 0 10px;font-size:14px;color:var(--ink-soft)}
+.toggle-line{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);cursor:pointer}
+.toggle-line input{accent-color:var(--clay)}
+
+/* ---------- put away: drawers ---------- */
+.dresser{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.drawer{position:relative;background:var(--paper);border:1px solid var(--thread);border-radius:16px;padding:20px 20px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.drawer::before{content:"";position:absolute;left:50%;top:12px;width:44px;height:5px;margin-left:-22px;border-radius:5px;background:var(--thread)}
+.drawer .tag-label{margin-top:12px;align-self:flex-start;font-family:var(--mono);font-size:12px;background:var(--linen-deep);padding:3px 10px;border-radius:4px;border:1px dashed var(--ink-faint)}
+.drawer h3{font-family:var(--serif);font-weight:400;font-size:19px;margin:4px 0 0}
+.drawer p{margin:0;font-size:13.5px;color:var(--ink-soft);flex:1}
+.drawer button{align-self:flex-start;margin-top:6px}
+.drawer.opened{animation:slideOut .5s ease}
+@keyframes slideOut{0%{transform:none}40%{transform:translateY(6px)}100%{transform:none}}
+.label-book{margin-top:22px}
+.ledger{width:100%;border-collapse:collapse;font-size:13.5px;min-width:760px}
+.ledger th{text-align:left;font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);padding:8px;border-bottom:1px solid var(--thread);position:static;background:none;font-family:var(--sans)}
+.ledger td{padding:8px;border-bottom:1px solid var(--thread);vertical-align:top;white-space:normal;max-width:none}
+.ledger td:first-child{font-family:var(--mono);font-size:12.5px;word-break:break-all;min-width:120px}
+.ledger textarea{width:100%;min-height:54px;resize:vertical;border:1px solid var(--thread);border-radius:10px;background:var(--linen);padding:7px 9px;font-size:13px;line-height:1.45}
+.ledger input,.ledger select{width:100%;border:1px solid var(--thread);border-radius:10px;background:var(--linen);padding:6px 8px;font-size:13px}
+.ledger-wrap{overflow-x:auto;border:1px solid var(--thread);border-radius:14px;background:var(--paper);padding:4px 8px}
+.md-peek{white-space:pre-wrap;font-family:var(--mono);font-size:12px;background:var(--linen-deep);border-radius:14px;padding:14px;max-height:300px;overflow:auto;margin:0}
+
+/* ---------- veil ---------- */
+.veil{position:fixed;inset:0;background:color-mix(in srgb,var(--linen) 82%,transparent);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.veil.on{display:flex}
+.veil-card{background:var(--paper);border:1px solid var(--thread);border-radius:20px;padding:26px 28px;min-width:min(340px,100%);box-shadow:var(--shadow);text-align:center}
+.veil-card p{margin:10px 0 14px;font-family:var(--serif);font-size:18px}
+.breath{width:46px;height:46px;border-radius:50%;background:var(--clay-soft);margin:0 auto;animation:breathe 2.4s ease-in-out infinite;border:1px solid var(--clay)}
+@keyframes breathe{0%,100%{transform:scale(.8);opacity:.6}50%{transform:scale(1.08);opacity:1}}
+.veil-bar{height:3px;background:var(--linen-deep);border-radius:3px;overflow:hidden}
+.veil-bar i{display:block;height:100%;width:0;background:var(--clay);transition:width .2s}
+.note-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--linen);padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:all .4s;z-index:60;max-width:calc(100% - 32px)}
+.note-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.colophon{max-width:1080px;margin:0 auto;padding:0 16px 40px;font-size:12.5px;color:var(--ink-faint);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.stack-gap>*+*{margin-top:18px}
+
+@media (max-width:820px){
+  .gather-grid,.letgo-grid,.leaf-body,.overview{grid-template-columns:1fr}
+  .overview{justify-items:start}
+}
+@media (max-width:560px){
+  .mantle{padding-top:16px}
+  .seal-line{display:none}
+  .path .wp-name{font-size:11.5px}
+  .linen-card,.column-leaf{padding:18px;border-radius:16px}
+  .facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .thread-row{grid-template-columns:96px 1fr 30px;gap:8px;font-size:13px}
+  .verse{margin-top:30px}
+  .basket{min-height:200px;padding:28px 16px}
+  .bowl-wrap{gap:18px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mantle">
+  <div class="seal">
+    <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><rect x="6" y="9" width="24" height="5" rx="2.5" fill="var(--clay)"/><rect x="6" y="16" width="24" height="5" rx="2.5" fill="var(--sand)"/><rect x="6" y="23" width="24" height="5" rx="2.5" fill="var(--sage)"/></svg>
+    <div><div class="seal-name" data-t="brand"></div><div class="seal-line" data-t="brandLine"></div></div>
+  </div>
+  <div class="tongue" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="false">EN</button><span>·</span><button type="button" data-lang="zh" aria-pressed="false">中文</button>
+  </div>
+</header>
+
+<div class="promise"><div class="promise-inner">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+  <span><b data-t="privacy"></b> <span class="hush" data-t="privacySub"></span></span>
+</div></div>
+
+<nav class="path" id="path" aria-label="Steps"></nav>
+
+<main>
+  <section class="chapter" id="ch-gather"></section>
+  <section class="chapter" id="ch-look"></section>
+  <section class="chapter" id="ch-letgo"></section>
+  <section class="chapter" id="ch-putaway"></section>
+</main>
+
+<footer class="colophon"><span data-t="footLeft"></span><span data-t="footRight"></span></footer>
+
+<div class="veil" id="veil" role="status" aria-live="polite"><div class="veil-card"><div class="breath"></div><p id="veilText"></p><div class="veil-bar"><i id="veilBar"></i></div></div></div>
+<div class="note-toast" id="toast" role="status"></div>
+<input type="file" id="filePick" accept=".csv,.tsv,.txt,.json,text/csv,text/tab-separated-values,application/json" hidden>
+
+<script>
+"use strict";
+// ==CORE START==
+/* Core: parsing, profiling, scoring, fixing. No DOM. Tested with node. */
+const SEP = "\u0001";
+const tick = () => new Promise(r => setTimeout(r, 0));
+const NULL_SET = new Set(["", "na", "n/a", "n.a.", "n.a", "null", "none", "nil", "nan", "-", "--", "---", "?", "??", "#n/a", "#null!", "missing", "undefined", "(blank)", "blank", "not available", "无", "空", "缺失"]);
+function isNullish(v) { return v == null || NULL_SET.has(String(v).trim().toLowerCase()); }
+function collapse(s) { return String(s).replace(/[\s 　]+/g, " "); }
+
+/* ---------- CSV ---------- */
+function stripBOM(s) { return s && s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; }
+function parseDelimited(text, delim, maxRows) {
+  const rows = [], n = text.length;
+  let row = [], i = 0;
+  if (n === 0) return rows;
+  while (true) {
+    let field;
+    let j = i;
+    while (j < n && (text[j] === " " || text[j] === "\t") && text[j] !== delim) j++;
+    if (j < n && text[j] === '"') {
+      let k = j + 1, seg = k; const buf = [];
+      while (true) {
+        const q = text.indexOf('"', k);
+        if (q === -1) { buf.push(text.slice(seg)); k = n; break; }      // unterminated quote: take the rest
+        if (text[q + 1] === '"') { buf.push(text.slice(seg, q + 1)); k = q + 2; seg = k; continue; }
+        buf.push(text.slice(seg, q)); k = q + 1; break;
+      }
+      field = buf.join("");
+      let e = k;
+      while (e < n && text[e] !== delim && text[e] !== "\n" && text[e] !== "\r") e++;
+      if (e > k) field += text.slice(k, e).replace(/^[ \t]+$/, "");
+      i = e;
+    } else {
+      let e = i;
+      while (e < n) { const c = text[e]; if (c === delim || c === "\n" || c === "\r") break; e++; }
+      field = text.slice(i, e); i = e;
+    }
+    row.push(field);
+    if (i >= n) { rows.push(row); break; }
+    const c = text[i];
+    if (c === delim) { i++; if (i >= n) { row.push(""); rows.push(row); break; } continue; }
+    i += (c === "\r" && text[i + 1] === "\n") ? 2 : 1;
+    rows.push(row); row = [];
+    if (maxRows && rows.length >= maxRows) return rows;
+    if (i >= n) break;
+  }
+  return rows;
+}
+function detectDelimiter(text) {
+  const sample = text.slice(0, 65536);
+  let best = ",", bestScore = -1;
+  for (const d of [",", ";", "\t", "|"]) {
+    let rows = parseDelimited(sample, d, 80);
+    if (text.length > 65536 && rows.length > 2) rows = rows.slice(0, -1);
+    rows = rows.filter(r => !(r.length === 1 && r[0].trim() === ""));
+    if (!rows.length) continue;
+    const freq = new Map();
+    for (const r of rows) freq.set(r.length, (freq.get(r.length) || 0) + 1);
+    let mode = 1, mc = 0;
+    for (const [k, c] of freq) if (c > mc || (c === mc && k > mode)) { mode = k; mc = c; }
+    if (mode < 2) continue;
+    const score = (mc / rows.length) * 100 + Math.min(mode, 60) * 0.5;
+    if (score > bestScore) { bestScore = score; best = d; }
+  }
+  return best;
+}
+function parseJSONTable(text) {
+  let data = JSON.parse(text);
+  if (!Array.isArray(data)) {
+    const arr = data && typeof data === "object" ? Object.values(data).find(Array.isArray) : null;
+    if (!arr) throw new Error("JSON must be an array of objects");
+    data = arr;
+  }
+  if (!data.length) throw new Error("JSON array is empty");
+  const cell = v => v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+  if (Array.isArray(data[0])) {
+    const headers = data[0].map(cell);
+    const rows = data.slice(1).map(r => { const a = (Array.isArray(r) ? r : [r]).map(cell); while (a.length < headers.length) a.push(""); return a.slice(0, Math.max(headers.length, a.length)); });
+    return { headers, rows, delimiter: "json", ragged: 0, blankRows: 0, format: "json" };
+  }
+  const headers = [], seen = new Set();
+  for (const o of data) if (o && typeof o === "object") for (const k of Object.keys(o)) if (!seen.has(k)) { seen.add(k); headers.push(k); }
+  if (!headers.length) throw new Error("JSON must be an array of objects");
+  const rows = data.map(o => headers.map(h => cell(o && typeof o === "object" ? o[h] : undefined)));
+  return { headers, rows, delimiter: "json", ragged: 0, blankRows: 0, format: "json" };
+}
+function parseText(text, name) {
+  text = stripBOM(String(text == null ? "" : text));
+  const lead = text.trimStart();
+  const looksJSON = /\.json$/i.test(name || "") || lead[0] === "[" || lead[0] === "{";
+  if (looksJSON) {
+    try { return parseJSONTable(lead); } catch (e) { if (/\.json$/i.test(name || "")) throw e; }
+  }
+  const delimiter = /\.tsv$/i.test(name || "") ? "\t" : detectDelimiter(text);
+  let rows = parseDelimited(text, delimiter);
+  const before = rows.length;
+  rows = rows.filter(r => { for (const c of r) if (c.trim() !== "") return true; return false; });
+  const blankRows = Math.max(0, before - rows.length);
+  if (!rows.length) throw new Error("No rows found");
+  const headers = rows[0].slice();
+  const body = rows.slice(1);
+  const w0 = headers.length;
+  let maxW = w0, ragged = 0;
+  for (const r of body) { if (r.length !== w0) ragged++; if (r.length > maxW) maxW = r.length; }
+  while (headers.length < maxW) headers.push("");
+  for (const r of body) while (r.length < maxW) r.push("");
+  return { headers, rows: body, delimiter, ragged, blankRows, format: "csv" };
+}
+function toCSV(headers, rows, d) {
+  d = d || ",";
+  const q = v => {
+    v = v == null ? "" : String(v);
+    return (v.indexOf(d) >= 0 || /["\r\n]/.test(v) || /^\s|\s$/.test(v)) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  };
+  const out = [headers.map(q).join(d)];
+  for (const r of rows) out.push(r.map(q).join(d));
+  return out.join("\n") + "\n";
+}
+
+/* ---------- value classification ---------- */
+const RE_INT = /^[+-]?\d+$/;
+const RE_NUM = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+const RE_EMAIL = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+const RE_BOOL = /^(true|false|yes|no|y|n|t|f)$/i;
+const RE_INVIS = /[​-‍⁠﻿­]/;
+const RE_INVIS_G = /[​-‍⁠﻿­]/g;
+const RE_CTRL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
+const RE_CTRL_G = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const RE_MOJI = /[Â-ô][\u0080-¿ŒœŠšŸŽžƒˆ˜–—‘-„†-•…‰‹›€™]/;
+const RE_EMOJI = /\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F/u;
+const RE_EMOJI_G = /(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}(?=\uFE0F)|\p{Regional_Indicator})(?:️|[\u{1F3FB}-\u{1F3FF}]|‍(?:\p{Extended_Pictographic}))*️?/gu;
+const CP1252 = { 0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F };
+function hasJunk(s) { return RE_MOJI.test(s) || RE_INVIS.test(s) || RE_CTRL.test(s) || s.indexOf("�") >= 0; }
+function fixMojibake(s) {
+  if (!RE_MOJI.test(s)) return s;
+  const bytes = [];
+  for (const ch of s) {
+    const c = ch.codePointAt(0);
+    if (c < 0x100) bytes.push(c); else if (CP1252[c] !== undefined) bytes.push(CP1252[c]); else return s;
+  }
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(bytes)); } catch (e) { return s; }
+}
+function cleanJunk(s) { return fixMojibake(s).replace(RE_INVIS_G, "").replace(RE_CTRL_G, "").replace(/�/g, ""); }
+function stripEmoji(s) { if (!RE_EMOJI.test(s) && !/\p{Regional_Indicator}/u.test(s)) return s; return s.replace(RE_EMOJI_G, "").replace(/️/g, "").replace(/ {2,}/g, " ").trim(); }
+
+const UNITS = {
+  kg: ["mass", 1, "kg"], kgs: ["mass", 1, "kg"], kilogram: ["mass", 1, "kg"], kilograms: ["mass", 1, "kg"],
+  g: ["mass", 0.001, "g"], gram: ["mass", 0.001, "g"], grams: ["mass", 0.001, "g"], mg: ["mass", 1e-6, "mg"],
+  lb: ["mass", 0.45359237, "lb"], lbs: ["mass", 0.45359237, "lb"], pound: ["mass", 0.45359237, "lb"], pounds: ["mass", 0.45359237, "lb"],
+  oz: ["mass", 0.028349523125, "oz"], ounce: ["mass", 0.028349523125, "oz"], ounces: ["mass", 0.028349523125, "oz"],
+  m: ["length", 1, "m"], meter: ["length", 1, "m"], meters: ["length", 1, "m"], metre: ["length", 1, "m"], metres: ["length", 1, "m"],
+  cm: ["length", 0.01, "cm"], mm: ["length", 0.001, "mm"], km: ["length", 1000, "km"],
+  in: ["length", 0.0254, "in"], inch: ["length", 0.0254, "in"], inches: ["length", 0.0254, "in"],
+  ft: ["length", 0.3048, "ft"], feet: ["length", 0.3048, "ft"], foot: ["length", 0.3048, "ft"],
+  mi: ["length", 1609.344, "mi"], mile: ["length", 1609.344, "mi"], miles: ["length", 1609.344, "mi"],
+  ml: ["volume", 0.001, "mL"], l: ["volume", 1, "L"], liter: ["volume", 1, "L"], liters: ["volume", 1, "L"], litre: ["volume", 1, "L"],
+  gal: ["volume", 3.785411784, "gal"], gallon: ["volume", 3.785411784, "gal"], gallons: ["volume", 3.785411784, "gal"]
+};
+const UNIT_CANON = {}; for (const k in UNITS) UNIT_CANON[UNITS[k][2]] = UNITS[k];
+const CUR_RE_PRE = /^([+-])?\s*(USD|EUR|GBP|JPY|CNY|RMB|CAD|AUD|CHF|INR|US\$|C\$|A\$|[$€£¥₹])\s*/i;
+const CUR_RE_POST = /\s*(USD|EUR|GBP|JPY|CNY|RMB|CAD|AUD|CHF|INR|[$€£¥₹])$/i;
+function normCur(c) { const u = c.toUpperCase(); return ({ "$": "USD", "US$": "USD", "€": "EUR", "£": "GBP", "₹": "INR", "C$": "CAD", "A$": "AUD", "RMB": "CNY" })[u] || u; }
+function parseLooseNumber(raw) {
+  let s = String(raw).trim();
+  if (!s) return null;
+  if (RE_NUM.test(s)) return { value: parseFloat(s), plain: true, cur: null, unit: null, pct: false };
+  let neg = false, cur = null, unit = null, pct = false, m;
+  if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1).trim(); }
+  if ((m = s.match(CUR_RE_PRE))) { if (m[1] === "-") neg = !neg; cur = normCur(m[2]); s = s.slice(m[0].length); }
+  if (!cur && (m = s.match(CUR_RE_POST))) { cur = normCur(m[1]); s = s.slice(0, s.length - m[0].length).trim(); }
+  if (s.startsWith("-") && cur) { neg = !neg; s = s.slice(1).trim(); }
+  if (s.endsWith("%")) { pct = true; s = s.slice(0, -1).trim(); }
+  if ((m = s.match(/^([+-]?[\d.,\s]*\d)\s*([A-Za-z]+)\.?$/))) {
+    const u = UNITS[m[2].toLowerCase()];
+    if (!u || cur || pct) return null;
+    unit = u[2]; s = m[1].trim();
+  }
+  if (/^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, "");
+  else if (/^[+-]?\d{1,3}( \d{3})+(\.\d+)?$/.test(s)) s = s.replace(/ /g, "");
+  else if (/^[+-]?\d{1,3}(\.\d{3})+,\d+$/.test(s)) s = s.replace(/\./g, "").replace(",", ".");
+  else if (cur && /^[+-]?\d+,\d{1,2}$/.test(s)) s = s.replace(",", ".");
+  if (!RE_NUM.test(s)) return null;
+  if (!cur && !unit && !pct && !neg) return null; // nothing recognisable beyond digits = was not plain, so not a number
+  let v = parseFloat(s); if (neg) v = -v;
+  return { value: v, plain: false, cur, unit, pct };
+}
+// fix for thousand-separated numbers without symbols ("1,250")
+function parseNumberish(raw) {
+  const r = parseLooseNumber(raw);
+  if (r) return r;
+  let s = String(raw).trim();
+  if (/^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s) || /^[+-]?\d{1,3}( \d{3})+(\.\d+)?$/.test(s)) return { value: parseFloat(s.replace(/[, ]/g, "")), plain: false, cur: null, unit: null, pct: false };
+  if (/^[+-]?\d{1,3}(\.\d{3})+,\d+$/.test(s)) return { value: parseFloat(s.replace(/\./g, "").replace(",", ".")), plain: false, cur: null, unit: null, pct: false };
+  return null;
+}
+function numStr(x, dp) {
+  if (!isFinite(x)) return String(x);
+  if (dp != null) x = +x.toFixed(dp);
+  if (Number.isInteger(x)) return String(x);
+  return String(+x.toFixed(6));
+}
+
+/* ---------- dates ---------- */
+const MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12, january: 1, february: 2, march: 3, april: 4, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 };
+const TM = "(?:(?:T|\\s+|\\s*,\\s*)(\\d{1,2}):(\\d{2})(?::(\\d{2})(?:\\.\\d+)?)?\\s*([AaPp]\\.?[Mm]\\.?)?\\s*(Z|[+-]\\d{2}:?\\d{2})?)?";
+const yy = s => s.length === 2 ? (+s < 50 ? 2000 + +s : 1900 + +s) : +s;
+const DATE_PATTERNS = [
+  [new RegExp("^(\\d{4})-(\\d{1,2})-(\\d{1,2})" + TM + "$"), m => ({ fmt: "YYYY-MM-DD", y: +m[1], m: +m[2], d: +m[3], t: m.slice(4) })],
+  [new RegExp("^(\\d{4})[/.](\\d{1,2})[/.](\\d{1,2})" + TM + "$"), m => ({ fmt: "YYYY/MM/DD", y: +m[1], m: +m[2], d: +m[3], t: m.slice(4) })],
+  [new RegExp("^(\\d{1,2})([/.-])(\\d{1,2})\\2(\\d{4}|\\d{2})" + TM + "$"), m => ({ fmt: "amb", amb: true, a: +m[1], b: +m[3], sep: m[2], y: yy(m[4]), yl: m[4].length, t: m.slice(5) })],
+  [new RegExp("^([A-Za-z]{3,9})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})" + TM + "$"), m => MONTHS[m[1].toLowerCase()] ? ({ fmt: "Mon D, YYYY", y: +m[3], m: MONTHS[m[1].toLowerCase()], d: +m[2], t: m.slice(4) }) : null],
+  [new RegExp("^(\\d{1,2})(?:st|nd|rd|th)?[\\s-]+([A-Za-z]{3,9})\\.?[\\s-]+(\\d{4}|\\d{2})" + TM + "$"), m => MONTHS[m[2].toLowerCase()] ? ({ fmt: "D-Mon-YYYY", y: yy(m[3]), m: MONTHS[m[2].toLowerCase()], d: +m[1], t: m.slice(4) }) : null],
+  [new RegExp("^(\\d{4})年(\\d{1,2})月(\\d{1,2})日?" + TM + "$"), m => ({ fmt: "YYYY年M月D日", y: +m[1], m: +m[2], d: +m[3], t: m.slice(4) })]
+];
+function parseDate(s) {
+  s = String(s).trim();
+  if (s.length < 6 || s.length > 40 || !/\d/.test(s)) return null;
+  for (const [re, f] of DATE_PATTERNS) {
+    const m = s.match(re);
+    if (!m) continue;
+    const p = f(m);
+    if (!p) return null;
+    const t = p.t || [];
+    if (t[0] !== undefined) {
+      let h = +t[0], mi = +t[1], sec = t[2] !== undefined ? +t[2] : 0;
+      const ap = t[3] ? t[3].replace(/\./g, "").toLowerCase() : null;
+      if (ap) { if (h < 1 || h > 12) return null; if (ap === "pm" && h < 12) h += 12; if (ap === "am" && h === 12) h = 0; }
+      if (h > 23 || mi > 59 || sec > 59) return null;
+      p.time = { h, mi, s: sec, tz: t[4] || "" };
+    }
+    if (p.amb) { if (!resolveDate(p, false) && !resolveDate(p, true)) return null; }
+    else if (!validYMD(p.y, p.m, p.d)) return null;
+    return p;
+  }
+  return null;
+}
+function validYMD(y, m, d) {
+  if (y < 1800 || y > 2200 || m < 1 || m > 12 || d < 1) return false;
+  const dim = [31, (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  return d <= dim;
+}
+const pad2 = n => (n < 10 ? "0" : "") + n;
+function resolveDate(p, dayFirst) {
+  let y = p.y, m = p.m, d = p.d;
+  if (p.amb) { if (dayFirst) { d = p.a; m = p.b; } else { m = p.a; d = p.b; } }
+  if (!validYMD(y, m, d)) return null;
+  let s = y + "-" + pad2(m) + "-" + pad2(d);
+  if (p.time) s += "T" + pad2(p.time.h) + ":" + pad2(p.time.mi) + ":" + pad2(p.time.s) + (p.time.tz ? (p.time.tz === "Z" ? "Z" : p.time.tz.replace(/^([+-]\d{2})(\d{2})$/, "$1:$2")) : "");
+  return s;
+}
+
+function classify(v) {
+  if (RE_INT.test(v)) return "int";
+  if (RE_NUM.test(v)) return "num";
+  if (RE_BOOL.test(v)) return "bool";
+  if (v.indexOf("@") >= 0 || /\(at\)|\[at\]/i.test(v)) return RE_EMAIL.test(v) ? "email" : "bademail";
+  if (parseDate(v)) return "date";
+  const ln = parseNumberish(v);
+  if (ln) return ln.unit ? "unitnum" : "fmtnum";
+  return "text";
+}
+
+/* ---------- headers ---------- */
+const VAGUE_RE = /^(col|column|field|var|variable|attr|attribute|unnamed|untitled|f|c|v|x|y|z|q)[\s_.:#-]*\d*$|^(val|value|values|data|info|misc|other|others|tmp|temp|stuff|thing|item|num|no|number|amt|desc|text|txt|n|etc|new|test|\d+)$/i;
+function toSnake(s) {
+  const out = String(s).trim().replace(/&/g, " and ").replace(/%/g, " pct ").replace(/#/g, " num ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "").replace(/_+/g, "_");
+  return out;
+}
+function isIdHeader(h) { const s = String(h).trim(); return /(^|[^A-Za-z])(id|uuid|guid)$/i.test(s) || /^id([^A-Za-z]|$)/i.test(s) || /[a-z]ID$/.test(s) || /编号|工号/.test(s); }
+
+/* ---------- category clustering ---------- */
+function fold(s) { return String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ""); }
+function lev(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = new Array(b.length + 1); for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i]; let rowMin = i;
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (cur[j] < rowMin) rowMin = cur[j];
+    }
+    if (rowMin > max) return max + 1;
+    prev = cur;
+  }
+  return prev[b.length];
+}
+function isSubseq(s, t) { let i = 0; for (let j = 0; j < t.length && i < s.length; j++) if (s[i] === t[j]) i++; return i === s.length; }
+function looksAbbrev(v) { return /^[A-Z]{2,4}\.?$/.test(v) || /^[A-Za-z]{2,8}\.$/.test(v) || /^([A-Za-z]\.){2,4}$/.test(v); }
+function clusterValues(counts) {
+  const groups = new Map();
+  for (const [v, c] of counts) {
+    const k = fold(v); if (!k) continue;
+    let g = groups.get(k); if (!g) { g = { key: k, variants: [], total: 0, abbr: false }; groups.set(k, g); }
+    g.variants.push({ v, c }); g.total += c;
+  }
+  const gs = [...groups.values()];
+  for (const g of gs) g.abbr = g.variants.every(x => looksAbbrev(x.v));
+  const parent = gs.map((_, i) => i);
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const union = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
+  if (gs.length <= 400) {
+    gs.forEach((g, i) => {
+      if (!g.abbr || g.key.length < 2) return;
+      const targets = [];
+      gs.forEach((h, j) => { if (j !== i && !h.abbr && h.key.length > g.key.length && h.key[0] === g.key[0] && isSubseq(g.key, h.key)) targets.push(j); });
+      if (targets.length === 1) union(targets[0], i);
+    });
+    for (let i = 0; i < gs.length; i++) for (let j = i + 1; j < gs.length; j++) {
+      const a = gs[i].key, b = gs[j].key;
+      if (a.length < 4 || b.length < 4 || a[0] !== b[0]) continue;
+      if (/\d/.test(a) || /\d/.test(b)) continue;
+      const max = Math.min(a.length, b.length) >= 8 ? 2 : 1;
+      if (lev(a, b, max) <= max) union(i, j);
+    }
+  }
+  const byRoot = new Map();
+  gs.forEach((g, i) => { const r = find(i); if (!byRoot.has(r)) byRoot.set(r, []); byRoot.get(r).push(g); });
+  const clusters = [];
+  for (const members of byRoot.values()) {
+    const variants = []; members.forEach(g => g.variants.forEach(x => variants.push({ v: x.v, c: x.c, key: g.key })));
+    if (variants.length < 2) continue;
+    const full = members.filter(g => !g.abbr);
+    const pool = (full.length ? full : members);
+    let bestG = pool[0];
+    for (const g of pool) if (g.key.length > bestG.key.length || (g.key.length === bestG.key.length && g.total > bestG.total)) bestG = g;
+    let canon = bestG.variants[0];
+    const nice = x => (/^\p{Lu}/u.test(x.v) && x.v !== x.v.toUpperCase() ? 1 : 0);
+    for (const x of bestG.variants) if (x.c > canon.c || (x.c === canon.c && nice(x) > nice(canon))) canon = x;
+    variants.sort((a, b) => b.c - a.c);
+    clusters.push({ canonical: canon.v, variants: variants.map(x => ({ v: x.v, c: x.c })), total: variants.reduce((s, x) => s + x.c, 0) });
+  }
+  clusters.sort((a, b) => b.total - a.total);
+  return clusters;
+}
+
+/* ---------- profiling ---------- */
+function profileColumn(name, idx, rows, isMeta) {
+  const n = rows.length;
+  const p = { name, idx, n, role: isMeta ? "meta" : "data", nulls: 0, nullTok: 0, nullForms: new Map(), ws: 0, wsEx: [], junk: 0, junkEx: [], emoji: 0, emojiEx: [],
+    distinct: 0, top: [], type: "text", invalid: 0, invalidEx: [], invalidSet: new Set(), fmtCells: 0, fmtEx: [], unitCells: 0, units: new Map(), currencies: new Map(),
+    domUnit: null, dim: null, dateFormats: new Map(), nonIso: 0, nonIsoEx: [], dayFirst: false, min: null, max: null, hist: null, allInt: true, clusters: [], catOff: 0, emailUpper: 0, header: {} };
+  const counts = new Map();
+  for (let r = 0; r < n; r++) {
+    const v = rows[r][idx];
+    if (v === "" || v == null) { p.nulls++; continue; }
+    const tr = v.trim();
+    if (NULL_SET.has(tr.toLowerCase())) { p.nulls++; p.nullTok++; p.nullForms.set(v, (p.nullForms.get(v) || 0) + 1); continue; }
+    if (v !== tr || /\s{2,}|[ \t\r\n　]/.test(v)) { p.ws++; if (p.wsEx.length < 4 && p.wsEx.indexOf(v) < 0) p.wsEx.push(v); }
+    if (hasJunk(v)) { p.junk++; if (p.junkEx.length < 4 && p.junkEx.indexOf(v) < 0) p.junkEx.push(v); }
+    if (RE_EMOJI.test(v)) { p.emoji++; if (p.emojiEx.length < 4 && p.emojiEx.indexOf(v) < 0) p.emojiEx.push(v); }
+    const key = collapse(tr);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  const nonNull = n - p.nulls;
+  p.nonNull = nonNull; p.distinct = counts.size;
+  p.nullPct = n ? p.nulls / n : 0;
+  const cls = { int: 0, num: 0, fmtnum: 0, unitnum: 0, bool: 0, email: 0, bademail: 0, date: 0, text: 0 };
+  const clsOf = new Map();
+  for (const [k, c] of counts) { const cl = classify(k); clsOf.set(k, cl); cls[cl] += c; }
+  p.cls = cls;
+  const numeric = cls.int + cls.num + cls.fmtnum + cls.unitnum;
+  if (isMeta) p.type = "text";
+  else if (nonNull === 0) p.type = "empty";
+  else if (cls.email + cls.bademail >= 0.5 * nonNull || (/e-?mail|邮箱/i.test(name) && cls.email >= 0.3 * nonNull)) p.type = "email";
+  else if (cls.date >= 0.6 * nonNull) p.type = "date";
+  else if (numeric >= 0.6 * nonNull) p.type = cls.unitnum > 0 ? "measure" : "number";
+  else if (cls.bool >= 0.9 * nonNull && counts.size <= 6) p.type = "boolean";
+  else if (counts.size <= 60 && counts.size <= Math.max(2, 0.5 * nonNull) && nonNull >= 4 && !/note|comment|remark|memo|desc|message|备注|说明/i.test(name)) {
+    let words = 0; for (const [k, c] of counts) words += (k.split(" ").length) * c;
+    if (words / nonNull <= 3.5) p.type = "category";
+  }
+
+  const addInvalid = (k, c) => { p.invalid += c; p.invalidSet.add(k); if (p.invalidEx.length < 4) p.invalidEx.push(k); };
+  if (p.type === "email") {
+    for (const [k, c] of counts) { const cl = clsOf.get(k); if (cl !== "email") addInvalid(k, c); else if (k !== k.toLowerCase()) p.emailUpper += c; }
+  } else if (p.type === "date") {
+    const parsed = new Map(); let ambDay = 0, ambMon = 0;
+    for (const [k, c] of counts) {
+      if (clsOf.get(k) !== "date") { addInvalid(k, c); continue; }
+      const pd = parseDate(k); parsed.set(k, pd);
+      if (pd.amb) { if (pd.a > 12 && pd.b <= 12) ambDay += c; else if (pd.b > 12 && pd.a <= 12) ambMon += c; }
+    }
+    p.dayFirst = ambDay > ambMon;
+    let withTime = 0;
+    for (const [k, pd] of parsed) {
+      const c = counts.get(k);
+      const iso = resolveDate(pd, p.dayFirst);
+      if (!iso) { addInvalid(k, c); continue; }
+      let lab = pd.fmt;
+      if (pd.amb) { const yl = pd.yl === 2 ? "YY" : "YYYY"; lab = (p.dayFirst ? "DD" + pd.sep + "MM" : "MM" + pd.sep + "DD") + pd.sep + yl; }
+      if (pd.time) { withTime += c; lab += " hh:mm"; }
+      p.dateFormats.set(lab, (p.dateFormats.get(lab) || 0) + c);
+      if (iso !== k) { p.nonIso += c; if (p.nonIsoEx.length < 4) p.nonIsoEx.push(k); }
+      const d = iso.slice(0, 10);
+      if (p.min === null || d < p.min) p.min = d;
+      if (p.max === null || d > p.max) p.max = d;
+    }
+    if (withTime > 0.5 * (nonNull - p.invalid)) p.type = "datetime";
+  } else if (p.type === "number" || p.type === "measure") {
+    const parsed = [];
+    for (const [k, c] of counts) {
+      const cl = clsOf.get(k);
+      if (!(cl === "int" || cl === "num" || cl === "fmtnum" || cl === "unitnum")) { addInvalid(k, c); continue; }
+      const ln = cl === "int" || cl === "num" ? { value: parseFloat(k), plain: true } : parseNumberish(k);
+      if (!ln) { addInvalid(k, c); continue; }
+      if (!ln.plain) { p.fmtCells += c; if (p.fmtEx.length < 5) p.fmtEx.push(k); }
+      if (ln.unit) { p.unitCells += c; p.units.set(ln.unit, (p.units.get(ln.unit) || 0) + c); }
+      if (ln.cur) p.currencies.set(ln.cur, (p.currencies.get(ln.cur) || 0) + c);
+      parsed.push([k, ln, c]);
+    }
+    if (p.type === "measure") {
+      let best = null, bc = -1;
+      for (const [u, c] of p.units) if (c > bc) { best = u; bc = c; }
+      p.domUnit = best; p.dim = UNIT_CANON[best][0];
+    }
+    const vals = [];
+    for (const [k, ln, c] of parsed) {
+      let v = ln.value;
+      if (p.type === "measure" && ln.unit) {
+        const u = UNIT_CANON[ln.unit];
+        if (u[0] !== p.dim) { addInvalid(k, c); continue; }
+        v = v * u[1] / UNIT_CANON[p.domUnit][1];
+      }
+      if (!Number.isInteger(v)) p.allInt = false;
+      vals.push([v, c]);
+    }
+    if (p.type === "number" && p.allInt) p.type = "integer";
+    if (vals.length) {
+      let mn = Infinity, mx = -Infinity;
+      for (const [v] of vals) { if (v < mn) mn = v; if (v > mx) mx = v; }
+      p.min = mn; p.max = mx;
+      const B = 18, bins = new Array(B).fill(0), span = mx - mn || 1;
+      for (const [v, c] of vals) bins[Math.min(B - 1, Math.floor((v - mn) / span * B))] += c;
+      p.hist = bins;
+    }
+  } else if (p.type === "category") {
+    p.clusters = clusterValues(counts).filter(c => c.variants.length > 1);
+    for (const cl of p.clusters) for (const x of cl.variants) if (x.v !== cl.canonical) p.catOff += x.c;
+  }
+  if (!isMeta && (p.type === "integer" || p.type === "text" || p.type === "category") && isIdHeader(name) && nonNull && counts.size / nonNull >= 0.8) p.role = "id";
+  if (!isMeta && p.type === "text" && /^(id|key|uuid)$/i.test(name.trim()) && counts.size / Math.max(1, nonNull) >= 0.8) p.role = "id";
+  p.top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const h = String(name);
+  p.header = { blank: h.trim() === "", vague: VAGUE_RE.test(h.trim()), ws: h !== h.trim() || /\s{2,}/.test(h), clean: h === toSnake(h) && h !== "", dup: false };
+  return p;
+}
+
+async function audit(table, onProgress) {
+  const H = table.headers, R = table.rows, n = R.length;
+  const profiles = [];
+  for (let c = 0; c < H.length; c++) {
+    profiles.push(profileColumn(H[c], c, R, H[c] === "_review_flag"));
+    if (onProgress) onProgress((c + 1) / (H.length + 1));
+    await tick();
+  }
+  const seenH = new Map();
+  for (const p of profiles) { const k = p.name.trim().toLowerCase(); seenH.set(k, (seenH.get(k) || 0) + 1); }
+  for (const p of profiles) if (!p.header.blank && seenH.get(p.name.trim().toLowerCase()) > 1) p.header.dup = true;
+  const data = profiles.filter(p => p.role !== "meta");
+  const dataIdx = data.map(p => p.idx);
+  const idCols = data.filter(p => p.role === "id").map(p => p.idx);
+  const nearCols = data.filter(p => p.role !== "id").map(p => p.idx);
+  const metaP = profiles.find(p => p.role === "meta");
+  const flagged = r => metaP ? R[r][metaP.idx] !== "" : false;
+  const exactSeen = new Map(), nearSeen = new Map(), exact = [], near = [], coll = [];
+  const idSeen = idCols.map(() => new Map());
+  for (let r = 0; r < n; r++) {
+    const row = R[r];
+    let k = ""; for (const c of dataIdx) k += row[c] + SEP;
+    if (exactSeen.has(k)) { exact.push([r, exactSeen.get(k)]); continue; }
+    exactSeen.set(k, r);
+    let nk = "", any = false;
+    for (const c of nearCols) { const v = row[c]; let s = ""; if (!isNullish(v)) { s = collapse(v).trim().toLowerCase(); any = true; } nk += s + SEP; }
+    if (any) { if (nearSeen.has(nk)) near.push([r, nearSeen.get(nk)]); else nearSeen.set(nk, r); }
+    idCols.forEach((c, i) => { const v = row[c].trim(); if (isNullish(v)) return; const m = idSeen[i]; if (m.has(v)) coll.push([r, m.get(v), c, v]); else m.set(v, r); });
+    if (r % 20000 === 19999) await tick();
+  }
+  const A = { n, cols: H.length, headers: H.slice(), profiles, dups: { exact, near, coll }, ragged: table.ragged || 0, blankRows: table.blankRows || 0, delimiter: table.delimiter };
+  A.issues = buildIssues(A);
+  A.scores = scoreAudit(A, flagged);
+  if (onProgress) onProgress(1);
+  return A;
+}
+
+function buildIssues(A) {
+  const out = [];
+  const add = (type, sev, p, count, unit, examples, extra) => out.push({ type, sev, col: p ? p.name : null, colIdx: p ? p.idx : -1, count, unit, examples: examples || [], extra: extra || {} });
+  for (const p of A.profiles) {
+    if (p.role === "meta") continue;
+    if (p.header.blank) add("blank_header", "high", p, 1, "col", []);
+    else if (p.header.vague) add("vague_header", "high", p, 1, "col", [p.name]);
+    if (p.header.dup) add("dup_header", "high", p, 1, "col", [p.name]);
+    if (p.header.ws) add("header_ws", "medium", p, 1, "col", [JSON.stringify(p.name)]);
+    if (p.type === "empty") { add("empty_column", "high", p, p.n, "cell", [...p.nullForms.keys()].slice(0, 3).map(x => JSON.stringify(x))); continue; }
+    if (p.nullTok) { const forms = [...p.nullForms.keys()]; add("null_tokens", forms.length > 1 || p.nulls > p.nullTok ? "medium" : "low", p, p.nullTok, "cell", forms.slice(0, 5).map(x => JSON.stringify(x))); }
+    if (p.nullPct >= 0.1) add("missing", p.nullPct >= 0.4 ? "medium" : "low", p, p.nulls, "cell", [Math.round(p.nullPct * 100) + "%"]);
+    if (p.ws) add("whitespace", "low", p, p.ws, "cell", p.wsEx.map(x => JSON.stringify(x)));
+    if ((p.type === "date" || p.type === "datetime") && p.nonIso) add("dates", p.dateFormats.size > 1 ? "high" : "medium", p, p.nonIso, "cell", p.nonIsoEx, { formats: [...p.dateFormats.keys()].join(" · ") });
+    if (p.currencies.size > 1) add("mixed_currency", "high", p, p.fmtCells, "cell", [...p.currencies.keys()]);
+    if ((p.type === "number" || p.type === "integer") && p.fmtCells) add("num_text", "high", p, p.fmtCells, "cell", p.fmtEx);
+    if (p.type === "measure") add("units", p.units.size > 1 ? "high" : "medium", p, p.nonNull - p.invalid, "cell", p.fmtEx, { units: [...p.units.keys()].join(", ") });
+    if (p.type === "category" && p.clusters.length) add("variants", "medium", p, p.catOff, "cell", p.clusters.slice(0, 2).map(c => c.variants.map(x => x.v).join(" / ")));
+    if (p.type === "email" && p.invalid) add("bad_email", "medium", p, p.invalid, "cell", p.invalidEx);
+    else if (p.type === "email" && p.emailUpper) add("email_case", "low", p, p.emailUpper, "cell", []);
+    if (p.type !== "email" && p.invalid) add("off_type", "medium", p, p.invalid, "cell", p.invalidEx);
+    if (p.junk) add("junk", "medium", p, p.junk, "cell", p.junkEx.map(x => JSON.stringify(x)));
+    if (p.emoji) add("emoji", "low", p, p.emoji, "cell", p.emojiEx);
+  }
+  const P = A.profiles;
+  const rowEx = list => list.slice(0, 3).map(([r, f]) => "#" + (r + 1) + " ≈ #" + (f + 1));
+  if (A.dups.exact.length) add("exact_dups", "high", null, A.dups.exact.length, "row", rowEx(A.dups.exact));
+  if (A.dups.near.length) add("near_dups", "medium", null, A.dups.near.length, "row", rowEx(A.dups.near));
+  if (A.dups.coll.length) add("id_collision", "high", P[A.dups.coll[0][2]], A.dups.coll.length, "row", A.dups.coll.slice(0, 3).map(x => x[3] + " (#" + (x[1] + 1) + ", #" + (x[0] + 1) + ")"));
+  if (A.ragged) add("ragged", "medium", null, A.ragged, "row", []);
+  const styles = new Set(P.filter(p => p.role !== "meta" && !p.header.blank).map(p => p.header.clean ? "snake" : /\s/.test(p.name.trim()) ? "space" : /[A-Z]/.test(p.name) ? "caps" : "other"));
+  if (styles.size > 1) add("header_style", "low", null, P.filter(p => p.role !== "meta" && !p.header.clean).length, "col", P.filter(p => p.role !== "meta" && !p.header.clean).slice(0, 4).map(p => JSON.stringify(p.name)));
+  const rank = { high: 0, medium: 1, low: 2 };
+  out.sort((a, b) => rank[a.sev] - rank[b.sev] || b.count - a.count);
+  return out;
+}
+
+function scoreAudit(A, flagged) {
+  const P = A.profiles.filter(p => p.role !== "meta");
+  const n = Math.max(1, A.n), cells = Math.max(1, A.n * P.length);
+  let nulls = 0, incons = 0, nonNullCells = 0, invalid = 0;
+  for (const p of P) {
+    nulls += p.nulls; nonNullCells += p.nonNull;
+    let inc = p.nullTok + p.ws + p.catOff + p.emailUpper;
+    if (p.type === "date" || p.type === "datetime") inc += p.nonIso;
+    if (p.type === "number" || p.type === "integer" || p.type === "measure") inc += p.fmtCells;
+    incons += Math.min(inc, p.n);
+    invalid += p.invalid + p.junk + 0.5 * p.emoji;
+  }
+  const completeness = 100 * Math.exp(-2 * nulls / cells);
+  const consistency = 100 * Math.exp(-4 * incons / Math.max(1, nonNullCells + P.reduce((s, p) => s + p.nullTok, 0)));
+  let dupW = A.dups.exact.length;
+  for (const [r] of A.dups.near) dupW += flagged(r) ? 0.35 : 1;
+  for (const [r] of A.dups.coll) dupW += flagged(r) ? 0.35 : 1;
+  const uniqueness = 100 * Math.exp(-6 * dupW / n);
+  const validity = 100 * Math.exp(-8 * (invalid + A.ragged) / Math.max(1, nonNullCells));
+  let sch = 0;
+  for (const p of P) {
+    if (p.type === "empty") continue;
+    const nameOK = !p.header.blank && !p.header.vague && !p.header.dup ? 1 : 0;
+    const style = p.header.clean ? 1 : p.header.ws ? 0 : 0.5;
+    const typed = p.invalid === 0 && !(p.type === "measure") && !(p.fmtCells && p.type !== "measure") ? 1 : 0.5;
+    sch += 0.6 * nameOK + 0.2 * style + 0.2 * typed;
+  }
+  const schema = 100 * sch / Math.max(1, P.length);
+  const s = { completeness, consistency, uniqueness, validity, schema };
+  for (const k in s) s[k] = Math.max(0, Math.min(100, Math.round(s[k])));
+  s.overall = Math.round(0.2 * s.completeness + 0.25 * s.consistency + 0.15 * s.uniqueness + 0.2 * s.validity + 0.2 * s.schema);
+  return s;
+}
+
+/* ---------- plan ---------- */
+const FIX_ORDER = ["encoding", "emoji", "trim", "nulls", "drop_empty", "dates", "numbers", "units", "emails", "categories", "dedupe", "flag_near", "blank_bad", "headers"];
+function suggestName(p, used) {
+  let base;
+  const vague = p.header.blank || p.header.vague;
+  if (vague) {
+    if (p.type === "email") base = "email";
+    else if (p.type === "date") base = "date";
+    else if (p.type === "datetime") base = "timestamp";
+    else if (p.type === "measure") base = p.dim === "mass" ? "weight" : p.dim === "length" ? "length" : p.dim === "volume" ? "volume" : "measure";
+    else if ((p.type === "number" || p.type === "integer") && p.currencies.size) base = "amount";
+    else if (p.type === "integer" && p.role === "id") base = "record_id";
+    else if (p.type === "integer") base = "count";
+    else if (p.type === "number") base = "value";
+    else if (p.type === "boolean") base = "is_flag";
+    else if (p.type === "category") base = "category";
+    else base = "text_" + (p.idx + 1);
+  } else base = toSnake(p.name) || "column_" + (p.idx + 1);
+  if (p.type === "measure" && p.domUnit) { const u = p.domUnit.toLowerCase(); if (!new RegExp("(^|_)" + u + "$").test(base)) base += "_" + u; }
+  if ((p.type === "number" || p.type === "integer") && p.currencies.size === 1) { const cur = [...p.currencies.keys()][0].toLowerCase(); if (/^[a-z]{3}$/.test(cur) && !base.endsWith("_" + cur)) base += "_" + cur; }
+  let name = base, i = 2;
+  while (used.has(name)) name = base + "_" + i++;
+  used.add(name);
+  return name;
+}
+function defaultPlan(A) {
+  const fixes = {}; FIX_ORDER.forEach(f => fixes[f] = f !== "blank_bad");
+  const clusters = {}, renames = {}, used = new Set();
+  for (const p of A.profiles) {
+    if (p.role === "meta") continue;
+    if (p.clusters.length) clusters[p.idx] = p.clusters.map(c => ({ canonical: c.canonical, variants: c.variants.map(x => ({ v: x.v, c: x.c, on: true })) }));
+    renames[p.idx] = suggestName(p, used);
+  }
+  return { fixes, clusters, renames };
+}
+function fixCounts(A, plan) {
+  const P = A.profiles.filter(p => p.role !== "meta"), sum = f => P.reduce((s, p) => s + f(p), 0);
+  return {
+    encoding: sum(p => p.junk), emoji: sum(p => p.emoji), trim: sum(p => p.ws) + P.filter(p => p.header.ws).length,
+    nulls: sum(p => p.nullTok), drop_empty: P.filter(p => p.type === "empty").length,
+    dates: sum(p => p.type === "date" || p.type === "datetime" ? p.nonIso : 0),
+    numbers: sum(p => (p.type === "number" || p.type === "integer") && p.currencies.size <= 1 ? p.fmtCells : 0),
+    units: sum(p => p.type === "measure" ? p.nonNull - p.invalid : 0),
+    emails: sum(p => p.type === "email" ? p.invalid + p.emailUpper : 0),
+    categories: sum(p => p.catOff), dedupe: A.dups.exact.length, flag_near: A.dups.near.length + A.dups.coll.length,
+    blank_bad: sum(p => p.type !== "email" ? p.invalid : 0),
+    headers: P.filter(p => plan && plan.renames[p.idx] && plan.renames[p.idx] !== p.name).length
+  };
+}
+
+/* ---------- apply ---------- */
+const NOTE_EN = {
+  near: x => "possible duplicate of row " + x.row,
+  coll: x => "ID " + x.val + " also used in row " + x.row,
+  bad: x => "unreadable " + x.col + ": " + x.val,
+  email: x => "invalid email: " + x.val
+};
+function makeColFix(p, F, plan) {
+  const st = { counts: {}, ex: {}, note: null, unit: null, cur: null, p };
+  const bump = (fix, before, after) => { st.counts[fix] = (st.counts[fix] || 0) + 1; const e = st.ex[fix] || (st.ex[fix] = []); if (e.length < 3 && !e.some(x => x[0] === before)) e.push([before, after]); };
+  let map = null;
+  if (F.categories && plan.clusters[p.idx]) {
+    map = new Map();
+    for (const cl of plan.clusters[p.idx]) { const canon = collapse(cl.canonical).trim(); for (const x of cl.variants) if (x.on && x.v !== canon) map.set(x.v, canon); }
+  }
+  const isNum = p.type === "number" || p.type === "integer";
+  const multiCur = p.currencies.size > 1;
+  if (p.type === "measure" && F.units) st.unit = p.domUnit;
+  if (isNum && p.currencies.size === 1 && F.numbers) st.cur = [...p.currencies.keys()][0];
+  const domF = p.type === "measure" ? UNIT_CANON[p.domUnit][1] : 1;
+  const bad = (v, tv) => { if (F.blank_bad) { bump("blank_bad", v, ""); st.note = { k: "bad", col: p.name.trim(), val: tv }; return ""; } return v; };
+  st.fn = v0 => {
+    let v = v0 == null ? "" : v0;
+    if (v === "") return v;
+    if (F.encoding) { const x = cleanJunk(v); if (x !== v) { bump("encoding", v, x); v = x; } }
+    if (F.emoji) { const x = stripEmoji(v); if (x !== v) { bump("emoji", v, x); v = x; } }
+    if (F.trim) { const x = collapse(v).trim(); if (x !== v) { bump("trim", v, x); v = x; } }
+    const tv = collapse(v).trim();
+    if (NULL_SET.has(tv.toLowerCase())) { if (F.nulls && v !== "") { bump("nulls", v, ""); v = ""; } return v; }
+    if ((p.type === "date" || p.type === "datetime") && F.dates) {
+      const pd = parseDate(tv); const iso = pd && resolveDate(pd, p.dayFirst);
+      if (!iso) return bad(v, tv);
+      if (iso !== v) { bump("dates", v, iso); v = iso; }
+      return v;
+    }
+    if (p.type === "measure" && F.units) {
+      const ln = parseNumberish(tv);
+      if (!ln) return bad(v, tv);
+      let x = ln.value;
+      if (ln.unit) { const u = UNIT_CANON[ln.unit]; if (u[0] !== p.dim) return bad(v, tv); x = x * u[1] / domF; }
+      const out = numStr(x, 4);
+      if (out !== v) { bump("units", v, out); v = out; }
+      return v;
+    }
+    if (isNum && F.numbers && !multiCur) {
+      if (RE_NUM.test(tv)) return v;
+      const ln = parseNumberish(tv);
+      if (!ln || ln.unit) return bad(v, tv);
+      const out = numStr(ln.value);
+      if (out !== v) { bump("numbers", v, out); v = out; }
+      return v;
+    }
+    if (p.type === "email" && F.emails) {
+      const x = tv.toLowerCase();
+      if (!RE_EMAIL.test(x)) { bump("emails", v, ""); st.note = { k: "email", val: tv }; return ""; }
+      if (x !== v) { bump("emails", v, x); v = x; }
+      return v;
+    }
+    if (map) { const m = map.get(tv); if (m !== undefined && m !== v) { bump("categories", v, m); v = m; } }
+    return v;
+  };
+  return st;
+}
+async function applyFixes(T, A, plan, onProgress, noteFmt) {
+  noteFmt = noteFmt || NOTE_EN;
+  const F = plan.fixes, P = A.profiles, H = T.headers, R = T.rows;
+  const log = [];
+  let keep = P.filter(p => p.role !== "meta").map(p => p.idx);
+  if (F.drop_empty) {
+    for (const c of keep) if (P[c].type === "empty") log.push({ fix: "drop_empty", col: H[c], count: 1, examples: [] });
+    keep = keep.filter(c => P[c].type !== "empty");
+  }
+  const ctx = keep.map(c => makeColFix(P[c], F, plan));
+  const rows = [], origRow = [], notes = [], removed = [];
+  const exactSeen = new Map();
+  for (let r = 0; r < R.length; r++) {
+    const src = R[r], row = new Array(keep.length);
+    let rn = null;
+    for (let j = 0; j < keep.length; j++) {
+      row[j] = ctx[j].fn(src[keep[j]]);
+      if (ctx[j].note) { (rn || (rn = [])).push(ctx[j].note); ctx[j].note = null; }
+    }
+    if (F.dedupe) {
+      const k = row.join(SEP);
+      if (exactSeen.has(k)) { removed.push([r, exactSeen.get(k)]); continue; }
+      exactSeen.set(k, r);
+    }
+    rows.push(row); origRow.push(r); notes.push(rn);
+    if (onProgress && r % 4000 === 3999) { onProgress(r / R.length * 0.9); await tick(); }
+  }
+  const usedNames = new Set();
+  const headers = keep.map((c, j) => {
+    let h = F.headers ? (plan.renames[c] || H[c]) : (F.trim ? collapse(H[c]).trim() : H[c]);
+    if (!String(h).trim()) h = "column_" + (c + 1);
+    let base = h, i = 2; while (usedNames.has(h)) h = base + "_" + i++;
+    usedNames.add(h);
+    return h;
+  });
+  if (F.flag_near) {
+    const idJ = keep.map((c, j) => P[c].role === "id" ? j : -1).filter(j => j >= 0);
+    const nearJ = keep.map((c, j) => P[c].role !== "id" ? j : -1).filter(j => j >= 0);
+    const nearSeen = new Map(), idSeen = idJ.map(() => new Map());
+    let nearN = 0, collN = 0; const nearEx = [], collEx = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      let nk = "", any = false;
+      for (const j of nearJ) { const v = row[j]; let s = ""; if (!isNullish(v)) { s = collapse(v).trim().toLowerCase(); any = true; } nk += s + SEP; }
+      if (any) {
+        if (nearSeen.has(nk)) { const f = nearSeen.get(nk); (notes[i] || (notes[i] = [])).push({ k: "near", row: f + 1 }); nearN++; if (nearEx.length < 3) nearEx.push(["#" + (i + 1), "≈ #" + (f + 1)]); }
+        else nearSeen.set(nk, i);
+      }
+      idJ.forEach((j, t) => {
+        const v = row[j]; if (isNullish(v)) return;
+        const m = idSeen[t];
+        if (m.has(v)) { const f = m.get(v); (notes[i] || (notes[i] = [])).push({ k: "coll", val: v, row: f + 1 }); if (!notes[f] || !notes[f].some(x => x.k === "coll" && x.val === v)) (notes[f] || (notes[f] = [])).push({ k: "coll", val: v, row: i + 1 }); collN++; if (collEx.length < 3) collEx.push([v, "#" + (f + 1) + ", #" + (i + 1)]); }
+        else m.set(v, i);
+      });
+    }
+    if (nearN) log.push({ fix: "flag_near", sub: "near", col: null, count: nearN, examples: nearEx });
+    if (collN) log.push({ fix: "flag_near", sub: "coll", col: null, count: collN, examples: collEx });
+  }
+  ctx.forEach((st, j) => {
+    for (const f of FIX_ORDER) if (st.counts[f]) log.push({ fix: f, col: headers[j], count: st.counts[f], examples: st.ex[f] || [] });
+  });
+  if (removed.length) log.push({ fix: "dedupe", col: null, count: removed.length, examples: removed.slice(0, 3).map(([r, f]) => ["#" + (r + 1), "= #" + (f + 1)]) });
+  if (F.headers || F.trim) keep.forEach((c, j) => { if (headers[j] !== H[c]) log.push({ fix: "headers", col: headers[j], count: 1, examples: [[H[c], headers[j]]] }); });
+  log.sort((a, b) => FIX_ORDER.indexOf(a.fix) - FIX_ORDER.indexOf(b.fix));
+  const outHeaders = headers.slice(), origCol = keep.slice();
+  const anyNotes = notes.some(x => x && x.length);
+  if (anyNotes) {
+    outHeaders.push("_review_flag"); origCol.push(-1);
+    for (let i = 0; i < rows.length; i++) rows[i].push(notes[i] ? notes[i].map(x => noteFmt[x.k](x)).join("; ") : "");
+  }
+  const units = {};
+  ctx.forEach((st, j) => { if (st.unit) units[outHeaders[j]] = st.unit; else if (st.cur) units[outHeaders[j]] = st.cur; else if (st.p.type === "measure") units[outHeaders[j]] = "(" + [...st.p.units.keys()].join("/") + ")"; });
+  if (onProgress) onProgress(1);
+  return { headers: outHeaders, rows, origRow, origCol, log, removed, units, flagCol: anyNotes ? outHeaders.length - 1 : -1 };
+}
+
+/* ---------- dictionary ---------- */
+function dictType(p) {
+  if (!p) return "string";
+  if (p.role === "id") return "id";
+  return ({ integer: "integer", number: "number", measure: "number", date: "date", datetime: "datetime", email: "email", boolean: "boolean", category: "category", text: "string", empty: "string" })[p.type] || "string";
+}
+function jsonSchemaFor(dict, title) {
+  const props = {}, required = [];
+  for (const d of dict) {
+    const s = {};
+    const base = ({ integer: "integer", number: "number" })[d.type] || "string";
+    s.type = d.nullPct > 0 ? [base, "null"] : base;
+    if (d.type === "date") s.format = "date";
+    if (d.type === "datetime") s.format = "date-time";
+    if (d.type === "email") s.format = "email";
+    if (d.desc) s.description = d.desc;
+    const allowed = String(d.allowed || "").split(/\s*[,;|]\s*/).filter(Boolean);
+    if (allowed.length && (d.type === "category" || d.type === "boolean")) s.enum = d.nullPct > 0 ? allowed.concat([null]) : allowed;
+    if (d.unit) s["x-unit"] = d.unit;
+    if (d.min != null && (d.type === "integer" || d.type === "number")) { s.minimum = d.min; s.maximum = d.max; }
+    props[d.name] = s;
+    if (!(d.nullPct > 0)) required.push(d.name);
+  }
+  return { "$schema": "https://json-schema.org/draft/2020-12/schema", title, type: "array", items: { type: "object", properties: props, required, additionalProperties: false } };
+}
+
+/* ---------- synthetic messy sample ---------- */
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function makeSample(n, seed) {
+  n = n || 120;
+  const rnd = mulberry32(seed || 20241026);
+  const pick = a => a[Math.floor(rnd() * a.length)], chance = p => rnd() < p;
+  const FN = ["James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Daniel", "Karen", "Matthew", "Nancy", "Anthony", "Lisa", "Mark", "Priya", "Wei", "Carlos", "Aisha", "Diego", "Mei", "Omar", "Sofia", "Kenji", "Fatima", "Lucas", "Chloe", "Noah", "Ava", "Zoe"];
+  const LN = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Lopez", "Wilson", "Anderson", "Taylor", "Moore", "Jackson", "Lee", "Perez", "Thompson", "White", "Harris", "Clark", "Lewis", "Robinson", "Nguyen", "Patel", "Kim", "Chen", "Okafor", "Silva"];
+  const STATES = [["California", "California", "California", "California", "CA", "CA", "Calif.", "california", "CALIFORNIA"], ["New York", "New York", "New York", "NY", "new york", "N.Y."], ["Texas", "Texas", "Texas", "TX", "texas"], ["Washington", "Washington", "WA", "Wash."], ["Illinois", "Illinois", "IL", "Ill."], ["Florida", "Florida", "FL", "florida"]];
+  const STATUS = ["Shipped", "Shipped", "Shipped", "Shipped", "shipped", "SHIPPED", "Shipped ", "Delivered", "Delivered", "Delivered", "Delivered", "delivered", "Delivred", "Pending", "Pending", "pending ", "Cancelled", "Cancelled", "Canceled", "cancelled", "Returned"];
+  const NOTES = ["Leave at door 📦", "CafÃ© pickup", "Customerâ€™s gift order", "VIP ⭐", "Call​ before delivery", "Repeat buyer", "Gift wrap 🎁 please", "Prefers email contact", "Fragile — handle with care", "Ship with invoice"];
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const nulls = ["N/A", "-", "", "null", "n/a"];
+  const fmtDate = (y, m, d) => {
+    const r = rnd();
+    if (r < 0.4) return y + "-" + pad2(m) + "-" + pad2(d);
+    if (r < 0.65) return pad2(m) + "/" + pad2(d) + "/" + y;
+    if (r < 0.8) return MONL[m - 1] + " " + d + ", " + y;
+    if (r < 0.9) return d + "-" + MON[m - 1] + "-" + y;
+    return y + "/" + pad2(m) + "/" + pad2(d);
+  };
+  const fmtOrder = (y, m, d, h, mi) => {
+    const r = rnd();
+    if (r < 0.45) return y + "-" + pad2(m) + "-" + pad2(d) + "T" + pad2(h) + ":" + pad2(mi) + ":00";
+    if (r < 0.75) return y + "-" + pad2(m) + "-" + pad2(d) + " " + pad2(h) + ":" + pad2(mi);
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return pad2(m) + "/" + pad2(d) + "/" + y + " " + h12 + ":" + pad2(mi) + " " + (h < 12 ? "AM" : "PM");
+  };
+  const money = v => {
+    const r = rnd(); const s2 = v.toFixed(2);
+    const withCommas = s2.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (r < 0.4) return "$" + withCommas;
+    if (r < 0.7) return String(+v.toFixed(2));
+    if (r < 0.8) return "USD " + s2;
+    if (r < 0.9) return withCommas;
+    if (r < 0.95) return "$ " + s2 + " ";
+    return "(" + s2 + ")";
+  };
+  const weight = () => {
+    const kg = 0.2 + rnd() * 12; const r = rnd();
+    if (r < 0.45) return (+kg.toFixed(1)) + (chance(0.5) ? " kg" : "kg");
+    if (r < 0.7) return (+(kg / 0.45359237).toFixed(1)) + (chance(0.5) ? " lbs" : " lb");
+    if (r < 0.85) return Math.round(kg * 1000) + " g";
+    if (r < 0.92) return Math.round(kg / 0.0283495) + " oz";
+    return (+kg.toFixed(1)) + " KG";
+  };
+  const base = [];
+  for (let i = 0; i < n; i++) {
+    const f = pick(FN), l = pick(LN);
+    let name = f + " " + l;
+    if (chance(0.04)) name = f + "  " + l; else if (chance(0.04)) name = name + " ";
+    const dom = pick(["example.com", "example.net", "example.org", "mail.example.com"]);
+    let email = (f + "." + l).toLowerCase() + (chance(0.3) ? Math.floor(rnd() * 90 + 10) : "") + "@" + dom;
+    const er = rnd();
+    if (er < 0.025) email = (f + "." + l).toLowerCase() + "@";
+    else if (er < 0.045) email = (f + "." + l).toLowerCase() + "(at)" + dom;
+    else if (er < 0.06) email = f.toLowerCase() + "@example";
+    else if (er < 0.09) email = pick(nulls);
+    else if (er < 0.14) email = email.replace(/^./, c => c.toUpperCase()).replace(/@.*/, m => m.toUpperCase());
+    const sy = 2022 + Math.floor(rnd() * 3), sm = 1 + Math.floor(rnd() * 12), sd = 1 + Math.floor(rnd() * 28);
+    let signup = fmtDate(sy, sm, sd);
+    if (chance(0.03)) signup = pick(["", "N/A", "TBD"]);
+    const st = pick(STATES); let state = chance(0.05) ? pick(nulls) : pick(st);
+    if (chance(0.05)) state = state + " ";
+    let amount = money(5 + rnd() * 2400); if (chance(0.03)) amount = pick(["N/A", "-", ""]);
+    let wt = weight(); if (chance(0.03)) wt = pick(["", "-"]);
+    const oy = 2024, om = 1 + Math.floor(rnd() * 12), od = 1 + Math.floor(rnd() * 28);
+    let order = fmtOrder(oy, om, od, Math.floor(rnd() * 24), Math.floor(rnd() * 60));
+    let qty = String(1 + Math.floor(rnd() * 5)); const qr = rnd();
+    if (qr < 0.02) qty = "two"; else if (qr < 0.06) qty = " " + qty + " "; else if (qr < 0.09) qty = "-";
+    const note = chance(0.22) ? pick(NOTES) : (chance(0.1) ? "N/A" : "");
+    const fax = chance(0.06) ? pick(["N/A", "-", "  "]) : "";
+    base.push(["C" + (10001 + i), name, email, signup, state, amount, wt, pick(STATUS), order, qty, note, fax]);
+  }
+  // ID collisions: a few different people reuse an existing ID
+  const nColl = Math.max(3, Math.round(n * 0.012));
+  for (let k = 0; k < nColl; k++) { const a = Math.floor(rnd() * n), b = Math.floor(rnd() * n); if (a !== b) base[b][0] = base[a][0]; }
+  const out = base.slice();
+  const nNear = Math.max(5, Math.round(n * 0.03));
+  for (let k = 0; k < nNear; k++) {
+    const src = base[Math.floor(rnd() * n)].slice();
+    const r = rnd();
+    if (r < 0.35) src[1] = src[1].toLowerCase(); else if (r < 0.7) src[1] = " " + src[1].toUpperCase(); else src[1] = src[1].replace(" ", "  ") + " ";
+    if (src[2].indexOf("@") > 0 && chance(0.5)) src[2] = src[2].toUpperCase();
+    if (chance(0.7)) src[0] = "C" + (20001 + k);
+    out.splice(Math.floor(rnd() * out.length), 0, src);
+  }
+  const nExact = Math.max(6, Math.round(n * 0.045));
+  for (let k = 0; k < nExact; k++) out.splice(Math.floor(rnd() * out.length), 0, base[Math.floor(rnd() * n)].slice());
+  const header = ["Customer ID", "Name ", "email", "Signup Date", "State", "col3", "val", "Status", "Order Date", "Qty", "notes", "Fax"];
+  return toCSV(header, out);
+}
+// ==CORE END==
+
+/* =================================================================== */
+/* UI                                                                   */
+/* =================================================================== */
+const I18N = {
+  en: {
+    brand: "Tidy", brandLine: "Enterprise data, folded neatly for AI agents",
+    privacy: "Your data never leaves your browser.", privacySub: "Everything happens on this page — no uploads, no servers. It even works offline.",
+    footLeft: "Tidy · a quiet place to clean up data before an agent touches it", footRight: "Processed locally in your browser",
+    step1: "Gather", step2: "Look at each column", step3: "Thank & let go", step4: "Put away",
+    g_num: "I · GATHER", g_title: "Bring it all into one place.", g_sub: "Lay the whole spreadsheet out in front of you. We'll go through it slowly, one column at a time, and ask a simple question: would an AI agent understand this?",
+    basketTitle: "Set a file down here", basketSub: "CSV, TSV or JSON (an array of objects). Commas, semicolons, tabs and pipes are detected for you.", basketBtn: "Choose a file",
+    pasteLabel: "Or paste rows", pastePh: "customer_id,name,signup_date\nC001,Ada Park,2024-03-05\n…", pasteBtn: "Look at what I pasted",
+    sampleText: "No file handy? Start with a deliberately cluttered customer-orders table: mixed dates, “N/A” everywhere, duplicate rows, “CA / Calif. / california”, prices stored as text, mixed units, vague headers, broken emails, an empty column and a little emoji confetti.",
+    sampleBtn: "Open the cluttered sample", stressBtn: "Try 50,000 rows",
+    l_num: "II · LOOK AT EACH COLUMN", l_title: "Hold each column. Would an agent understand it?", l_sub: "An agent reads your data literally. It can't ask what “col3” means or whether 03/05 is March or May. Turn through the columns; each one tells you what it is and what's in the way.",
+    readiness: "Agent-readiness", outOf: "of 100",
+    verdict4: "Calm and orderly. An agent can work with this as it is.", verdict3: "Mostly in order. An agent will stumble in a few places.", verdict2: "Cluttered. An agent will misread parts of this.", verdict1: "Not ready yet. An agent would be guessing.",
+    sc_completeness: "Completeness", sc_consistency: "Consistency", sc_uniqueness: "Uniqueness", sc_validity: "Validity", sc_schema: "Self-describing schema",
+    scd_completeness: "How much is actually filled in", scd_consistency: "One way of writing each thing", scd_uniqueness: "Each record appears once", scd_validity: "Values match what the column claims to hold", scd_schema: "Headers and types explain themselves",
+    dsMeta: "{rows} rows · {cols} columns · {name}",
+    leafCount: "Column {i} of {n}", leafQ: "Does this column make sense to an agent?",
+    ans_yes: "Yes, it reads clearly", ans_mid: "Almost. A few things to fold", ans_no: "Not yet. It would be guessing",
+    f_kind: "Looks like", f_missing: "Missing", f_distinct: "Distinct",
+    topVals: "Most common", noNotes: "Nothing in the way here. A well-kept column.", suggestedName: "Will be labeled",
+    prev: "← Previous", next: "Next column →", toLetGo: "Continue to letting go →",
+    wholeList: "Everything we noticed ({n})", tableLevel: "Across the whole table",
+    rawPeek: "See the raw rows as they arrived", firstRows: "First {n} rows",
+    why: "Why an agent stumbles:",
+    t_integer: "Whole number", t_number: "Number", t_measure: "Measurement", t_date: "Date", t_datetime: "Date & time", t_email: "Email", t_boolean: "Yes / no", t_category: "Category", t_text: "Text", t_empty: "Empty", t_id: "Identifier",
+    sev_high: "heavy", sev_medium: "moderate", sev_low: "light",
+    u_cell: "{n} cells", u_row: "{n} rows", u_col: "{n} columns", u_cell1: "1 cell", u_row1: "1 row", u_col1: "1 column",
+    i_blank_header_t: "Column has no name", i_blank_header_w: "An agent picks fields by name. A nameless column is invisible to it, or gets an arbitrary label it will misuse.",
+    i_vague_header_t: "The name doesn't say what's inside", i_vague_header_w: "Agents choose columns by reading headers. “col3” or “val” forces a guess, and a confident wrong guess is worse than no answer.",
+    i_dup_header_t: "Two columns share a name", i_dup_header_w: "When two fields have the same name, code and agents silently keep one and drop the other.",
+    i_header_ws_t: "Stray spaces in the column name", i_header_ws_w: "“Name ” and “Name” are different keys. An agent writing a query or tool call will miss the field and conclude it doesn't exist.",
+    i_header_style_t: "Column names follow different styles", i_header_style_w: "Mixed styles (“Customer ID”, “email”, “Signup Date”) make field names hard to predict. Agents generate code against names; predictable snake_case avoids misses.",
+    i_empty_column_t: "Completely empty column", i_empty_column_w: "A field that exists but never holds data invites the agent to treat it as meaningful, or to report that data is “missing upstream”.",
+    i_null_tokens_t: "“Unknown” is written several ways", i_null_tokens_w: "“N/A”, “-”, “null” and blanks all mean nothing is known, but an agent reads them as literal text: “N/A” becomes a category, and a number column stops being numeric.",
+    i_missing_t: "Many values are missing", i_missing_w: "Gaps are fine when they're expected. Undocumented gaps lead agents to treat absence as zero or as “no”.",
+    i_whitespace_t: "Hidden spaces around values", i_whitespace_w: "“Shipped” and “Shipped ” look the same to you but are different values to an agent. Filters and joins quietly skip rows.",
+    i_dates_t: "Dates written in different formats", i_dates_w: "Is 03/05/2024 March 5 or May 3? An agent can't ask. ISO 8601 (2024-03-05) reads the same way to every tool. Formats found: {formats}.",
+    i_num_text_t: "Numbers stored as text", i_num_text_w: "“$1,234.50” is a string, not a number. An agent doing math will error out or, worse, sort and compare it as text.",
+    i_mixed_currency_t: "Several currencies in one column", i_mixed_currency_w: "Adding dollars to euros gives a meaningless total. This needs a human decision; it won't be auto-converted.",
+    i_units_t: "Units are written inside the values", i_units_w: "Summing “2 kg” and “3 lbs” produces nonsense. The unit belongs in the column name and dictionary, with one unit for the whole column. Units found: {units}.",
+    i_variants_t: "One category, spelled several ways", i_variants_w: "“CA”, “Calif.” and “california” split one group into three. Ask an agent how many customers are in California and it will undercount.",
+    i_bad_email_t: "Emails that can't receive mail", i_bad_email_w: "An agent that sends, matches or deduplicates by email will fail, or quietly reach the wrong person.",
+    i_email_case_t: "Emails in mixed case", i_email_case_w: "Mixed-case copies of the same address look like different people when an agent matches records.",
+    i_off_type_t: "Values that don't fit the column", i_off_type_w: "A single “two” or “TBD” in a numeric or date column can make an agent treat the whole column as text.",
+    i_junk_t: "Garbled or invisible characters", i_junk_w: "Mis-decoded text (“CafÃ©”) and zero-width characters break search and exact matching. The agent sees a word that isn't quite the word.",
+    i_emoji_t: "Emoji inside data values", i_emoji_w: "Emoji add noise when an agent classifies, quotes or matches text. Keep meaning in words.",
+    i_exact_dups_t: "Exact duplicate rows", i_exact_dups_w: "Every duplicate inflates the counts, sums and averages an agent reports back to you.",
+    i_near_dups_t: "Rows that are probably the same record", i_near_dups_w: "The same customer entered twice with small differences in case or spacing. An agent treats them as two people. A human should confirm.",
+    i_id_collision_t: "Different records share an ID", i_id_collision_w: "IDs are how agents link records across tables. When two records share one, every lookup and join becomes a coin flip.",
+    i_ragged_t: "Rows with the wrong number of fields", i_ragged_w: "Shifted rows put values under the wrong headers, so the agent reads a price as a date. These rows were padded so nothing is lost.",
+    x_num: "III · THANK & LET GO", x_title: "Thank the clutter, then let it go.", x_sub: "Each gesture below is a small, reversible fold. Keep what serves the agent, release what confuses it, and watch the readiness rise.",
+    gestures: "Gestures", gesturesSub: "Uncheck anything you'd rather keep as it is.",
+    fx_encoding: "Mend garbled text and remove invisible characters", fxd_encoding: "Repairs “CafÃ©” → “Café”, removes zero-width and control characters.",
+    fx_emoji: "Remove emoji from values", fxd_emoji: "Keeps the words, sets the pictures aside.",
+    fx_trim: "Trim and collapse whitespace", fxd_trim: "Removes leading, trailing and doubled spaces in values and headers.",
+    fx_nulls: "Write “unknown” one way", fxd_nulls: "Turns “N/A”, “-”, “null” and spaces into a true empty value.",
+    fx_drop_empty: "Let go of empty columns", fxd_drop_empty: "Removes columns that never hold any data.",
+    fx_dates: "Standardize dates to ISO 8601", fxd_dates: "YYYY-MM-DD (with time as YYYY-MM-DDThh:mm:ss). Day/month order is inferred from the column.",
+    fx_numbers: "Store numbers as numbers", fxd_numbers: "Strips currency symbols and thousands separators; the currency moves into the column name and dictionary.",
+    fx_units: "One unit per column", fxd_units: "Converts mixed units (kg, lb, g, oz…) to the column's most common unit and moves the unit into the name.",
+    fx_emails: "Tidy email addresses", fxd_emails: "Lowercases addresses; invalid ones are cleared and noted in a review column.",
+    fx_categories: "Unify category spellings", fxd_categories: "Merges the groups you confirm below into one spelling.",
+    fx_dedupe: "Let go of exact duplicates", fxd_dedupe: "Keeps the first copy of each identical row (checked after the folds above).",
+    fx_flag_near: "Mark likely duplicates and ID conflicts", fxd_flag_near: "Doesn't delete anything. Adds a _review_flag column so a person can decide.",
+    fx_blank_bad: "Clear values that don't fit their column", fxd_blank_bad: "Off by default. Clears values like “TBD” in a date column and records the original in _review_flag.",
+    fx_headers: "Give every column a clear label", fxd_headers: "Uses the names you approve below (snake_case, units included).",
+    nFound: "{n} found", nNone: "nothing to do",
+    clustersTitle: "Groups that look like the same thing", clustersSub: "Fuzzy matching on case, punctuation, abbreviations and small typos. Uncheck anything that isn't the same, and edit the label to keep.",
+    keepAs: "Keep as", inColumn: "in",
+    namesTitle: "Labels for each column", namesSub: "Suggested from the name and the contents. Edit freely; these names go into the clean file and the dictionary.",
+    applyBtn: "Fold it clean", reapplyBtn: "Fold again with my choices", pending: "You changed some choices. Fold again to see the result.",
+    beforeAfter: "Before and after", afterLbl: "after", beforeLbl: "before",
+    previewTitle: "The folded table", previewSub: "Changed cells are highlighted; the original is shown faintly underneath. Showing the first {n} of {total} rows.",
+    onlyChanged: "Only rows that changed", letGoRows: "{n} duplicate rows let go", toPutAway: "Continue to putting away →",
+    p_num: "IV · PUT AWAY", p_title: "Put everything away, labeled.", p_sub: "A clean file is only half of it. The labels are what let an agent know what it's holding: what each column means, its type, its unit, and which values are allowed.",
+    dr_csv: "The clean file", drd_csv: "{rows} rows, {cols} columns, UTF-8 CSV.", dr_md: "The label book", drd_md: "A data dictionary in Markdown to paste into an agent's instructions or your docs.",
+    dr_json: "The shape", drd_json: "JSON Schema (2020-12) so tools can validate rows before using them.", dr_log: "The notebook", drd_log: "A cleaning log: every change, how many cells, and examples.",
+    download: "Save", copyMd: "Copy label book", copied: "Copied to clipboard", saved: "Saved {name}",
+    ledgerTitle: "Write the labels", ledgerSub: "Descriptions are drafted for you. Add the business meaning only you know: what a row represents, where it comes from, what counts as “Delivered”.",
+    lc_name: "Column", lc_type: "Type", lc_desc: "Description", lc_allowed: "Allowed values", lc_unit: "Unit", lc_missing: "Missing",
+    mdPeek: "Label book preview",
+    d_id: "Unique identifier for each record.", d_date: "Date in ISO 8601 format (YYYY-MM-DD).", d_datetime: "Date and time in ISO 8601 format (YYYY-MM-DDThh:mm:ss).", d_range: "Range: {min} to {max}.",
+    d_number: "Numeric value.", d_unit: "Measured in {unit}.", d_cur: "Amount in {unit}.", d_category: "Category with {n} allowed values.", d_email: "Email address, lowercase.", d_boolean: "Yes/no flag.", d_text: "Free text.", d_flag: "Added during cleaning: notes for a human reviewer (possible duplicates, shared IDs, invalid values). Empty means nothing to check.",
+    d_fill: "Add what this means for the business.",
+    busyRead: "Reading the file…", busyParse: "Laying out the rows…", busyAudit: "Looking at each column…", busyFix: "Folding…", busyDone: "Done",
+    errEmpty: "Nothing to read there. Paste some rows or choose a file.", errParse: "Couldn't read that: {msg}",
+    big: "Large file ({mb} MB). This may take a moment.",
+    logTitle: "Cleaning log", logSource: "Source", logOutput: "Output", logScore: "Agent-readiness", logSteps: "What was done", logNone: "No changes were needed.", logRows: "rows", logCols: "columns", logCells: "cells", logEg: "e.g.",
+    logNear: "likely duplicate rows marked for review", logColl: "rows marked for shared IDs",
+    mdTitle: "Data dictionary", mdGen: "Generated {date} with Tidy, entirely in the browser.", mdShape: "{rows} rows × {cols} columns. Agent-readiness: {score}/100.",
+    mdHow: "How to use this with an AI agent: paste this file into the agent's instructions, together with the CSV."
+  },
+  zh: {
+    brand: "整理", brandLine: "把企业数据叠整齐，交给 AI 智能体",
+    privacy: "数据不会离开你的浏览器。", privacySub: "所有处理都在本页面完成：不上传、不经服务器，断网也能用。",
+    footLeft: "整理 · 在智能体接手之前，安静地收拾好数据", footRight: "全部在你的浏览器本地处理",
+    step1: "归拢", step2: "逐列端详", step3: "感谢并放手", step4: "归位收纳",
+    g_num: "一 · 归拢", g_title: "先把所有东西摆到一处。", g_sub: "把整张表摊开在面前。我们一列一列慢慢看，只问一个问题：AI 智能体看得懂吗？",
+    basketTitle: "把文件放在这里", basketSub: "支持 CSV、TSV 或 JSON（对象数组）。逗号、分号、制表符、竖线分隔会自动识别。", basketBtn: "选择文件",
+    pasteLabel: "或者直接粘贴", pastePh: "customer_id,name,signup_date\nC001,Ada Park,2024-03-05\n…", pasteBtn: "看看我粘贴的数据",
+    sampleText: "手边没有文件？先用一张刻意弄乱的客户订单表：日期格式五花八门、到处是“N/A”、重复行、“CA / Calif. / california”、价格存成文本、单位混用、表头含糊、邮箱写错、整列为空，还撒了点表情符号。",
+    sampleBtn: "打开这张乱表", stressBtn: "试试 5 万行",
+    l_num: "二 · 逐列端详", l_title: "拿起每一列：智能体看得懂吗？", l_sub: "智能体只会按字面读数据。它没法问“col3”是什么，也没法问 03/05 是三月还是五月。一列一列翻过去，每一列都会告诉你它是什么、哪里碍事。",
+    readiness: "智能体就绪度", outOf: "满分 100",
+    verdict4: "井井有条，智能体可以直接上手。", verdict3: "大体整齐，智能体会在几处绊一下。", verdict2: "有点乱，智能体会读错其中一部分。", verdict1: "还没准备好，智能体只能靠猜。",
+    sc_completeness: "完整性", sc_consistency: "一致性", sc_uniqueness: "唯一性", sc_validity: "有效性", sc_schema: "自描述结构",
+    scd_completeness: "真正填了多少", scd_consistency: "同一件事只有一种写法", scd_uniqueness: "每条记录只出现一次", scd_validity: "值与列的类型相符", scd_schema: "表头和类型能自我说明",
+    dsMeta: "{rows} 行 · {cols} 列 · {name}",
+    leafCount: "第 {i} 列，共 {n} 列", leafQ: "这一列，智能体看得懂吗？",
+    ans_yes: "看得懂，很清楚", ans_mid: "差一点，还有几处要叠好", ans_no: "还不行，只能靠猜",
+    f_kind: "看起来是", f_missing: "缺失", f_distinct: "不同值",
+    topVals: "最常见的值", noNotes: "这里没有碍事的东西，是一列打理得很好的数据。", suggestedName: "将标注为",
+    prev: "← 上一列", next: "下一列 →", toLetGo: "继续：感谢并放手 →",
+    wholeList: "我们注意到的全部问题（{n}）", tableLevel: "整张表层面",
+    rawPeek: "看看原始数据", firstRows: "前 {n} 行",
+    why: "为什么会难倒智能体：",
+    t_integer: "整数", t_number: "数值", t_measure: "带单位的量", t_date: "日期", t_datetime: "日期时间", t_email: "邮箱", t_boolean: "是 / 否", t_category: "类别", t_text: "文本", t_empty: "空列", t_id: "标识符",
+    sev_high: "严重", sev_medium: "中等", sev_low: "轻微",
+    u_cell: "{n} 个单元格", u_row: "{n} 行", u_col: "{n} 列", u_cell1: "1 个单元格", u_row1: "1 行", u_col1: "1 列",
+    i_blank_header_t: "这一列没有名字", i_blank_header_w: "智能体靠列名挑字段。没有名字的列对它来说等于不存在，或者会被随便安一个名字然后用错。",
+    i_vague_header_t: "列名看不出里面装的是什么", i_vague_header_w: "智能体通过读表头来选列。“col3”“val”这种名字逼它去猜，而自信地猜错比不回答更糟。",
+    i_dup_header_t: "两列同名", i_dup_header_w: "两个字段同名时，程序和智能体往往只保留一个，另一个被悄悄丢掉。",
+    i_header_ws_t: "列名里有多余空格", i_header_ws_w: "“Name ”和“Name”是两个不同的键。智能体写查询或调用工具时会找不到这个字段，以为它不存在。",
+    i_header_style_t: "列名风格不统一", i_header_style_w: "“Customer ID”“email”“Signup Date”混在一起，字段名就很难预测。智能体按名字写代码，统一的 snake_case 能少出错。",
+    i_empty_column_t: "整列都是空的", i_empty_column_w: "一个存在却从不装数据的字段，会让智能体以为它有意义，或者报告“上游数据缺失”。",
+    i_null_tokens_t: "“未知”有好几种写法", i_null_tokens_w: "“N/A”“-”“null”和空白都表示不知道，但智能体会按字面理解：“N/A”变成了一个类别，数字列也不再是数字。",
+    i_missing_t: "缺失值很多", i_missing_w: "可预期的空缺没问题。没有说明的空缺，会让智能体把“没有”当成 0 或“否”。",
+    i_whitespace_t: "值的前后藏着空格", i_whitespace_w: "在你看来“Shipped”和“Shipped ”一样，在智能体看来却是两个值。筛选和关联会悄悄漏掉行。",
+    i_dates_t: "日期写法不统一", i_dates_w: "03/05/2024 是 3 月 5 日还是 5 月 3 日？智能体没法问。ISO 8601（2024-03-05）在所有工具里含义都一样。发现的格式：{formats}。",
+    i_num_text_t: "数字被存成了文本", i_num_text_w: "“$1,234.50”是字符串，不是数字。智能体做计算时要么报错，要么更糟：按文本去排序和比较。",
+    i_mixed_currency_t: "同一列里有多种货币", i_mixed_currency_w: "美元加欧元得到的总数没有意义。这需要人来决定，不会自动换算。",
+    i_units_t: "单位写在了值里", i_units_w: "把“2 kg”和“3 lbs”加在一起毫无意义。单位应该写进列名和字典，整列只用一种单位。发现的单位：{units}。",
+    i_variants_t: "同一个类别有好几种拼法", i_variants_w: "“CA”“Calif.”“california”把一组拆成了三组。问智能体加州有多少客户，它会少算。",
+    i_bad_email_t: "收不到邮件的邮箱", i_bad_email_w: "按邮箱发送、匹配或去重的智能体会失败，或者悄悄找错人。",
+    i_email_case_t: "邮箱大小写混用", i_email_case_w: "同一个地址的大小写版本，在智能体匹配记录时看起来像两个人。",
+    i_off_type_t: "与列类型不符的值", i_off_type_w: "数字或日期列里一个“two”或“TBD”，就可能让智能体把整列当成文本。",
+    i_junk_t: "乱码或看不见的字符", i_junk_w: "解码错误的文字（“CafÃ©”）和零宽字符会让搜索和精确匹配失效：智能体看到的词“差一点”就是那个词。",
+    i_emoji_t: "数据值里有表情符号", i_emoji_w: "智能体分类、引用或匹配文本时，表情符号是噪音。意思请用文字表达。",
+    i_exact_dups_t: "完全重复的行", i_exact_dups_w: "每一行重复，都会让智能体报给你的计数、总和和平均值虚高。",
+    i_near_dups_t: "很可能是同一条记录的行", i_near_dups_w: "同一个客户录了两次，只是大小写或空格不同。智能体会当成两个人，需要人来确认。",
+    i_id_collision_t: "不同记录共用一个 ID", i_id_collision_w: "智能体靠 ID 在表与表之间关联记录。两条记录共用一个 ID，每次查找和关联都像抛硬币。",
+    i_ragged_t: "字段数不对的行", i_ragged_w: "错位的行会把值放到错误的表头下，智能体可能把价格当成日期。这些行已补齐，没有丢数据。",
+    x_num: "三 · 感谢并放手", x_title: "谢谢它的陪伴，然后放下。", x_sub: "下面每个动作都是一次小小的、可撤回的折叠。留下对智能体有用的，放下让它困惑的，看着就绪度慢慢升起来。",
+    gestures: "整理动作", gesturesSub: "想保持原样的，取消勾选即可。",
+    fx_encoding: "修复乱码，去掉看不见的字符", fxd_encoding: "把“CafÃ©”修回“Café”，去掉零宽字符和控制字符。",
+    fx_emoji: "去掉值里的表情符号", fxd_emoji: "留下文字，把图案放到一边。",
+    fx_trim: "修剪并合并空白", fxd_trim: "去掉值和表头前后多余的空格，以及连续空格。",
+    fx_nulls: "“未知”只用一种写法", fxd_nulls: "把“N/A”“-”“null”和纯空格统一为真正的空值。",
+    fx_drop_empty: "放下空列", fxd_drop_empty: "删除从未有过数据的列。",
+    fx_dates: "日期统一为 ISO 8601", fxd_dates: "YYYY-MM-DD（含时间则为 YYYY-MM-DDThh:mm:ss）。日、月顺序根据整列推断。",
+    fx_numbers: "数字就存成数字", fxd_numbers: "去掉货币符号和千位分隔符；货币写进列名和字典。",
+    fx_units: "一列只用一种单位", fxd_units: "把混用的单位（kg、lb、g、oz…）换算成该列最常见的单位，并把单位写进列名。",
+    fx_emails: "整理邮箱地址", fxd_emails: "统一小写；无效的地址清空，并记在复核列里。",
+    fx_categories: "统一类别拼法", fxd_categories: "把你在下方确认的分组合并成一种写法。",
+    fx_dedupe: "放下完全重复的行", fxd_dedupe: "每组相同的行只保留第一条（在上面的折叠之后判断）。",
+    fx_flag_near: "标记疑似重复和 ID 冲突", fxd_flag_near: "不删除任何东西，只新增一列 _review_flag，交给人来决定。",
+    fx_blank_bad: "清空与列类型不符的值", fxd_blank_bad: "默认关闭。比如清空日期列里的“TBD”，原值记在 _review_flag 里。",
+    fx_headers: "给每一列贴上清楚的标签", fxd_headers: "使用你在下方确认的名字（snake_case，并带上单位）。",
+    nFound: "发现 {n} 处", nNone: "无需处理",
+    clustersTitle: "看起来是同一件东西的分组", clustersSub: "基于大小写、标点、缩写和小错字的模糊匹配。不是同一个的请取消勾选，也可以修改要保留的写法。",
+    keepAs: "保留为", inColumn: "列",
+    namesTitle: "每一列的标签", namesSub: "根据列名和内容给出的建议，可随意修改。这些名字会写进干净文件和数据字典。",
+    applyBtn: "叠整齐", reapplyBtn: "按我的选择重新叠", pending: "你改了一些选择，重新叠一次就能看到结果。",
+    beforeAfter: "整理前后", afterLbl: "之后", beforeLbl: "之前",
+    previewTitle: "叠好的表", previewSub: "改动过的单元格会高亮，下面淡淡地显示原值。显示前 {n} 行，共 {total} 行。",
+    onlyChanged: "只看有改动的行", letGoRows: "已放下 {n} 行重复数据", toPutAway: "继续：归位收纳 →",
+    p_num: "四 · 归位收纳", p_title: "贴好标签，各归其位。", p_sub: "干净的文件只是一半。标签才让智能体知道自己拿着的是什么：每列的含义、类型、单位，以及允许哪些值。",
+    dr_csv: "干净的文件", drd_csv: "{rows} 行，{cols} 列，UTF-8 CSV。", dr_md: "标签册", drd_md: "Markdown 格式的数据字典，可直接粘贴进智能体的指令或你的文档。",
+    dr_json: "数据形状", drd_json: "JSON Schema（2020-12），让工具在使用前先校验每一行。", dr_log: "整理笔记", drd_log: "整理日志：每一处改动、涉及多少单元格，以及示例。",
+    download: "保存", copyMd: "复制标签册", copied: "已复制到剪贴板", saved: "已保存 {name}",
+    ledgerTitle: "写下标签", ledgerSub: "描述已经帮你起了草稿。请补上只有你知道的业务含义：一行代表什么、数据从哪来、什么算“已送达”。",
+    lc_name: "列", lc_type: "类型", lc_desc: "描述", lc_allowed: "允许的值", lc_unit: "单位", lc_missing: "缺失",
+    mdPeek: "标签册预览",
+    d_id: "每条记录的唯一标识符。", d_date: "ISO 8601 格式的日期（YYYY-MM-DD）。", d_datetime: "ISO 8601 格式的日期时间（YYYY-MM-DDThh:mm:ss）。", d_range: "范围：{min} 至 {max}。",
+    d_number: "数值。", d_unit: "单位：{unit}。", d_cur: "金额，货币：{unit}。", d_category: "类别，共 {n} 个允许值。", d_email: "邮箱地址，小写。", d_boolean: "是/否标记。", d_text: "自由文本。", d_flag: "整理时新增：给人工复核的备注（疑似重复、共用 ID、无效值）。为空表示无需检查。",
+    d_fill: "请补充它在业务上的含义。",
+    busyRead: "正在读取文件…", busyParse: "正在摊开每一行…", busyAudit: "正在逐列端详…", busyFix: "正在折叠…", busyDone: "完成",
+    errEmpty: "这里没有可读的内容。请粘贴数据或选择文件。", errParse: "无法读取：{msg}",
+    big: "文件较大（{mb} MB），可能需要一点时间。",
+    logTitle: "整理日志", logSource: "来源", logOutput: "输出", logScore: "智能体就绪度", logSteps: "做了什么", logNone: "无需任何改动。", logRows: "行", logCols: "列", logCells: "个单元格", logEg: "例如",
+    logNear: "行疑似重复，已标记待复核", logColl: "行因共用 ID 已标记",
+    mdTitle: "数据字典", mdGen: "{date} 由“整理”生成，全程在浏览器内完成。", mdShape: "{rows} 行 × {cols} 列。智能体就绪度：{score}/100。",
+    mdHow: "如何配合 AI 智能体使用：把本文件和 CSV 一起放进智能体的指令里。"
+  }
+};
+const NOTE_ZH = {
+  near: x => "疑似与第 " + x.row + " 行重复",
+  coll: x => "ID " + x.val + " 也出现在第 " + x.row + " 行",
+  bad: x => x.col + " 无法识别：" + x.val,
+  email: x => "无效邮箱：" + x.val
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let LANG = "en";
+try { const s = localStorage.getItem("tidy-lang"); if (s === "en" || s === "zh") LANG = s; else if ((navigator.language || "").toLowerCase().startsWith("zh")) LANG = "zh"; } catch (e) { }
+function t(k, v) {
+  let s = I18N[LANG][k]; if (s == null) s = I18N.en[k]; if (s == null) s = k;
+  if (v) s = s.replace(/\{(\w+)\}/g, (m, n) => v[n] != null ? v[n] : m);
+  return s;
+}
+const fmtN = n => Number(n).toLocaleString(LANG === "zh" ? "zh-Hans" : "en");
+const unitTxt = (u, n) => n === 1 ? t("u_" + u + "1") : t("u_" + u, { n: fmtN(n) });
+const typeName = p => p.role === "id" ? t("t_id") : t("t_" + p.type);
+const level = s => s >= 80 ? "" : s >= 55 ? "mid" : "low";
+
+const S = { step: "gather", reached: { gather: true }, raw: null, name: "", audit: null, plan: null, result: null, after: null, dict: null, dictEdits: {}, pending: false, leaf: 0, leafDir: "", onlyChanged: false, foldAnim: false };
+const STEPS = ["gather", "look", "letgo", "putaway"];
+
+/* ---------- shell ---------- */
+function applyStatic() {
+  document.documentElement.lang = LANG === "zh" ? "zh-Hans" : "en";
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === LANG)));
+  document.title = LANG === "zh" ? "整理 · 数据断舍离" : "Tidy Data Ritual";
+}
+function renderPath() {
+  const nav = $("#path");
+  nav.innerHTML = STEPS.map((s, i) => {
+    const here = S.step === s, walked = STEPS.indexOf(S.step) > i, can = S.reached[s];
+    return `<button class="waypoint ${here ? "here" : ""} ${walked ? "walked" : ""}" data-go="${s}" ${can ? "" : "disabled"} aria-current="${here ? "step" : "false"}"><span class="pebble">${walked ? "✓" : ["I", "II", "III", "IV"][i]}</span><span class="wp-name">${t("step" + (i + 1))}</span></button>`;
+  }).join("");
+}
+function go(step) {
+  if (!S.reached[step]) return;
+  S.step = step;
+  STEPS.forEach(s => $("#ch-" + s).classList.toggle("open", s === step));
+  renderPath();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function renderAll() { applyStatic(); renderPath(); renderGather(); renderLook(); renderLetGo(); renderPutAway(); STEPS.forEach(s => $("#ch-" + s).classList.toggle("open", s === S.step)); }
+
+let toastT;
+function toast(msg) { const el = $("#toast"); el.textContent = msg; el.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("on"), 2600); }
+function veil(on, text) { $("#veil").classList.toggle("on", on); if (text) $("#veilText").textContent = text; if (on) $("#veilBar").style.width = "0"; }
+const veilProgress = f => { $("#veilBar").style.width = Math.round(f * 100) + "%"; };
+const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+
+/* ---------- score visual: a bowl filling with calm water ---------- */
+function bowl(score, small) {
+  const size = small ? 96 : 150, r = size / 2 - 4, cx = size / 2, id = "b" + Math.random().toString(36).slice(2, 8);
+  const fillY = size - 4 - (size - 8) * score / 100;
+  const col = score >= 80 ? "var(--sage)" : score >= 55 ? "var(--sand)" : "var(--clay)";
+  const w = 120, amp = small ? 2.5 : 4;
+  let d = `M0 ${amp}`; for (let x = 0; x <= size + w * 2; x += w / 2) d += ` Q ${x + w / 4} ${(x / (w / 2)) % 2 ? amp * 2 : 0} ${x + w / 2} ${amp}`;
+  d += ` V ${size} H 0 Z`;
+  return `<div class="bowl ${small ? "small" : ""}" role="img" aria-label="${t("readiness")} ${score}/100">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs><clipPath id="${id}"><circle cx="${cx}" cy="${cx}" r="${r - 3}"/></clipPath></defs>
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="var(--paper)" stroke="var(--thread)" stroke-width="1.5"/>
+    <g clip-path="url(#${id})"><g class="water" style="transform:translateY(${fillY - amp}px)"><path class="wave" d="${d}" fill="${col}" opacity=".28"/><path class="wave" style="animation-duration:11s;animation-direction:reverse" d="${d}" fill="${col}" opacity=".22" transform="translate(-30 2)"/></g></g></svg>
+    <div class="bowl-num"><b>${score}</b><small>${t("outOf")}</small></div></div>`;
+}
+function verdict(s) { return t(s >= 85 ? "verdict4" : s >= 65 ? "verdict3" : s >= 40 ? "verdict2" : "verdict1"); }
+function threads(sc) {
+  return ["completeness", "consistency", "uniqueness", "validity", "schema"].map(k => `<div class="thread-row" title="${esc(t("scd_" + k))}"><span class="t-name">${t("sc_" + k)}<br><span class="hush" style="font-size:12px">${t("scd_" + k)}</span></span><span class="thread-bar"><i class="${level(sc[k])}" style="width:${sc[k]}%"></i></span><span class="t-val">${sc[k]}</span></div>`).join("");
+}
+
+/* ---------- I · gather ---------- */
+function renderGather() {
+  $("#ch-gather").innerHTML = `
+  <div class="verse"><div class="numeral">${t("g_num")}</div><h1>${t("g_title")}</h1><p>${t("g_sub")}</p></div>
+  <div class="gather-grid">
+    <div class="basket" id="basket" tabindex="0" role="button" aria-label="${esc(t("basketBtn"))}">
+      <svg width="64" height="52" viewBox="0 0 64 52" aria-hidden="true"><path d="M6 20h52l-6 26a4 4 0 0 1-4 3H16a4 4 0 0 1-4-3z" fill="none" stroke="var(--clay)" stroke-width="1.5"/><path d="M14 20 26 6M50 20 38 6" stroke="var(--ink-faint)" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M18 30h28M20 38h24" stroke="var(--thread)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <h3>${t("basketTitle")}</h3><p>${t("basketSub")}</p>
+      <span class="gentle-btn quiet" style="margin-top:6px">${t("basketBtn")}</span>
+    </div>
+    <div class="pasteboard">
+      <label class="label-small" for="pasteBox">${t("pasteLabel")}</label>
+      <textarea id="pasteBox" spellcheck="false" placeholder="${esc(t("pastePh"))}"></textarea>
+      <div><button class="gentle-btn quiet" data-act="paste">${t("pasteBtn")}</button></div>
+    </div>
+  </div>
+  <div class="offering"><p>${t("sampleText")}</p><div class="row-gap"><button class="gentle-btn clay" data-act="sample">${t("sampleBtn")}</button><button class="gentle-btn quiet" data-act="stress">${t("stressBtn")}</button></div></div>`;
+  const b = $("#basket");
+  b.addEventListener("click", () => $("#filePick").click());
+  b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#filePick").click(); } });
+  ["dragenter", "dragover"].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); b.classList.add("warm"); }));
+  ["dragleave", "drop"].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); b.classList.remove("warm"); }));
+  b.addEventListener("drop", e => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) ingestFile(f); });
+}
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { if (!e.target.closest || !e.target.closest("#basket")) { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f && S.step === "gather") ingestFile(f); } });
+
+async function readFileText(file) {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  if (buf[0] === 0xFF && buf[1] === 0xFE) return new TextDecoder("utf-16le").decode(buf);
+  if (buf[0] === 0xFE && buf[1] === 0xFF) return new TextDecoder("utf-16be").decode(buf);
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(buf); }
+  catch (e) { try { return new TextDecoder("windows-1252").decode(buf); } catch (e2) { return new TextDecoder().decode(buf); } }
+}
+async function ingestFile(file) {
+  if (file.size > 30 * 1024 * 1024) toast(t("big", { mb: (file.size / 1048576).toFixed(0) }));
+  veil(true, t("busyRead")); await frame();
+  try { const text = await readFileText(file); await ingest(text, file.name); }
+  catch (e) { veil(false); toast(t("errParse", { msg: e.message || e })); }
+}
+async function ingest(text, name) {
+  if (!text || !String(text).trim()) { toast(t("errEmpty")); return; }
+  try {
+    veil(true, t("busyParse")); await frame();
+    const tbl = parseText(text, name);
+    if (!tbl.headers.length) throw new Error("no columns");
+    S.raw = tbl; S.name = name || "pasted.csv";
+    veil(true, t("busyAudit")); await frame();
+    S.audit = await audit(tbl, veilProgress);
+    S.plan = defaultPlan(S.audit);
+    S.dictEdits = {}; S.leaf = 0; S.leafDir = "";
+    await runFold(false);
+    S.reached = { gather: true, look: true, letgo: true, putaway: true };
+    veil(false);
+    S.step = "look"; renderAll(); window.scrollTo({ top: 0 });
+  } catch (e) { console.error(e); veil(false); toast(t("errParse", { msg: e.message || e })); }
+}
+async function runFold(showVeil) {
+  if (showVeil) { veil(true, t("busyFix")); await frame(); }
+  S.result = await applyFixes(S.raw, S.audit, S.plan, veilProgress, LANG === "zh" ? NOTE_ZH : NOTE_EN);
+  S.after = await audit({ headers: S.result.headers, rows: S.result.rows, ragged: 0 }, null);
+  S.dict = buildDict();
+  S.pending = false;
+  if (showVeil) veil(false);
+}
+
+/* ---------- II · look ---------- */
+function colHealth(p) {
+  if (p.role === "meta") return 100;
+  const is = S.audit.issues.filter(i => i.colIdx === p.idx);
+  if (!is.length) return 100;
+  if (is.some(i => i.sev === "high")) return 30;
+  if (is.some(i => i.sev === "medium")) return 65;
+  return 85;
+}
+function issueText(i) {
+  const v = Object.assign({}, i.extra);
+  return { title: t("i_" + i.type + "_t", v), why: t("i_" + i.type + "_w", v) };
+}
+function noticeHTML(i, withCol) {
+  const x = issueText(i);
+  return `<div class="notice ${i.sev}"><div class="notice-h"><span class="weight ${i.sev}">${t("sev_" + i.sev)}</span><b>${esc(x.title)}</b>${withCol && i.col != null ? `<span class="mono hush">${esc(i.col)}</span>` : ""}<span class="notice-n">${unitTxt(i.unit, i.count)}</span></div>
+    ${i.examples.length ? `<div class="samples">${i.examples.slice(0, 4).map(e => `<code>${esc(e)}</code>`).join("")}</div>` : ""}
+    <p class="why"><em>${t("why")}</em> ${esc(x.why)}</p></div>`;
+}
+function showName(n) { const m = String(n).match(/^(\s*)(.*?)(\s*)$/s); return (m[1] ? `<span class="ghost-space">${"␣".repeat(m[1].length)}</span>` : "") + esc(m[2] || "") + (m[3] ? `<span class="ghost-space">${"␣".repeat(m[3].length)}</span>` : ""); }
+function histSVG(p) {
+  if (!p.hist) return "";
+  const W = 260, Hh = 54, B = p.hist.length, mx = Math.max(...p.hist) || 1, bw = W / B;
+  const fmt = v => Math.abs(v) >= 1000 ? fmtN(Math.round(v)) : numStr(v, 2);
+  return `<div class="hist"><svg viewBox="0 0 ${W} ${Hh}" width="100%" height="${Hh}" preserveAspectRatio="none" aria-hidden="true">${p.hist.map((c, i) => `<rect x="${i * bw + 1}" y="${Hh - (c / mx) * (Hh - 2)}" width="${bw - 2}" height="${(c / mx) * (Hh - 2)}" rx="1.5"/>`).join("")}</svg>
+    <div class="hist-axis"><span>${fmt(p.min)}${p.domUnit ? " " + p.domUnit : ""}</span><span>${fmt(p.max)}${p.domUnit ? " " + p.domUnit : ""}</span></div></div>`;
+}
+function leafHTML() {
+  const A = S.audit, P = A.profiles.filter(p => p.role !== "meta"), i = Math.min(S.leaf, P.length - 1), p = P[i];
+  const h = colHealth(p), issues = A.issues.filter(x => x.colIdx === p.idx && x.type !== "id_collision");
+  const ans = h >= 85 ? ["", "ans_yes"] : h >= 55 ? ["mid", "ans_mid"] : ["low", "ans_no"];
+  const top = p.top.length ? p.top.map(([v, c]) => `<div class="tv"><span class="tv-label"><i style="width:${Math.max(4, c / p.top[0][1] * 100)}%"></i><span>${esc(v)}</span></span><span class="tv-n">${fmtN(c)}</span></div>`).join("") : `<span class="calm-empty">—</span>`;
+  const rn = S.plan.renames[p.idx];
+  return `<article class="column-leaf ${S.leafDir}" aria-live="polite">
+    <div class="leaf-head"><div><div class="leaf-count">${t("leafCount", { i: i + 1, n: P.length })}</div><div class="leaf-title">${p.header.blank ? `<span class="ghost-space">∅</span>` : showName(p.name)}</div><span class="kind-chip">${typeName(p)}</span></div>${bowl(h, true).replace(/<small>.*?<\/small>/, "")}</div>
+    <div class="leaf-q">${t("leafQ")}</div><span class="leaf-answer ${ans[0]}">${t(ans[1])}</span>
+    <div class="leaf-body">
+      <div>
+        <div class="facts"><div class="fact"><small>${t("f_kind")}</small><span style="font-size:15px">${typeName(p)}</span></div><div class="fact"><small>${t("f_missing")}</small><span>${Math.round(p.nullPct * 100)}%</span></div><div class="fact"><small>${t("f_distinct")}</small><span>${fmtN(p.distinct)}</span></div></div>
+        <div class="label-small" style="margin-bottom:8px">${t("topVals")}</div><div class="toplist">${top}</div>${histSVG(p)}
+        <div class="rename-line"><span class="hush">${t("suggestedName")}</span><input class="label-field" data-rn="${p.idx}" value="${esc(rn)}" aria-label="${esc(t("suggestedName"))}"></div>
+      </div>
+      <div class="notice-list">${issues.length ? issues.map(x => noticeHTML(x, false)).join("") : `<p class="calm-empty">${t("noNotes")}</p>`}</div>
+    </div>
+    <div class="leaf-nav"><button class="gentle-btn quiet" data-act="leaf-prev" ${i === 0 ? "disabled" : ""}>${t("prev")}</button>${i === P.length - 1 ? `<button class="gentle-btn" data-go="letgo">${t("toLetGo")}</button>` : `<button class="gentle-btn" data-act="leaf-next">${t("next")}</button>`}</div>
+  </article>`;
+}
+function rawTableHTML() {
+  const T = S.raw, N = Math.min(100, T.rows.length);
+  let h = `<table><thead><tr><th class="rn">#</th>${T.headers.map(x => `<th>${showName(x) || "∅"}</th>`).join("")}</tr></thead><tbody>`;
+  for (let r = 0; r < N; r++) {
+    h += `<tr><td class="rn">${r + 1}</td>`;
+    for (const v of T.rows[r]) {
+      let cls = "", shown = esc(v);
+      if (v !== "" && isNullish(v)) cls = "c-null";
+      else if (v && (v !== v.trim() || /\s{2,}| /.test(v))) { cls = "c-ws"; shown = esc(v).replace(/^ +| +$/g, m => "␣".repeat(m.length)); }
+      else if (v && hasJunk(v)) cls = "c-junk";
+      h += `<td class="${cls}" title="${esc(v)}">${shown}</td>`;
+    }
+    h += "</tr>";
+  }
+  return h + "</tbody></table>";
+}
+function renderLook() {
+  const el = $("#ch-look"); if (!S.audit) { el.innerHTML = ""; return; }
+  const A = S.audit, sc = A.scores, P = A.profiles.filter(p => p.role !== "meta");
+  const tableIssues = A.issues.filter(i => i.colIdx < 0 || i.type === "id_collision");
+  el.innerHTML = `
+  <div class="verse"><div class="numeral">${t("l_num")}</div><h2>${t("l_title")}</h2><p>${t("l_sub")}</p></div>
+  <div class="linen-card overview">
+    <div class="bowl-wrap">${bowl(sc.overall)}<div style="max-width:260px"><p class="whisper">${t("readiness")}</p><p class="soft" style="margin:0 0 6px">${verdict(sc.overall)}</p><p class="hush" style="margin:0;font-size:13px">${t("dsMeta", { rows: fmtN(A.n), cols: A.cols, name: esc(S.name) })}</p></div></div>
+    <div class="threads">${threads(sc)}</div>
+  </div>
+  <div class="drawer-strip" role="tablist">${P.map((p, i) => { const h = colHealth(p); return `<button class="tab-cloth ${i === S.leaf ? "on" : ""}" data-leaf="${i}" role="tab" aria-selected="${i === S.leaf}"><i class="dot ${level(h)}"></i><span>${esc(p.name.trim() || "∅")}</span></button>`; }).join("")}</div>
+  <div class="card-stage" id="leafStage">${leafHTML()}</div>
+  ${tableIssues.length ? `<div class="linen-card" style="margin-top:20px"><p class="section-title">${t("tableLevel")}</p><div class="notice-list" style="margin-top:12px">${tableIssues.map(x => noticeHTML(x, true)).join("")}</div></div>` : ""}
+  <details class="whole-list"><summary>${t("wholeList", { n: A.issues.length })}</summary><div class="notice-list">${A.issues.map(x => noticeHTML(x, true)).join("")}</div></details>
+  <details class="whole-list"><summary>${t("rawPeek")}</summary><p class="hush" style="font-size:13px">${t("firstRows", { n: Math.min(100, A.n) })}</p><div class="tray">${rawTableHTML()}</div></details>
+  <div class="row-gap" style="margin-top:28px;justify-content:flex-end"><button class="gentle-btn" data-go="letgo">${t("toLetGo")}</button></div>`;
+}
+function turnLeaf(i) {
+  const P = S.audit.profiles.filter(p => p.role !== "meta");
+  i = Math.max(0, Math.min(P.length - 1, i));
+  if (i === S.leaf) return;
+  S.leafDir = i > S.leaf ? "turn-next" : "turn-prev"; S.leaf = i;
+  $("#leafStage").innerHTML = leafHTML();
+  document.querySelectorAll(".tab-cloth").forEach((b, k) => { b.classList.toggle("on", k === i); b.setAttribute("aria-selected", String(k === i)); if (k === i) b.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }); });
+}
+
+/* ---------- III · thank & let go ---------- */
+function renderLetGo() {
+  const el = $("#ch-letgo"); if (!S.audit || !S.result) { el.innerHTML = ""; return; }
+  const A = S.audit, plan = S.plan, cnt = fixCounts(A, plan), b = A.scores, a = S.after.scores;
+  const gestures = FIX_ORDER.map(f => { const n = cnt[f] || 0; return `<div class="gesture ${n ? "" : "idle"}"><input type="checkbox" id="fx-${f}" data-fix="${f}" ${plan.fixes[f] ? "checked" : ""}><label for="fx-${f}"><span class="g-name">${t("fx_" + f)}</span><span class="g-desc">${t("fxd_" + f)}</span></label><span class="g-n">${n ? t("nFound", { n: fmtN(n) }) : t("nNone")}</span></div>`; }).join("");
+  const catCols = Object.keys(plan.clusters);
+  const clusters = catCols.length ? `<div class="linen-card" style="margin-top:20px"><p class="section-title">${t("clustersTitle")}</p><p class="section-sub">${t("clustersSub")}</p>${catCols.map(c => plan.clusters[c].map((cl, ci) => `<div class="cluster"><div class="cluster-h"><span class="hush">${t("keepAs")}</span><input class="label-field" data-canon="${c}:${ci}" value="${esc(cl.canonical)}"><span class="hush">${t("inColumn")}</span><span class="mono">${esc(A.profiles[c].name.trim())}</span></div><div class="pile">${cl.variants.map((x, vi) => `<label class="${x.on ? "" : "off"}"><input type="checkbox" data-cl="${c}:${ci}:${vi}" ${x.on ? "checked" : ""}>${esc(x.v)} <em>×${fmtN(x.c)}</em></label>`).join("")}</div></div>`).join("")).join("")}</div>` : "";
+  const P = A.profiles.filter(p => p.role !== "meta");
+  const names = `<div class="linen-card" style="margin-top:20px"><p class="section-title">${t("namesTitle")}</p><p class="section-sub">${t("namesSub")}</p><table class="rename-table"><tbody>${P.map(p => `<tr><td>${p.header.blank ? "∅" : showName(p.name)}</td><td class="hush" style="font-size:12.5px;width:110px">${typeName(p)}</td><td><input class="label-field" data-rn="${p.idx}" value="${esc(plan.renames[p.idx] || "")}"></td></tr>`).join("")}</tbody></table></div>`;
+  const row = k => { const d = a[k] - b[k]; return `<div><span class="soft">${t("sc_" + k)}</span><span class="num hush">${b[k]}</span><span class="hush">→</span><span class="num">${a[k]}</span><span class="delta ${d < 0 ? "neg" : ""}">${d > 0 ? "+" + d : d === 0 ? "" : d}</span></div>`; };
+  el.innerHTML = `
+  <div class="verse"><div class="numeral">${t("x_num")}</div><h2>${t("x_title")}</h2><p>${t("x_sub")}</p></div>
+  <div class="letgo-grid">
+    <div class="linen-card"><p class="section-title">${t("gestures")}</p><p class="section-sub">${t("gesturesSub")}</p>${gestures}</div>
+    <div class="linen-card" style="position:sticky;top:12px">
+      <p class="section-title">${t("beforeAfter")}</p>
+      <div class="before-after" style="margin-top:10px"><div style="text-align:center">${bowl(b.overall, true)}<div class="hush" style="font-size:12px">${t("beforeLbl")}</div></div><span class="arrow-soft">→</span><div style="text-align:center">${bowl(a.overall, true)}<div class="hush" style="font-size:12px">${t("afterLbl")}</div></div></div>
+      <div class="compare-rows">${["completeness", "consistency", "uniqueness", "validity", "schema"].map(row).join("")}</div>
+      <div style="margin-top:18px" class="stack-gap"><p class="pending-note" id="pendingNote" ${S.pending ? "" : "hidden"}>${t("pending")}</p><button class="gentle-btn clay" data-act="fold">${t(S.pending ? "reapplyBtn" : "applyBtn")}</button></div>
+    </div>
+  </div>
+  ${clusters}${names}
+  <div class="linen-card" style="margin-top:20px" id="foldPreview">${previewHTML()}</div>
+  <div class="row-gap" style="margin-top:28px;justify-content:flex-end"><button class="gentle-btn" data-go="putaway">${t("toPutAway")}</button></div>`;
+}
+function previewHTML() {
+  const R = S.result, raw = S.raw, LIM = 200;
+  const idx = [];
+  for (let i = 0; i < R.rows.length && idx.length < LIM; i++) {
+    if (S.onlyChanged) {
+      const o = R.origRow[i], row = R.rows[i]; let ch = false;
+      for (let j = 0; j < row.length; j++) { const c = R.origCol[j]; if (c < 0 ? row[j] !== "" : row[j] !== raw.rows[o][c]) { ch = true; break; } }
+      if (!ch) continue;
+    }
+    idx.push(i);
+  }
+  let k = 0;
+  let h = `<table><thead><tr><th class="rn">#</th>${R.headers.map((x, j) => { const c = R.origCol[j]; const old = c >= 0 ? raw.headers[c] : null; return `<th>${esc(x)}${old != null && old !== x ? `<small>${esc(old.trim() || "∅")}</small>` : ""}</th>`; }).join("")}</tr></thead><tbody>`;
+  for (const i of idx) {
+    const o = R.origRow[i], row = R.rows[i];
+    h += `<tr><td class="rn">${i + 1}</td>`;
+    for (let j = 0; j < row.length; j++) {
+      const c = R.origCol[j], v = row[j];
+      if (c < 0) { h += `<td class="c-flag" title="${esc(v)}">${esc(v)}</td>`; continue; }
+      const was = raw.rows[o][c];
+      if (v !== was) { const d = S.foldAnim ? `style="--d:${Math.min(1.2, (k++) * 0.012).toFixed(3)}s"` : ""; h += `<td class="folded" ${d} title="${esc(was)} → ${esc(v)}">${v === "" ? `<span class="hush">∅</span>` : esc(v)}<del>${esc(was) || "∅"}</del></td>`; }
+      else h += `<td>${esc(v)}</td>`;
+    }
+    h += "</tr>";
+  }
+  h += "</tbody></table>";
+  S.foldAnim = false;
+  return `<div class="row-gap" style="justify-content:space-between;margin-bottom:10px"><div><p class="section-title">${t("previewTitle")}</p><p class="section-sub" style="margin:0">${t("previewSub", { n: fmtN(Math.min(LIM, idx.length)), total: fmtN(R.rows.length) })}${R.removed.length ? " · " + t("letGoRows", { n: fmtN(R.removed.length) }) : ""}</p></div><label class="toggle-line"><input type="checkbox" data-act="onlyChanged" ${S.onlyChanged ? "checked" : ""}>${t("onlyChanged")}</label></div><div class="tray">${h}</div>`;
+}
+function markPending() {
+  S.pending = true;
+  const n = $("#pendingNote"); if (n) n.hidden = false;
+  const b = document.querySelector('[data-act="fold"]'); if (b) b.textContent = t("reapplyBtn");
+}
+
+/* ---------- IV · put away ---------- */
+function buildDict() {
+  const R = S.result, Aa = S.after, old = S.dictEdits;
+  return R.headers.map((name, j) => {
+    const p = Aa.profiles[j], src = R.origCol[j] >= 0 ? S.audit.profiles[R.origCol[j]] : null;
+    const type = name === "_review_flag" ? "string" : dictType(p);
+    const unit = R.units[name] || "";
+    let allowed = "";
+    if ((p.type === "category" || p.type === "boolean") && p.distinct <= 40) {
+      const vals = []; const seen = new Set();
+      for (const row of R.rows) { const v = row[j]; if (v !== "" && !seen.has(v)) { seen.add(v); vals.push(v); if (vals.length > 40) break; } }
+      allowed = vals.sort().join(", ");
+    }
+    const e = old[name] || {};
+    return { name, type: e.type || type, desc: e.desc != null ? e.desc : draftDesc(name, type, p, unit, allowed), allowed: e.allowed != null ? e.allowed : allowed, unit: e.unit != null ? e.unit : unit, nullPct: p.nullPct, min: typeof p.min === "number" ? p.min : null, max: typeof p.max === "number" ? p.max : null, srcName: src ? src.name : null };
+  });
+}
+function draftDesc(name, type, p, unit, allowed) {
+  if (name === "_review_flag") return t("d_flag");
+  let s = "";
+  if (type === "id") s = t("d_id");
+  else if (type === "date" || type === "datetime") s = t("d_" + type) + (p.min ? " " + t("d_range", { min: p.min, max: p.max }) : "");
+  else if (type === "integer" || type === "number") { s = t("d_number"); if (unit) s += " " + t(/^[A-Z]{3}$/.test(unit) ? "d_cur" : "d_unit", { unit }); if (p.min != null) s += " " + t("d_range", { min: numStr(p.min, 2), max: numStr(p.max, 2) }); }
+  else if (type === "category") s = t("d_category", { n: allowed ? allowed.split(", ").length : p.distinct });
+  else if (type === "email") s = t("d_email");
+  else if (type === "boolean") s = t("d_boolean");
+  else s = t("d_text");
+  return s + " " + t("d_fill");
+}
+const mdCell = s => String(s == null ? "" : s).replace(/\|/g, "\\|").replace(/\n/g, " ");
+function dictMarkdown() {
+  const D = S.dict, R = S.result, date = new Date().toISOString().slice(0, 10);
+  let m = `# ${t("mdTitle")}: ${baseName()}.clean.csv\n\n${t("mdGen", { date })}\n${t("mdShape", { rows: fmtN(R.rows.length), cols: R.headers.length, score: S.after.scores.overall })}\n\n> ${t("mdHow")}\n\n`;
+  m += `| ${t("lc_name")} | ${t("lc_type")} | ${t("lc_unit")} | ${t("lc_allowed")} | ${t("lc_missing")} | ${t("lc_desc")} |\n|---|---|---|---|---|---|\n`;
+  for (const d of D) m += `| \`${mdCell(d.name)}\` | ${mdCell(d.type)} | ${mdCell(d.unit)} | ${mdCell(d.allowed)} | ${Math.round(d.nullPct * 100)}% | ${mdCell(d.desc)} |\n`;
+  return m;
+}
+function logMarkdown() {
+  const R = S.result, A = S.audit, now = new Date().toISOString().replace("T", " ").slice(0, 16);
+  let m = `# ${t("logTitle")}: ${S.name}\n\n${now}\n\n- ${t("logSource")}: ${S.name} (${fmtN(A.n)} ${t("logRows")}, ${A.cols} ${t("logCols")})\n- ${t("logOutput")}: ${baseName()}.clean.csv (${fmtN(R.rows.length)} ${t("logRows")}, ${R.headers.length} ${t("logCols")})\n- ${t("logScore")}: ${A.scores.overall} → ${S.after.scores.overall}\n`;
+  for (const k of ["completeness", "consistency", "uniqueness", "validity", "schema"]) m += `  - ${t("sc_" + k)}: ${A.scores[k]} → ${S.after.scores[k]}\n`;
+  m += `\n## ${t("logSteps")}\n\n`;
+  if (!R.log.length) m += t("logNone") + "\n";
+  R.log.forEach((e, i) => {
+    let what = t("fx_" + e.fix), unit = t("logCells");
+    if (e.fix === "flag_near") { what = e.sub === "coll" ? t("logColl") : t("logNear"); unit = ""; }
+    if (e.fix === "dedupe") unit = t("logRows");
+    if (e.fix === "drop_empty" || e.fix === "headers") unit = "";
+    const ex = e.examples.map(([a, b]) => `\`${String(a).replace(/`/g, "'")}\` → \`${String(b).replace(/`/g, "'") || "∅"}\``).join(", ");
+    m += `${i + 1}. **${what}**${e.col ? ` · \`${e.col}\`` : ""}${unit || e.fix === "flag_near" || e.fix === "dedupe" ? ` · ${fmtN(e.count)} ${unit}` : ""}${ex ? ` · ${t("logEg")} ${ex}` : ""}\n`;
+  });
+  return m;
+}
+function baseName() { return (S.name || "data").replace(/\.(csv|tsv|txt|json)$/i, "") || "data"; }
+function renderPutAway() {
+  const el = $("#ch-putaway"); if (!S.result) { el.innerHTML = ""; return; }
+  const R = S.result, D = S.dict;
+  const types = ["string", "id", "integer", "number", "date", "datetime", "email", "boolean", "category"];
+  el.innerHTML = `
+  <div class="verse"><div class="numeral">${t("p_num")}</div><h2>${t("p_title")}</h2><p>${t("p_sub")}</p></div>
+  <div class="dresser">
+    ${[["csv", t("drd_csv", { rows: fmtN(R.rows.length), cols: R.headers.length }), baseName() + ".clean.csv"], ["md", t("drd_md"), baseName() + ".dictionary.md"], ["json", t("drd_json"), baseName() + ".schema.json"], ["log", t("drd_log"), baseName() + ".cleaning-log.md"]].map(([k, d, f]) => `<div class="drawer" data-drawer="${k}"><span class="tag-label">${esc(f)}</span><h3>${t("dr_" + k)}</h3><p>${d}</p><div class="row-gap"><button class="gentle-btn ${k === "csv" ? "clay" : "quiet"}" data-save="${k}">${t("download")}</button>${k === "md" ? `<button class="gentle-btn quiet" data-act="copy-md">${t("copyMd")}</button>` : ""}</div></div>`).join("")}
+  </div>
+  <div class="label-book">
+    <div class="verse" style="margin:40px 0 14px"><h2 style="font-size:28px">${t("ledgerTitle")}</h2><p style="font-size:15px">${t("ledgerSub")}</p></div>
+    <div class="ledger-wrap"><table class="ledger"><thead><tr><th>${t("lc_name")}</th><th style="width:120px">${t("lc_type")}</th><th style="min-width:260px">${t("lc_desc")}</th><th style="min-width:160px">${t("lc_allowed")}</th><th style="width:90px">${t("lc_unit")}</th><th style="width:60px">${t("lc_missing")}</th></tr></thead><tbody>
+    ${D.map((d, i) => `<tr><td>${esc(d.name)}${d.srcName != null && d.srcName !== d.name ? `<div class="hush" style="font-size:11px;font-family:var(--sans)">← ${esc(d.srcName.trim() || "∅")}</div>` : ""}</td><td><select data-dict="type:${i}">${types.map(x => `<option ${x === d.type ? "selected" : ""}>${x}</option>`).join("")}</select></td><td><textarea data-dict="desc:${i}">${esc(d.desc)}</textarea></td><td><input data-dict="allowed:${i}" value="${esc(d.allowed)}"></td><td><input data-dict="unit:${i}" value="${esc(d.unit)}"></td><td class="hush">${Math.round(d.nullPct * 100)}%</td></tr>`).join("")}
+    </tbody></table></div>
+    <details class="whole-list"><summary>${t("mdPeek")}</summary><pre class="md-peek" id="mdPeek">${esc(dictMarkdown())}</pre></details>
+  </div>`;
+}
+function save(kind) {
+  const R = S.result; let data, name, type;
+  if (kind === "csv") { data = toCSV(R.headers, R.rows); name = baseName() + ".clean.csv"; type = "text/csv"; }
+  else if (kind === "md") { data = dictMarkdown(); name = baseName() + ".dictionary.md"; type = "text/markdown"; }
+  else if (kind === "json") { data = JSON.stringify(jsonSchemaFor(S.dict, baseName() + ".clean.csv"), null, 2); name = baseName() + ".schema.json"; type = "application/json"; }
+  else { data = logMarkdown(); name = baseName() + ".cleaning-log.md"; type = "text/markdown"; }
+  const url = URL.createObjectURL(new Blob([data], { type: type + ";charset=utf-8" }));
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  const d = document.querySelector(`[data-drawer="${kind}"]`); if (d) { d.classList.remove("opened"); void d.offsetWidth; d.classList.add("opened"); }
+  toast(t("saved", { name }));
+}
+async function copyMd() {
+  const txt = dictMarkdown();
+  try { await navigator.clipboard.writeText(txt); toast(t("copied")); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); toast(t("copied")); } catch (e2) { } ta.remove(); }
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", async e => {
+  const g = e.target.closest("[data-go]"); if (g && !g.disabled) { go(g.dataset.go); return; }
+  const lb = e.target.closest("[data-lang]");
+  if (lb) { LANG = lb.dataset.lang; try { localStorage.setItem("tidy-lang", LANG); } catch (er) { } if (S.result) { S.result = await applyFixes(S.raw, S.audit, S.plan, null, LANG === "zh" ? NOTE_ZH : NOTE_EN); } if (S.dict) { const keep = S.dictEdits; S.dict = buildDict(); S.dictEdits = keep; } renderAll(); return; }
+  const lf = e.target.closest("[data-leaf]"); if (lf) { turnLeaf(+lf.dataset.leaf); return; }
+  const sv = e.target.closest("[data-save]"); if (sv) { save(sv.dataset.save); return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const act = a.dataset.act;
+  if (act === "sample") ingest(makeSample(120), "customer-orders-messy.csv");
+  else if (act === "stress") { veil(true, t("busyParse")); await frame(); ingest(makeSample(46500, 99), "customer-orders-50k.csv"); }
+  else if (act === "paste") ingest($("#pasteBox").value, "pasted.csv");
+  else if (act === "leaf-next") turnLeaf(S.leaf + 1);
+  else if (act === "leaf-prev") turnLeaf(S.leaf - 1);
+  else if (act === "fold") { await runFold(true); S.foldAnim = true; renderLetGo(); renderPutAway(); const pv = $("#foldPreview"); if (pv) pv.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  else if (act === "copy-md") copyMd();
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.id === "filePick" && el.files && el.files[0]) { ingestFile(el.files[0]); el.value = ""; return; }
+  if (el.dataset.fix) { S.plan.fixes[el.dataset.fix] = el.checked; markPending(); return; }
+  if (el.dataset.cl) { const [c, ci, vi] = el.dataset.cl.split(":").map(Number); S.plan.clusters[c][ci].variants[vi].on = el.checked; el.closest("label").classList.toggle("off", !el.checked); markPending(); return; }
+  if (el.dataset.act === "onlyChanged") { S.onlyChanged = el.checked; $("#foldPreview").innerHTML = previewHTML(); return; }
+  if (el.dataset.dict) onDict(el);
+});
+let mdTimer;
+function onDict(el) {
+  const [f, i] = el.dataset.dict.split(":"); const d = S.dict[+i];
+  d[f] = el.value; (S.dictEdits[d.name] || (S.dictEdits[d.name] = {}))[f] = el.value;
+  clearTimeout(mdTimer); mdTimer = setTimeout(() => { const p = $("#mdPeek"); if (p) p.textContent = dictMarkdown(); }, 250);
+}
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.dataset.rn) { S.plan.renames[+el.dataset.rn] = el.value.trim(); document.querySelectorAll(`[data-rn="${el.dataset.rn}"]`).forEach(x => { if (x !== el) x.value = el.value; }); markPending(); return; }
+  if (el.dataset.canon) { const [c, ci] = el.dataset.canon.split(":").map(Number); S.plan.clusters[c][ci].canonical = el.value; markPending(); return; }
+  if (el.dataset.dict) onDict(el);
+});
+document.addEventListener("keydown", e => {
+  if (S.step !== "look" || /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) return;
+  if (e.key === "ArrowRight") turnLeaf(S.leaf + 1); else if (e.key === "ArrowLeft") turnLeaf(S.leaf - 1);
+});
+renderAll();
+</script>
+</body>
+</html>

@@ -58,3 +58,10 @@ Contact: haojingluo9104@gmail.com
 
 ## Demo product: 圣黛故事 (a web game)
 - [圣黛故事](https://starc.institute/games/shengdai/): a free daily-life couple web game starring the Monkey King and Lin Daiyu (the 圣黛CP fan pairing), built and launched with AI as a STARC OPC demo. Game introduction: https://starc.institute/games/shengdai/intro.html
+
+## Demo tools: single-file web apps built as STARC OPC demos
+Each runs entirely in the browser (no server, no upload). Overview: https://starc.institute/demos/
+- [Agent Field Guide](https://starc.institute/demos/agent-analytics/): reads a web server access log and shows which AI crawlers and agents (GPTBot, ClaudeBot, PerplexityBot, ChatGPT-User and others) visited, what they read, which 404s they hit, and builds a robots.txt.
+- [Tidy](https://starc.institute/demos/data-tidy/): scores a CSV for AI-agent readiness, cleans it (dates, nulls, duplicates, category spellings, units) and exports a data dictionary.
+- [Agent Replay](https://starc.institute/demos/agent-replay/): replays a Claude Code .jsonl transcript or OpenAI-style message log as a scrubbable timeline of tool calls, errors and tokens.
+- [Ship Log](https://starc.institute/demos/ship-log/): a weekly log of what a founder actually shipped, with streaks and a shareable recap card.

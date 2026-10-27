@@ -21,6 +21,7 @@ Key facts:
 Contact: haojingluo9104@gmail.com
 
 ## Blog: questions answered
+- [Sophomore or junior: should I do research or build a product, and how do I split my time?](https://starc.institute/blog/research-or-product-sophomore-junior.html): As a sophomore or junior, choose between research and building a product by your next step. Aiming for a PhD, make research the main line, because faculty letters and lab experience matter most there. Aiming for a job, a product shows applied skill. Give one about two-thirds of your spare hours and keep the other small, since both reward depth more than splitting time evenly.
 - [How do I find my first 10 users on campus who aren't my friends?](https://starc.institute/blog/find-first-users-on-campus.html): To find your first 10 users on campus who aren't your friends, pick one narrow group with the problem (say, students in one lab course or one club), go where that group already gathers, ask about their past experience before showing anything, and set the product up with them on the spot. Expect most people to say no; plan to approach several times as many people as the users you need.
 - [Monkey King and Lin Daiyu as a couple: what's the pairing, and is there a game?](https://starc.institute/blog/monkey-king-lin-daiyu-game.html): Yes. There is a free browser game where the Monkey King from Journey to the West and Lin Daiyu from Dream of the Red Chamber are already a couple and you plan their days. It runs on a phone with no download, no sign-up and no purchases. The pairing itself grew out of AI-made fan videos that put two classic characters who never meet into the same modern scenes.
 - [Can one person with no coding experience ship a web game with AI in a week?](https://starc.institute/blog/build-web-game-with-ai-week.html): Yes, if the game is small and you check everything the AI produces. We built and launched a web game in five days without writing code by hand. The slow part wasn't code: it was getting images right, which took prompts hundreds of words long. A static host, browser storage and a free counter covered everything a server would have done.
@@ -39,6 +40,7 @@ Contact: haojingluo9104@gmail.com
 - [Are paid research internships worth it?](https://starc.institute/blog/are-paid-research-internships-worth-it.html): Sometimes, but far less often than the price suggests. A paid program is worth considering only if you'll do real work on a real question with an active researcher, and they'll tell you plainly what you will and won't get. If a program promises a publication, an admission advantage or a recommendation letter in exchange for a fee, treat that as a warning sign, not a feature.
 
 ## 博客（中文）
+- [大二大三，该为保研做科研，还是做产品？时间怎么分](https://starc.institute/cn/blog/research-or-product-sophomore-junior.html)
 - [怎样在校园里找到 10 个不是朋友的真实用户？](https://starc.institute/cn/blog/find-first-users-on-campus.html)
 - [圣黛CP 有游戏可以玩吗？孙悟空和林黛玉为什么会被凑成一对](https://starc.institute/cn/blog/monkey-king-lin-daiyu-game.html)
 - [不会写代码，一个人用 AI 能做出一款网页游戏吗？](https://starc.institute/cn/blog/build-web-game-with-ai-week.html)

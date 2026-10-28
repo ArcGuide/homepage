@@ -445,11 +445,35 @@ const OPC_URL = 'https://starc.institute/cn/opc.html';
 // ================= 计数（Abacus，免注册） =================
 // 只记三个次数：打开游戏 open、点开始 start、点了解星弧 starc。不记任何个人信息。
 // 调试版和本地预览不计数，免得我们自己测试把数字刷高。博客里用 /get/ 读数（只读不加）。
-const COUNTER = 'https://abacus.jasoncameron.dev/hit/starc-shengdai/';
-const COUNTING = !DEBUG && /(^|\.)starc\.institute$/.test(location.hostname);
+// 计数服务偶尔连不上：明确失败的那一次先存在玩家自己的浏览器里，下次打开游戏再补发（每种最多攒 20 次）。
+// 只在明确失败（网络错误或服务器报错）时才存，避免同一次被记两遍。调试版可用 ?counttest=<地址> 测试这段逻辑。
+const COUNTER = (DEBUG && Q.get('counttest')) || 'https://abacus.jasoncameron.dev/hit/starc-shengdai/';
+const COUNTING = DEBUG ? Q.has('counttest') : /(^|\.)starc\.institute$/.test(location.hostname);
+const PENDING_KEY = 'shengdai_pending_hits';
+function hit(key) {
+  return fetch(COUNTER + key, { mode: 'cors', keepalive: true, cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); });
+}
+function queueHit(key) {
+  const p = store.get(PENDING_KEY) || {};
+  p[key] = Math.min(20, (p[key] || 0) + 1);
+  store.set(PENDING_KEY, p);
+}
 function count(key) {
   if (!COUNTING) return;
-  try { fetch(COUNTER + key, { mode: 'cors', keepalive: true }).catch(() => {}); } catch (e) {}
+  try { hit(key).catch(() => queueHit(key)); } catch (e) { queueHit(key); }
+}
+// 补发上次没记上的：一次一个，成功一个减一个；又失败就停下，留到下次
+async function flushHits() {
+  if (!COUNTING) return;
+  const p = store.get(PENDING_KEY) || {};
+  for (const key of Object.keys(p)) {
+    while (p[key] > 0) {
+      try { await hit(key); } catch (e) { store.set(PENDING_KEY, p); return; }
+      p[key] -= 1;
+      if (!p[key]) delete p[key];
+      store.set(PENDING_KEY, p);
+    }
+  }
 }
 // 页面上所有指向星弧官网的链接，点击时记一次 starc
 document.addEventListener('click', e => {
@@ -882,6 +906,7 @@ const Game = {
     const has = !!store.get(SAVE_KEY);
     $('#btn-new').textContent = has ? '回到金陵城' : '开始';
     count('open');
+    setTimeout(flushHits, 3000);
     $('#btn-new').onclick = () => { count('start'); enter(false); };
     $('#btn-gallery').onclick = gallery;
     $('#btn-help').onclick = help;

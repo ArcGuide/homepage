@@ -29,16 +29,29 @@ jobs:
       # 计数快照：在 GitHub 的服务器上读 Abacus，写成同站的 stats/shengdai.json。
       # 有些网络或拦截插件连不上 Abacus，博客就先读这个文件。读失败不影响部署。
       - name: Snapshot game counters
+        # 计数服务不太稳定（偶尔超时）：每个数单独取、最多试 3 次；取到的数只升不降，取不到就保留上次的。
+        # 每次的结果写进公开的 stats/snapshot-log.txt，方便排查（不含任何私密信息）。
         run: |
           mkdir -p stats
-          get() { curl -s -m 10 "https://abacus.jasoncameron.dev/get/starc-shengdai/$1" | python3 -c 'import sys,json
-          try: print(int(json.load(sys.stdin).get("value",0)))
-          except Exception: print("null")'; }
-          o=$(get open); s=$(get start); c=$(get starc)
-          if [ "$o" != null ]; then
-            printf '{"open":%s,"start":%s,"starc":%s,"at":"%s"}\n' "$o" "$s" "$c" "$(date -u +%Y-%m-%dT%H:%MZ)" > stats/shengdai.json
-          fi
-          cat stats/shengdai.json 2>/dev/null || echo "counter unreachable, keeping repo copy"
+          python3 - <<'PY'
+          import json, time, urllib.request, datetime
+          path, log = "stats/shengdai.json", []
+          try: old = json.load(open(path))
+          except Exception: old = {}
+          new, got = dict(old), 0
+          for k in ("open", "start", "starc"):
+              for n in range(3):
+                  try:
+                      req = urllib.request.Request(f"https://abacus.jasoncameron.dev/get/starc-shengdai/{k}", headers={"User-Agent": "starc-snapshot/1.0"})
+                      v = int(json.load(urllib.request.urlopen(req, timeout=15))["value"])
+                      log.append(f"{k} try{n+1}: {v}"); new[k] = max(v, old.get(k) or 0); got += 1; break
+                  except Exception as e:
+                      log.append(f"{k} try{n+1}: {type(e).__name__} {e}"); time.sleep(5)
+          now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ")
+          if got: new["at"] = now
+          json.dump(new, open(path, "w")); open("stats/snapshot-log.txt", "w").write(f"run {now}, got {got}/3\n" + "\n".join(log) + "\n")
+          print(open("stats/snapshot-log.txt").read(), json.dumps(new))
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

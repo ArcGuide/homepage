@@ -21,6 +21,7 @@ Key facts:
 Contact: haojingluo9104@gmail.com
 
 ## Blog: questions answered
+- [How do I check if a professor in a paid research program is real?](https://starc.institute/blog/check-professor-research-program-real.html): To check if a professor in a paid research program is real, find them yourself on the university's own site, read their exact title, look for recent work in your topic, then contact them through a university address you found on your own. A real faculty page is only the first step. The questions that matter more are whether they agreed to be in this program and how many hours they'll actually spend with you.
 - [Will admissions officers discount a project I built with AI?](https://starc.institute/blog/ai-built-project-college-admissions.html): We found no college policy that says admissions officers discount a project because AI helped build it. The published rules target something else: submitting AI-written application text as your own. So an AI-built project isn't a problem in itself, but the description you submit must be your own writing, and you should be able to explain every decision in the project if a reader or interviewer asks.
 - [What is a build in public cohort, and is it right for students?](https://starc.institute/blog/build-in-public-cohort-students.html): A build in public cohort is a group of people who start and finish a project together on the same schedule and share their progress as they go, usually in weekly posts or logs that the others read and respond to. It suits students who need deadlines and honest feedback to actually ship. It's a poor fit if you'd be posting for attention rather than to learn, or if the program decides for you what goes public.
 - [What can I build with AI in 48 hours? One-page tool ideas for beginners](https://starc.institute/blog/ai-one-page-tool-48-hours.html): In 48 hours, a beginner can build and publish a one-page web tool that does one job for one kind of person: paste something in, get something useful out. Skip logins, databases and payments, pick a problem you or someone near you actually has, and spend the last few hours deploying it and writing down what broke.
@@ -44,6 +45,7 @@ Contact: haojingluo9104@gmail.com
 - [Are paid research internships worth it?](https://starc.institute/blog/are-paid-research-internships-worth-it.html): Sometimes, but far less often than the price suggests. A paid program is worth considering only if you'll do real work on a real question with an active researcher, and they'll tell you plainly what you will and won't get. If a program promises a publication, an admission advantage or a recommendation letter in exchange for a fee, treat that as a warning sign, not a feature.
 
 ## 博客（中文）
+- [背景提升项目里的"名校教授"是真的吗？怎么查](https://starc.institute/cn/blog/check-professor-research-program-real.html)
 - [留学申请时，AI 辅助做的项目会被招生官看低吗？](https://starc.institute/cn/blog/ai-built-project-college-admissions.html)
 - [什么是"公开构建"训练营？适合学生吗？](https://starc.institute/cn/blog/build-in-public-cohort-students.html)
 - [48 小时用 AI 能做出什么？适合新手的单页小工具点子](https://starc.institute/cn/blog/ai-one-page-tool-48-hours.html)

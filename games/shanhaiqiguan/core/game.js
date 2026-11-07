@@ -270,8 +270,8 @@
       reclaim: async () => {
         let n = 0;
         for (let j = 0; j < s.tiles.length; j++) { const m = s.tiles[j].s; if (m && m.k === 'candle' && m.o === p.id) { s.tiles[j].s = null; n++; await io.ev({ t: 'tile', tile: j }); } }
-        p.maxhp += n * 2; p.hp += n * 2;
-        await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}` });
+        const atk = Math.floor(n / 5); p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
+        await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}${atk ? `，攻击 +${atk}` : ''}` });
       },
       healAll: async (f) => {
         for (const q of alive(s)) { const v = heal(q, Math.round(q.maxhp * f)); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); }
@@ -910,9 +910,7 @@
               await io.ev({ t: 'msg', text: `${p.name} 掷出对子，再走一次` });
             }
             if (!again && s.extra > 0) { s.extra--; again = true; }
-            if (!again && p.hero === 'kuafu' && p.sk[0] && !p.status.seal && rnd(s) < SJ.heroStats(s, p).proc && !p._ran) { p._ran = 1; again = true; await io.ev({ t: 'msg', kind: 'skill', text: '夸父大步追日，再掷一次' }); }
           }
-          delete p._ran;
         }
       }
       // 形夭：每回合结束时从存量补到 20%

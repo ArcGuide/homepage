@@ -50,8 +50,8 @@
       S('xingyao', '形夭', 'buff', 12, '血量高于 20% 才能用：血量降到 20%，多出的血存起来。12 回合内，每回合结束时血量低于 20% 就从存量补到 20%，到期存量清零', { ult: true, can: (p) => p.hp > p.maxhp * 0.2, go: (g) => g.pool(12) }, 'a headless giant rising with blazing spirit'),
     ],
     kuafu: [
-      S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}，走完 ${pct([0.1, 0.15, 0.2])} 再掷一次`, { pr: [0.1, 0.15, 0.2], pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
-      S('denglin', '弃杖成林', 'summon', 8, `回 ${L([30, 40, 50])} 血，在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.heal([30, 40, 50][k]); g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
+      S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}`, { pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
+      S('denglin', '弃杖成林', 'summon', 8, `在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
       S('benpao', '逐日', 'move', 5, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
@@ -89,7 +89,7 @@
       S('zhengyan', '睁眼一击', 'passive', 0, `攻击 +${pct([0.12, 0.18, 0.24])}，防御 +${pct([0.06, 0.12, 0.18])}；在【烛】前后 5 格内再加攻击 12%、防御 6%；每场战斗后在脚下放一个【烛】`, { pv: { atkPct: [0.12, 0.18, 0.24], def: [0.06, 0.12, 0.18], candleNear: [1, 1, 1] } }, 'a huge glowing eye opening'),
       S('zhuzhao', '烛照', 'summon', 5, `在脚下放一个【烛】；烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g) => g.candle() }, 'a burning candle held in a serpent mouth'),
       S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
-      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
+      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2，每 5 个让攻击永久 +1', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],
   };
 

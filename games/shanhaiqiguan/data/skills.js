@@ -52,18 +52,18 @@
     kuafu: [
       S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}`, { pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
       S('denglin', '弃杖成林', 'summon', 8, `在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
-      S('benpao', '逐日', 'move', 9, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
+      S('benpao', '逐日', 'move', 10, `向前跑 ${L([12, 24, 36])} 格，每格回 0.5% 最大血，跑完转身`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.005, turn: true }) }, 'a running giant toward a red sun'),
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
     tubo: [
       S('fanzhen', '地府反震', 'passive', 0, `攻击时 20% 概率献出 5% 最大血，再对敌人造成献血量 ${pct([1, 1.5, 2])} 的伤害`, { pr: [0.2, 0.2, 0.2], pv: { hitBack: [1, 1.5, 2] } }, 'a shockwave cracking dark stone ground'),
       S('tufu', '土府', 'buff', 5, `${L([2, 3, 4])} 回合内防御 -${pct([0.4, 0.3, 0.2])}，攻击 +50%`, { go: (g, k) => { g.buff('def', -[0.4, 0.3, 0.2][k], [2, 3, 4][k]); g.buff('atkPct', 0.5, [2, 3, 4][k]); } }, 'a dark stone underground gate'),
-      S('zhenmu', '镇墓兽', 'summon', 6, `在脚下放镇墓兽，拦下敌人并吸走 ${L([15, 25, 35])} 血给自己。永久存在，被碰到才消失，最多一只`, { go: (g, k) => g.summon('beast', 0, [15, 25, 35][k], { perm: true, one: true }) }, 'an antlered tomb guardian beast'),
+      S('zhenmu', '镇墓兽', 'summon', 6, `在脚下放镇墓兽，拦下敌人并吸走 ${L([20, 30, 40])} 血给自己。永久存在，被碰到才消失，最多一只`, { go: (g, k) => g.summon('beast', 0, [20, 30, 40][k], { perm: true, one: true }) }, 'an antlered tomb guardian beast'),
       S('chiling', '幽都敕令', 'buff', 12, '修满全部自家建筑，每修满一座献出 2% 最大血；所有敌人诅咒 3 回合', { ult: true, go: (g) => { g.repairAll(0.02); g.foes('curse', 3); } }, 'a pale bone tablet with teal ghost flames rising around it'),
     ],
     xiangliu: [
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([1, 2, 3])} 伤害，第 2 下 +${L([3, 6, 9])}，第 3 下 +${L([6, 12, 18])}，依次累加`, { pv: { stackHit: [1, 2, 3] } }, 'nine snake heads striking together'),
-      S('duxue', '噬血', 'buff', 5, `3 回合内吸血 ${pct([0.15, 0.25, 0.35])}，攻击带毒，毒伤也能吸血`, { go: (g, k) => { g.buff('lifesteal', [0.15, 0.25, 0.35][k], 3); g.buff('venom', 1, 3); } }, 'fangs dripping green and red venom'),
+      S('duxue', '噬血', 'buff', 5, `3 回合内吸血 ${pct([0.15, 0.25, 0.35])}`, { go: (g, k) => { g.buff('lifesteal', [0.15, 0.25, 0.35][k], 3); } }, 'fangs dripping green and red venom'),
       S('duze', '毒泽', 'summon', 6, `在脚下吐出毒泽，地面持续 ${L([3, 4, 5])} 轮。敌人走过后，接下来 2 回合的收入全归相柳，不掉血`, { go: (g, k) => g.summon('poison', [3, 4, 5][k]) }, 'a bubbling green poison swamp'),
       S('tunshan', '九首吞山', 'passive', 0, '每次出手 75% 概率连打 9 段，每段攻击力 10%；不触发时正常打', { ult: true, pv: { nine: [1] } }, 'a nine-headed serpent devouring a mountain'),
     ],
@@ -80,10 +80,10 @@
       S('tianhu', '九尾天狐', 'econ', 12, '抽两张吉卡', { ult: true, go: (g) => g.goodCards(2) }, 'nine glowing fox tails fanned around a moon'),
     ],
     jingwei: [
-      S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 7% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),
+      S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 9% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),
       S('tianhai', '填海', 'summon', 5, `在身后 ${L([3, 4, 5])} 格连放石头，敌人被拦下，持续 5 轮`, { go: (g, k) => g.behind('stones', [3, 4, 5][k], 5) }, 'a pile of round pebbles in waves'),
       S('zhanchi', '展翅', 'buff', 5, `${L([1, 2, 3])} 回合内飞在空中，停下时什么都不触发：不战斗、不交过路费，也不买地、不遇异兽`, { go: (g, k) => g.buff('soar', 1, [1, 2, 3][k]) }, 'small bird wings in flight over sea'),
-      S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 15%；填海的石头永久存在，被碰到才消失；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
+      S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头永久存在，被碰到才消失；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
     ],
     zhulong: [
       S('zhengyan', '睁眼一击', 'passive', 0, `攻击 +${pct([0.12, 0.18, 0.24])}，防御 +${pct([0.06, 0.12, 0.18])}；在【烛】前后 5 格内再加攻击 12%、防御 6%；每场战斗后在脚下放一个【烛】`, { pv: { atkPct: [0.12, 0.18, 0.24], def: [0.06, 0.12, 0.18], candleNear: [1, 1, 1] } }, 'a huge glowing eye opening'),

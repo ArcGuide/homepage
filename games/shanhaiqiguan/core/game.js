@@ -584,7 +584,8 @@
       if (!p.sk[3] || (t.owner != null && t.owner !== p.id)) return;
     }
     if (tile.type === 'corner') { await landmark(s, io, p, tile.corner, depth); return; }
-    if (await stopTerrain(s, io, p, tile, depth)) return;
+    // 地形的停下效果只在普通地块上触发；抽卡、异兽、驿站、宝铺、传送门这些功能格只结算功能，不会先被浪卷走
+    if ((tile.type === 'land' || tile.type === 'wild') && await stopTerrain(s, io, p, tile, depth)) return;
     if (tile.type === 'wild') return;
     if (tile.type === 'post') { gain(s, p, SJ.TUNE.salary); heal(p, 15); await io.ev({ t: 'gold', pid: p.id, n: SJ.TUNE.salary, why: '驿站' }); return; }
     if (tile.type === 'portal') { await io.ev({ t: 'msg', text: `${p.name} 钻进了传送门` }); await teleport(s, io, p, tile.to); return; }

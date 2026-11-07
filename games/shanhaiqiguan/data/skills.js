@@ -89,7 +89,7 @@
       S('zhengyan', '睁眼一击', 'passive', 0, `攻击 +${pct([0.12, 0.18, 0.24])}，防御 +${pct([0.06, 0.12, 0.18])}；在【烛】前后 5 格内再加攻击 12%、防御 6%；每场战斗后在脚下放一个【烛】`, { pv: { atkPct: [0.12, 0.18, 0.24], def: [0.06, 0.12, 0.18], candleNear: [1, 1, 1] } }, 'a huge glowing eye opening'),
       S('zhuzhao', '烛照', 'summon', 5, `在脚下放一个【烛】；烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g) => g.candle() }, 'a burning candle held in a serpent mouth'),
       S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
-      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +5、攻击永久 +1', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
+      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],
   };
 

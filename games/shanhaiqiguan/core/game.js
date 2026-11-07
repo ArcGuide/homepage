@@ -270,8 +270,8 @@
       reclaim: async () => {
         let n = 0;
         for (let j = 0; j < s.tiles.length; j++) { const m = s.tiles[j].s; if (m && m.k === 'candle' && m.o === p.id) { s.tiles[j].s = null; n++; await io.ev({ t: 'tile', tile: j }); } }
-        p.maxhp += n * 5; p.hp += n * 5; p.atkBonus = (p.atkBonus || 0) + n;
-        await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 5}，攻击 +${n}` });
+        p.maxhp += n * 2; p.hp += n * 2;
+        await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}` });
       },
       healAll: async (f) => {
         for (const q of alive(s)) { const v = heal(q, Math.round(q.maxhp * f)); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); }

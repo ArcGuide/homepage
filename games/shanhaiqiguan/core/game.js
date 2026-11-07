@@ -36,7 +36,7 @@
       }),
     };
     // 随机起点和朝向，彼此隔开
-    const ok = SJ.BOARD.map((t, i) => i).filter((i) => SJ.BOARD[i].adj.length === 2 && ['land', 'wild'].includes(SJ.BOARD[i].type));
+    const ok = SJ.BOARD.map((t, i) => i).filter((i) => SJ.BOARD[i].adj.length === 2 && ['land', 'wild'].includes(SJ.BOARD[i].type) && SJ.BOARD[i].terrain !== 'lava');
     const used = [];
     for (const p of s.players) {
       let best = ok[0], bd = -1;
@@ -666,7 +666,7 @@
       if (t.type === 'post') money += SJ.TUNE.salary;
       if (t.terrain === 'water') hp += 4;
       if (t.terrain === 'swamp') poison = true;
-      if (t.terrain === 'lava') dmg += 3;
+      if (t.terrain === 'lava') dmg += 1;
       if (t.terrain === 'ink') { money += 15; dmg += 2; }
     }
     if (money) { gain(s, p, money); await io.ev({ t: 'gold', pid: p.id, n: money, why: '路上' }); }
@@ -711,6 +711,7 @@
       if (sm.trail) p._burn = (p._burn || 0) + tt.s.v;
       if (sm.status) { addStatus(s, p, sm.status, sm.turns || 2); if (sm.status === 'leech') p.leechBy = tt.s.o; }
       if (sm.candle) {
+        if (left > 0) continue; // 路过不算，停在上面才传送
         const others = s.tiles.map((t, i) => i).filter((i) => i !== nx && s.tiles[i].s && s.tiles[i].s.k === 'candle' && s.tiles[i].s.o === tt.s.o);
         if (!others.length) continue;
         await flush(true);
@@ -754,7 +755,7 @@
       case 'rock': if (rnd(s) < 0.2) { const v = 80 + ri(s, 121); gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '金矿' }); } break;
       case 'water': { const v = heal(p, 20); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }
       case 'swamp': addStatus(s, p, 'poison', 3); break;
-      case 'lava': addStatus(s, p, 'burn', 2); gain(s, p, 80); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '火中取金' }); break;
+      case 'lava': addStatus(s, p, 'burn', 1); gain(s, p, 80); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '火中取金' }); break;
       case 'snow':
         if (depth < 2) { await say(`${p.name} 在冰上滑了出去`); await move(s, io, p, 1 + ri(s, 3)); if (p.alive && !s.over) await landOn(s, io, p, depth + 1); return true; }
         break;

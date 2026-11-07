@@ -16,7 +16,7 @@
     water: { name: '灵河', build: false, desc: '不能建造。路过回 4 血，停下回 20 血' },
     sea: { name: '大海', build: false, desc: '不能建造。停下被浪卷走 3 到 8 格' },
     swamp: { name: '毒沼', build: false, desc: '不能建造。路过就中毒' },
-    lava: { name: '熔岩', build: false, desc: '不能建造。路过掉 3 血，停下灼烧但得 80 金' },
+    lava: { name: '熔岩', build: false, desc: '不能建造。路过掉 1 血，停下灼烧 1 回合但得 80 金' },
     cloud: { name: '云海', build: false, desc: '不能建造。停下被风吹出 8 到 20 格' },
     ink: { name: '黑水', build: false, desc: '不能建造。路过得 15 金掉 2 血，停下和随机一人换位' },
   };

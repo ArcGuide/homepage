@@ -255,6 +255,7 @@
       const g = groups[p.pos], k = g.indexOf(p.id), { x, y } = iso(p.pos);
       setPiece(e, x + (k - (g.length - 1) / 2) * 26, y + 6);
       e.classList.toggle('active', p.id === S.cur);
+      e.classList.toggle('soar', p.buffs.some((b) => b.k === 'soar'));
     });
     const m = $('#mini'); if (m) B.drawMini(m, S, PCOLOR);
   }
@@ -403,14 +404,11 @@
       case 'upgrade': return choose(`<h4>升级建筑</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${bOpt(c.options[0], true)}</div><div class="btn-row"><button class="btn" ${V(false)}>不升级</button></div>`);
       case 'fork': return choose(`<h4>升到 Lv3，二选一</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${c.options.map((id) => bOpt(id, id)).join('')}</div><div class="btn-row"><button class="btn" ${V(null)}>先不升</button></div>`);
       case 'tollOrFight': {
-        const e = SJ.estimate(c.A, c.D, S.stats.turns + 11, 40), o = S.players[S.tiles[c.tile].owner], d = SJ.bdef(S.tiles[c.tile]);
-        const risk = e.die > 0.5 ? '极高' : e.die > 0.2 ? '高' : e.die > 0.03 ? '有' : '低';
-        return choose(`<h4>${c.D.name}${d ? ` Lv${d.level}` : ''}（${o.name}）</h4><p>${d ? d.desc : '只有一块空地基。'}</p><div class="odds"><span>塔血 <b>${Math.round(c.D.hp)} / ${Math.round(c.D.maxhp)}</b></span><span>当场拆掉 <b>${Math.round(e.win * 100)}%</b></span><span>阵亡风险 <b>${risk}</b></span><span>打完约剩 <b>${Math.round(e.left)}</b> 血</span></div><p>各出手 3 下。没拆掉就付半价过路费，血量都留着。</p><div class="btn-row"><button class="btn" ${V(false)}>交过路费 ${c.toll}</button><button class="btn primary" ${V(true)}>开打</button></div>`);
+        const o = S.players[S.tiles[c.tile].owner], d = SJ.bdef(S.tiles[c.tile]);
+        return choose(`<h4>${c.D.name}${d ? ` Lv${d.level}` : ''}（${o.name}）</h4><p>没拆掉就付半价过路费。</p><div class="btn-row"><button class="btn" ${V(false)}>交过路费 ${c.toll}</button><button class="btn primary" ${V(true)}>开打</button></div>`);
       }
-      case 'duel': {
-        return choose(`<h4>遇到 ${c.q.name}</h4><p>各出手 3 下，打倒对方才算赢，赢家抢走 30% 金币。血量都留着。</p><div class="btn-row"><button class="btn primary" ${V(true)}>决斗</button><button class="btn" ${V(false)}>走开</button></div>`);
-      }
-      case 'nest': return choose(`<h4>${c.m.name}出没</h4><p>血 ${Math.round(c.foe.hp)} / ${Math.round(c.foe.maxhp)}，攻击 ${c.foe.atk.toFixed(1)}。各出手 3 下，打死得 ${c.m.gold} 金和经验，可能得到宝物；打不死它的血也留着。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
+      case 'duel': return choose(`<h4>遇到 ${c.q.name} Lv${c.q.level}</h4><p>赢家抢走 30% 金币。</p><div class="btn-row"><button class="btn primary" ${V(true)}>决斗</button><button class="btn" ${V(false)}>走开</button></div>`);
+      case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>打死得金币和经验，可能得到宝物。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
       case 'kunlun': return choose(`<h4>昆仑</h4><p>选一种恩赐。</p><div class="btn-row"><button class="btn primary" ${V('heal')}>回 40 血</button><button class="btn" ${V('bless')}>下一战攻击 +50%</button></div>`);
       case 'shop': return choose(`<h4>${c.city ? `${c.city}的二阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
       case 'card': return new Promise((res) => {

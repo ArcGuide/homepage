@@ -83,7 +83,7 @@
         y.stun = 2; hurt(y, 12, x); snap({ t: 'skill', who: side(x), name: '暴雨', dmg: 12 });
       }
       if (x.fx.stunEvery && round % x.fx.stunEvery === 0) { y.stun = 1; snap({ t: 'skill', who: side(x), name: '震晕' }); }
-      const nine = x.nine && r() < 0.75; // 九首吞山
+      const nine = x.nine && r() < 0.7; // 九首吞山
       if (nine) snap({ t: 'skill', who: side(x), name: '九首吞山' });
       const twin = x.twin && r() < 0.4; // 浸血兵器
       const n = nine ? 9 : twin ? 2 : x.fx.multi || 1;

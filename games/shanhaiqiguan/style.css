@@ -28,9 +28,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .setup { flex: 1; overflow-y: auto; padding: 16px; max-width: 980px; width: 100%; margin: 0 auto; }
 .setup h2 { font-family: var(--serif); margin: 6px 0 10px; font-size: 24px; }
 .seats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-.maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 8px; margin-bottom: 12px; }
 .mapcard { text-align: left; border: 1.5px solid var(--line); background: var(--card); border-radius: 8px; padding: 8px 10px; }
 .mapcard.sel { border-color: var(--cinnabar); box-shadow: 0 0 0 1.5px var(--cinnabar); }
+.mapcard { display: grid; grid-template-columns: 128px minmax(0, 1fr); column-gap: 10px; align-content: center; align-items: start; }
+.mapcard img { grid-row: span 2; display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 5px; background: #2a2620; }
 .mapcard b { font: 800 16px var(--serif); display: block; } .mapcard span { font-size: 12px; color: var(--ink2); line-height: 1.4; }
 .qmark { height: 60px; display: grid; place-items: center; font: 900 34px var(--serif); color: var(--ink2); opacity: .5; }
 .seat { border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); padding: 8px 6px; text-align: center; min-width: 0; }
@@ -43,12 +45,20 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .race-block h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 17px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .race-block h3 small { font-family: var(--sans); font-weight: 400; color: var(--ink2); font-size: 12.5px; }
 .hero-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.hero-card { display: flex; gap: 8px; text-align: left; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); padding: 6px; align-items: center; min-width: 0; }
+.hero-card { display: flex; flex-direction: column; gap: 2px; text-align: center; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); padding: 6px; align-items: center; min-width: 0; }
 .hero-card.taken { opacity: .4; }
 .hero-card.sel { border-color: var(--cinnabar); }
-.hero-card img { width: 64px; height: 64px; object-fit: contain; flex: none; }
+.hero-card img { width: 72px; height: 72px; object-fit: contain; flex: none; }
 .hero-card b { font-family: var(--serif); font-size: 16px; }
-.hero-card span { display: block; font-size: 12px; color: var(--ink2); line-height: 1.35; }
+.pick-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.pick-head h2 { margin: 0; }
+.pick-head .btn { padding: 7px 16px; font-size: 15px; }
+.pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 14px; align-items: start; }
+.hero-info { position: sticky; top: 0; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); padding: 14px; }
+.hero-info img { display: block; width: 100%; height: 230px; object-fit: contain; }
+.hero-info h3 { font: 900 24px var(--serif); margin: 6px 0 0; display: inline-block; }
+.hero-info small { color: var(--ink2); margin-left: 8px; }
+.hero-info p { margin: 8px 0 0; font-size: 14.5px; line-height: 1.65; }
 .setup-foot { position: sticky; bottom: 0; padding: 12px 0; display: flex; justify-content: center; gap: 10px; background: linear-gradient(transparent, #e8dcc2 40%); }
 
 /* 对局 */
@@ -173,6 +183,10 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .result { background: var(--card); border: 2px solid var(--ink); border-radius: 14px; padding: 20px; width: min(420px, 100%); text-align: center; animation: rise .2s; max-height: 92dvh; overflow-y: auto; }
 .result h2 { font: 900 34px var(--serif); margin: 0 0 4px; }
 .result img.big { width: 180px; height: 180px; object-fit: contain; }
+.result.won { width: min(760px, 100%); }
+.result img.ending { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin: 8px 0; }
+.ending-text { font: 700 19px/1.5 var(--serif); margin: 8px 0 2px; }
+.ending-note { color: var(--ink2); font-size: 13px; margin: 2px 0 6px; }
 .rank { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px solid var(--line); font-size: 14px; }
 .help { background: var(--card); border: 2px solid var(--ink); border-radius: 12px; padding: 16px 18px; width: min(560px, 100%); max-height: 88dvh; overflow-y: auto; font-size: 14.5px; line-height: 1.65; }
 .help h2 { font: 900 24px var(--serif); margin: 0 0 6px; }
@@ -235,7 +249,11 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 @media (max-width: 640px) { .hud { width: 150px; padding: 4px 6px; } .die { width: 28px; height: 28px; } .log div:not(:last-child) { display: none; } .minimap { width: 96px; } .mapbtn { top: 62px; } }
 @media (max-width: 720px) {
   .seats { grid-template-columns: repeat(4, 1fr); }
-  .hero-grid { grid-template-columns: 1fr; }
+  .pick { grid-template-columns: minmax(0, 1fr); }
+  .hero-info { position: static; order: -1; display: flex; gap: 10px; align-items: flex-start; }
+  .hero-info img { width: 104px; height: 150px; flex: none; }
+  .hero-info p { font-size: 13.5px; }
+  .hero-card img { width: 58px; height: 58px; }
   .pcard { flex-direction: column; align-items: center; gap: 0; padding: 3px; text-align: center; }
   .pcard img { width: 34px; height: 34px; }
   .pcard .body { width: 100%; }

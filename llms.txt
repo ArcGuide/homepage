@@ -73,6 +73,9 @@ Contact: haojingluo9104@gmail.com
 ## Game: 圣黛故事 (Shengdai Story)
 - [圣黛故事](https://starc.institute/games/shengdai/): a daily-life romance web game starring the Monkey King and Lin Daiyu (the 圣黛CP fan pairing), synced to the real calendar. Game introduction: https://starc.institute/games/shengdai/intro.html
 
+## Game: 山海棋观 (Shanhai Qiguan)
+- [山海棋观](https://starc.institute/games/shanhaiqiguan/): a free browser board game in Chinese. Twelve heroes from the Classic of Mountains and Seas roll dice, claim land, fight towers and learn skills until one is left.
+
 ## Tools for the agent era
 Overview: https://starc.institute/demos/
 - [Agent Field Guide](https://starc.institute/demos/agent-analytics/): reads a web server access log and shows which AI crawlers and agents (GPTBot, ClaudeBot, PerplexityBot, ChatGPT-User and others) visited, what they read, which 404s they hit, and drafts a robots.txt. Logs are processed on the user's device.

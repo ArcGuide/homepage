@@ -2,7 +2,8 @@
 (function () {
   const SJ = window.SJ, sfx = SJ.sfx, icon = SJ.icon;
   const app = document.getElementById('app');
-  const SAVE = 'sijing.save.v4';
+  const SAVE = 'sijing.save.v4', ENDINGS = 'sijing.endings';
+  const ids = () => Object.keys(SJ.HEROES);
   const GAME = '山海棋观'; // 游戏名只改这里
   const OPC_URL = 'https://starc.institute/cn/opc.html';
   document.title = GAME;
@@ -120,6 +121,12 @@
   }
 
   // ---------- 选人 ----------
+  function heroInfo(k) {
+    const H = SJ.HEROES[k], L = SJ.LORE[k];
+    return `<aside class="hero-info">${img('hero_' + k)}<div><h3>${H.name}</h3><small>${SJ.RACES[H.race].name}</small>
+      <p>${L.story}</p><p>如今，${H.name}来到战场，作为${L.role}，可以学习${SJ.SKILLS[k].map((x) => `「${x.name}」`).join('')}等技能，争取一统华夏江山。</p></div></aside>`;
+  }
+
   function setup() {
     sfx.stopAmbient();
     const ids = Object.keys(SJ.HEROES);
@@ -130,14 +137,14 @@
     function draw() {
       const used = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
       app.innerHTML = `<div class="setup"><h2>选择地图</h2>
-        <div class="maps">${Object.values(SJ.MAPS).map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>
-        <h2>选择英雄</h2>
+        <div class="maps">${Object.values(SJ.MAPS).map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>
+        <div class="pick-head"><h2>选择英雄</h2><button class="btn" id="rand">随机英雄</button></div>
         <div class="seats">${seats.map((x, i) => `<div class="seat ${i === on ? 'on' : ''} ${x.kind === 'off' ? 'off' : ''}" data-i="${i}">
           ${x.kind === 'human' ? img('hero_' + x.hero) : `<div class="qmark">${x.kind === 'ai' ? '?' : ''}</div>`}<b>${x.kind === 'human' ? SJ.HEROES[x.hero].name : x.kind === 'ai' ? '等你选完' : '—'}</b><small>玩家 ${i + 1}</small>
           ${i ? `<button class="kind" data-k="${i}">${KIND[x.kind]}</button>` : `<button class="kind" disabled>${KIND[x.kind]}</button>`}</div>`).join('')}</div>
-        ${Object.entries(SJ.RACES).map(([rid, r]) => `<div class="race-block"><h3 style="color:${shade(r.color, 0.72)}">${r.name}<small>${r.trait}</small></h3><div class="hero-grid">
-          ${ids.filter((k) => SJ.HEROES[k].race === rid).map((k) => { const H = SJ.HEROES[k]; return `<button class="hero-card ${seats[on].hero === k ? 'sel' : ''} ${used.includes(k) && seats[on].hero !== k ? 'taken' : ''}" data-h="${k}">${img('hero_' + k)}<div><b>${H.name}</b> <span>血 ${H.hp} · 攻 ${H.atk} · 防 ${Math.round((H.def || 0) * 100)}% · ${H.type}</span><span>${SJ.SKILLS[k].map((x, i) => (i === 3 ? `大招 ${x.name}` : x.name)).join(' · ')}</span></div></button>`; }).join('')}
-        </div></div>`).join('')}
+        <div class="pick"><div class="pick-list">${Object.entries(SJ.RACES).map(([rid, r]) => `<div class="race-block"><h3 style="color:${shade(r.color, 0.72)}">${r.name}<small>${r.trait}</small></h3><div class="hero-grid">
+          ${ids.filter((k) => SJ.HEROES[k].race === rid).map((k) => `<button class="hero-card ${seats[on].hero === k ? 'sel' : ''} ${used.includes(k) && seats[on].hero !== k ? 'taken' : ''}" data-h="${k}">${img('hero_' + k)}<b>${SJ.HEROES[k].name}</b></button>`).join('')}
+        </div></div>`).join('')}</div>${heroInfo(seats[on].hero)}</div>
         <div class="setup-foot"><button class="btn" id="back">返回</button><button class="btn primary" id="go">开始</button></div></div>`;
       app.querySelectorAll('[data-m]').forEach((e) => { e.onclick = () => { mapId = e.dataset.m; sfx.click(); keep(); }; });
       app.querySelectorAll('.seat').forEach((e) => { e.onclick = () => { const i = +e.dataset.i; if (seats[i].kind === 'human') { on = i; keep(); } }; });
@@ -151,8 +158,13 @@
       app.querySelectorAll('[data-h]').forEach((e) => { e.onclick = () => {
         const k = e.dataset.h, other = seats.findIndex((x, i) => x.hero === k && i !== on);
         if (other >= 0) seats[other].hero = seats[on].hero; // 两个真人互换
-        seats[on].hero = k; sfx.click(); keep();
+        seats[on].hero = k; sfx.click(); keep(); $('.hero-info').scrollIntoView({ block: 'nearest' });
       }; });
+      $('#rand').onclick = () => {
+        const t = seats.filter((x, i) => x.kind === 'human' && i !== on).map((x) => x.hero);
+        const left = ids.filter((k) => !t.includes(k) && k !== seats[on].hero);
+        seats[on].hero = left[Math.floor(Math.random() * left.length)]; sfx.click(); keep(); $('.hero-info').scrollIntoView({ block: 'nearest' });
+      };
       $('#back').onclick = title;
       $('#go').onclick = () => {
         sfx.click();
@@ -585,18 +597,29 @@
     });
   }
 
+  // 结局图只给赢了的真人看，每位英雄一张，让玩家想用每个英雄都赢一次
+  function endings(add) {
+    let seen = []; try { seen = JSON.parse(store.get(ENDINGS) || '[]'); } catch (e) { seen = []; }
+    if (add && !seen.includes(add)) { seen.push(add); store.set(ENDINGS, JSON.stringify(seen)); }
+    return seen.length;
+  }
+
   function finalScreen() {
     const w = S.players[S.winner], mine = w && w.human;
     if (mine) sfx.win();
-    const l = h(`<div class="layer dim"><div class="result"><h2>${w ? `${w.name} 称霸四境` : '同归于尽'}</h2>${w ? img('hero_' + w.hero) : ''}<p>一共打了 ${S.round} 轮</p>
+    const me = S.players.find((p) => p.human);
+    const top = mine
+      ? `<img class="ending" src="assets/end_${w.hero}.webp" alt="" onerror="this.className='big';this.onerror=null;this.src='assets/hero_${w.hero}.webp'"><p class="ending-text">${SJ.ENDINGS[w.hero]}</p><p class="ending-note">已解锁结局 ${endings(w.hero)} / ${ids().length}</p>`
+      : `${w ? img('hero_' + w.hero) : ''}${me ? `<p class="ending-note">用${SJ.HEROES[me.hero].name}赢一局，才能看到${SJ.HEROES[me.hero].name}的结局</p>` : ''}`;
+    const l = h(`<div class="layer dim"><div class="result ${mine ? 'won' : ''}"><h2>${w ? `${w.name} 称霸四境` : '同归于尽'}</h2>${top}<p>一共打了 ${S.round} 轮</p>
       ${ranks().map((p, i) => `<div class="rank"><span>第 ${i + 1} 名 ${p.name}${p.human ? '（你）' : ''}</span><span>Lv${p.level}</span></div>`).join('')}
       <div class="btn-row" style="margin-top:14px"><button class="btn primary" id="again">再来一局</button></div></div></div>`);
-    const im = $('img', l); if (im) im.className = 'big';
+    const im = $('.result > img:not(.ending)', l); if (im) im.className = 'big';
     document.body.append(l);
     $('#again', l).onclick = () => { l.remove(); setup(); };
   }
 
-  window.__sj = { get S() { return S; }, setSpeed(v) { speed = v; } };
+  window.__sj = { get S() { return S; }, setSpeed(v) { speed = v; }, final: finalScreen };
   title();
   count('open'); flushHits();
 })();

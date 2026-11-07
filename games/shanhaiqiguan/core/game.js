@@ -450,7 +450,12 @@
     const m = SJ.MONSTERS[t.m.k], sc = t.m.sc, maxhp = m.hp * sc;
     const foe = () => ({ kind: 'monster', name: m.name, id: m.id, hp: t.m.hp != null ? t.m.hp : maxhp, maxhp, atk: m.atk * sc, def: 0, fx: {}, toDeath: true });
     const go = await io.ask('nest', { p, m, scale: sc, foe: foe() });
-    if (!go) return;
+    if (!go) { // 绕开也要挨一下
+      const v = Math.max(1, Math.round(m.atk * sc * (1 - Math.min(0.8, SJ.heroStats(s, p).def || 0))));
+      await io.ev({ t: 'msg', text: `${p.name} 绕开时被${m.name}咬了一口` });
+      await hurtPlain(s, io, p, v, `被${m.name}吃了`);
+      return;
+    }
     const A = heroC(s, p), D = foe();
     p.bless = 0;
     const res = SJ.fight(A, D, s.rng);

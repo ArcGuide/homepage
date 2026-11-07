@@ -107,7 +107,7 @@
       <h2>怎么玩</h2>
       <p>这是一局大富翁。选一位上古英雄，在山海大地图上走，买地、盖建筑、收过路费。起点和朝向是随机的，到岔路随机选方向。英雄阵亡就出局，活到最后的人赢。</p>
       <h3>踩到别人的地</h3>
-      <ul><li>交过路费，或者开打。</li><li>打塔和决斗双方各出手 3 下就收手，血量都记下来，下回接着打。打异兽要打到一方倒下。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
+      <ul><li>交过路费，或者开打。</li><li>打塔和决斗双方各出手 3 下就收手，血量都记下来，下回接着打。打异兽要打到一方倒下，绕开也要挨它一下。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔、打异兽和决斗。塔的等级、对手的等级越高，经验越多。</p>
@@ -409,7 +409,7 @@
         return choose(`<h4>${c.D.name}${d ? ` Lv${d.level}` : ''}（${o.name}）</h4><p>没拆掉就付半价过路费。</p><div class="btn-row"><button class="btn" ${V(false)}>交过路费 ${c.toll}</button><button class="btn primary" ${V(true)}>开打</button></div>`);
       }
       case 'duel': return choose(`<h4>遇到 ${c.q.name} Lv${c.q.level}</h4><p>赢家抢走 30% 金币。</p><div class="btn-row"><button class="btn primary" ${V(true)}>决斗</button><button class="btn" ${V(false)}>走开</button></div>`);
-      case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>打到一方倒下，中途不能收手。打死得金币和经验，可能得到宝物。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
+      case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>打到一方倒下，中途不能收手。打死得金币和经验，可能得到宝物。绕开也要挨它一下。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
       case 'kunlun': return choose(`<h4>昆仑</h4><p>选一种恩赐。</p><div class="btn-row"><button class="btn primary" ${V('heal')}>回 40 血</button><button class="btn" ${V('bless')}>下一战攻击 +50%</button></div>`);
       case 'shop': return choose(`<h4>${c.city ? `${c.city}的二阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
       case 'card': return new Promise((res) => {

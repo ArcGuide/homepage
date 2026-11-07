@@ -397,8 +397,11 @@
     await io.ev({ t: 'battle', kind: 'tile', a: A, d: D, res, tile: i, forced, pid: p.id });
     await afterFight(s, io, p, res.aAbs);
     if (res.lampUsed) await useLamp(s, io, p, A.lamp);
-    if (p.hp <= 0) { await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) return; }
+    // 塔主人也拿经验，后期靠收租的英雄才升得动级：守住 2×，被拆 1×（按塔等级），打死来犯的英雄 6×（按对方等级）
+    const guard = async (n) => { if (owner.alive && gainXp(s, owner, n)) await io.ev({ t: 'levelup', pid: owner.id, level: owner.level }); };
+    if (p.hp <= 0) { await guard(6 * SJ.TUNE.fightXp * p.level); await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) return; }
     t.hp = Math.max(0, Math.round(res.dHp));
+    await guard((res.winner === 'a' ? 1 : 2) * SJ.TUNE.fightXp * lv);
     if (res.winner === 'a') {
       s.stats.fightsWon++;
       let stay = false;

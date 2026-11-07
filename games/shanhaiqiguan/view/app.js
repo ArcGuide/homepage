@@ -246,8 +246,12 @@
     sprites[i] = list;
   }
 
+  // 精卫展翅的造型：放技能时状态还没加上，所以掷骰、走路时也要再刷一次
+  function soarSync() { if (S) S.players.forEach((p) => { const e = pieces[p.id]; if (e) e.classList.toggle('soar', p.alive && p.buffs.some((b) => b.k === 'soar')); }); }
+
   function placePieces() {
     if (!$('#stage')) return;
+    soarSync();
     const groups = {};
     S.players.forEach((p) => { if (p.alive) (groups[p.pos] = groups[p.pos] || []).push(p.id); });
     S.players.forEach((p) => {
@@ -257,7 +261,6 @@
       const g = groups[p.pos], k = g.indexOf(p.id), { x, y } = iso(p.pos);
       setPiece(e, x + (k - (g.length - 1) / 2) * 26, y + 6);
       e.classList.toggle('active', p.id === S.cur);
-      e.classList.toggle('soar', p.buffs.some((b) => b.k === 'soar'));
     });
     const m = $('#mini'); if (m) B.drawMini(m, S, PCOLOR);
   }
@@ -427,9 +430,10 @@
       case 'gold': renderPlayers(); floaty(e.pid, `+${e.n}`, '#ffd76a'); if (e.why) logLine(`${S.players[e.pid].name} ${e.why} +${e.n} 金`); if (S.players[e.pid].human) sfx.coin(); await wait(300); break;
       case 'heal': renderPlayers(); floaty(e.pid, `+${e.n}`, '#8ee09a'); sfx.heal(); await wait(240); break;
       case 'hurt': renderPlayers(); floaty(e.pid, `-${e.n}`, '#ff7a66'); sfx.hurt(); await wait(320); break;
-      case 'roll': await showDice(e); break;
+      case 'roll': soarSync(); await showDice(e); break;
       case 'move': {
         const pc = pieces[e.pid], p = S.players[e.pid], end = p.pos, ms = 230;
+        soarSync();
         pc.classList.add('walk');
         pc.style.setProperty('--step', `${ms / speed}ms`);
         for (const pos of e.path) {

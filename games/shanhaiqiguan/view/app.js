@@ -126,7 +126,7 @@
   function heroInfo(k) {
     const H = SJ.HEROES[k], L = SJ.LORE[k];
     return `<aside class="hero-info">${img('hero_' + k)}<div><h3>${H.name}</h3><small>${SJ.RACES[H.race].name}</small>
-      <p>${L.story}</p><p>如今，${H.name}来到战场，作为${L.role}，可以学习${SJ.SKILLS[k].map((x) => `「${x.name}」`).join('')}等技能，争取一统华夏江山。</p></div></aside>`;
+      <p>${L.story}</p><p>如今，${H.name}来到战场，作为${L.role}，可以学习${SJ.SKILLS[k].map((x) => `「${x.name}」`).join('')}等技能。${L.goal}</p></div></aside>`;
   }
 
   function setup() {

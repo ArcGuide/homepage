@@ -34,8 +34,8 @@
     const hurt = (c, dmg, foe) => { // 处理吸收和保命
       if (c.absorb) { c.absorbed = (c.absorbed || 0) + dmg; return; }
       c.hp -= dmg;
-      if (c.hp <= 0 && c.heroId === 'xingtian' && !c.saved && r() < procOf(c, foe)) {
-        c.hp = 1; c.saved = true; snap({ t: 'skill', who: side(c), name: '断首再战' });
+      if (c.hp <= 0 && c.xtRev && !c.saved && !(foe.fx.seal || c.sealed)) { // 断首再战：冷却好了才触发
+        c.hp = c.maxhp * c.xtRev; c.saved = true; snap({ t: 'skill', who: side(c), name: '断首再战' });
       }
       if (c.hp <= 0 && c.undying) { c.hp = 1; snap({ t: 'skill', who: side(c), name: '打不死' }); }
       if (c.hp <= 0 && c.lamp != null && !c.lampUsed) {
@@ -115,6 +115,6 @@
     if (dead(d) && !dead(a)) winner = 'a';
     else if (dead(a)) winner = 'd';
     else { timeout = true; winner = 'draw'; }
-    return { winner, log, aHp: Math.max(0, a.hp), dHp: Math.max(0, d.hp), aAbs: a.absorbed || 0, dAbs: d.absorbed || 0, timeout, charmed: false, lampUsed: !!a.lampUsed, dLampUsed: !!d.lampUsed };
+    return { winner, log, aHp: Math.max(0, a.hp), dHp: Math.max(0, d.hp), aAbs: a.absorbed || 0, dAbs: d.absorbed || 0, timeout, charmed: false, lampUsed: !!a.lampUsed, dLampUsed: !!d.lampUsed, aSaved: !!a.saved, dSaved: !!d.saved };
   };
 })(typeof window !== 'undefined' ? window : globalThis);

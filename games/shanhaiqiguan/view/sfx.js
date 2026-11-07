@@ -103,6 +103,24 @@
     treasure() { metal(1320, 0.8, { vol: 0.06 }); [4, 5, 7, 9].forEach((n, i) => pluck(n, 0.06 + i * 0.07, 0.07)); },
     win() { [0, 2, 4, 7, 9].forEach((n, i) => pluck(n, i * 0.1, 0.11)); tone(131, 0.7, { type: 'triangle', vol: 0.12, at: 0.42 }); },
     lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.09, at: i * 0.15, wet: true })); },
+    // 位移技能：一阵风、拍翅、残影
+    whoosh() { hiss(0.32, { f: 600, to: 3400, q: 1.4, vol: 0.12, attack: 0.06, wet: true }); },
+    flap() { hiss(0.12, { f: 900, to: 380, q: 0.9, vol: 0.09, attack: 0.02 }); tone(150, 0.1, { to: 90, type: 'triangle', vol: 0.05 }); },
+    blink() { tone(1200, 0.25, { to: 300, vol: 0.05, wet: true }); hiss(0.25, { f: 4000, to: 900, q: 3, vol: 0.05, wet: true }); },
+    land() { tone(90, 0.3, { to: 45, type: 'triangle', vol: 0.18 }); hiss(0.25, { f: 500, q: 0.7, vol: 0.12 }); },
+    ping(kind) { if (kind === 'bad') { tone(300, 0.3, { to: 180, type: 'triangle', vol: 0.08 }); } else { pluck(5, 0, 0.07); pluck(8, 0.08, 0.06); } },
+    // 大招全屏动画的配乐
+    ult(fx) {
+      tone(55, 1.6, { to: 40, type: 'triangle', vol: 0.22, attack: 0.02 }); hiss(1.2, { f: 300, to: 2400, q: 0.8, vol: 0.08, attack: 0.3, wet: true });
+      if (fx === 'drum') [0.25, 0.75, 1.25].forEach((at) => { tone(70, 0.45, { to: 38, type: 'sine', vol: 0.32, at }); hiss(0.18, { f: 200, q: 0.6, vol: 0.2, at }); metal(240, 0.6, { vol: 0.05, at }); });
+      else if (fx === 'sun') { hiss(1.6, { f: 400, to: 1800, q: 0.5, vol: 0.14, attack: 0.4 }); tone(98, 1.4, { type: 'sawtooth', vol: 0.04, attack: 0.3 }); }
+      else if (fx === 'wings') [0.15, 0.55, 0.95, 1.35].forEach((at) => hiss(0.3, { f: 1000, to: 300, q: 0.8, vol: 0.14, at, attack: 0.05 }));
+      else if (fx === 'lids') { tone(220, 1.2, { to: 110, vol: 0.06, wet: true, attack: 0.3 }); metal(330, 1.5, { vol: 0.05, at: 0.6 }); }
+      else if (fx === 'blades') [0.2, 0.45, 0.7].forEach((at) => { hiss(0.14, { f: 3000, to: 800, q: 1.5, vol: 0.2, at }); metal(1200, 0.4, { vol: 0.06, at }); });
+      else if (fx === 'ghost') { tone(110, 1.5, { to: 82, vol: 0.08, wet: true, attack: 0.4 }); tone(117, 1.5, { to: 87, vol: 0.06, wet: true, attack: 0.4 }); metal(150, 0.9, { vol: 0.1, at: 0.9 }); }
+      else if (fx === 'tails') [0, 2, 4, 7, 9, 7, 4, 2, 0].forEach((n, i) => pluck(n, 0.1 + i * 0.09, 0.06));
+      else [4, 5, 7, 9].forEach((n, i) => pluck(n, 0.2 + i * 0.12, 0.08));
+    },
     death() { tone(82, 1.1, { to: 40, type: 'triangle', vol: 0.2 }); metal(160, 1.3, { vol: 0.08, at: 0.05 }); hiss(0.8, { f: 400, to: 120, q: 0.7, vol: 0.1 }); },
     toggle() { S.muted = !S.muted; try { localStorage.setItem('sijing.mute', S.muted ? '1' : '0'); } catch (e) { /* 忽略 */ } if (master) master.gain.value = S.muted ? 0 : S.volume; return S.muted; },
   });

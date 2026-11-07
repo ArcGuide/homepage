@@ -213,7 +213,7 @@
     st.insertAdjacentHTML('beforeend', B.tilesSvg());
     SJ.BOARD.forEach((_, i) => renderTile(i));
     S.players.forEach((p) => {
-      const e = h(`<div class="piece" style="--pc:${PCOLOR[p.id]}"><div class="px" style="background-image:url(assets/px_${p.hero}.png)"></div></div>`);
+      const e = h(`<div class="piece" style="--pc:${PCOLOR[p.id]}"><div class="aura"><b class="wl"></b><b class="wr"></b><i></i><i></i><i></i><i></i><i></i></div><div class="px" style="background-image:url(assets/px_${p.hero}.png)"></div></div>`);
       pieces[p.id] = e; st.append(e);
     });
     placePieces();
@@ -247,7 +247,14 @@
   }
 
   // 精卫展翅的造型：放技能时状态还没加上，所以掷骰、走路时也要再刷一次
-  function soarSync() { if (S) S.players.forEach((p) => { const e = pieces[p.id]; if (e) e.classList.toggle('soar', p.alive && p.buffs.some((b) => b.k === 'soar')); }); }
+  // 应龙翼覆千里也一样：飞行期间一直展开金翼和流苏
+  function soarSync() {
+    if (S) S.players.forEach((p) => {
+      const e = pieces[p.id]; if (!e) return;
+      e.classList.toggle('soar', p.alive && p.buffs.some((b) => b.k === 'soar'));
+      e.classList.toggle('yifu', p.alive && p.buffs.some((b) => b.k === 'fly'));
+    });
+  }
 
   function placePieces() {
     if (!$('#stage')) return;
@@ -396,6 +403,7 @@
     const bOpt = (id, v, extra) => { const d = SJ.BUILDINGS[id]; return `<button class="opt" ${V(v)} ${extra || ''}>${img('b_' + id)}<div><b>${d.name}</b><span>${d.desc}</span></div></button>`; };
     switch (kind) {
       case 'roll': return new Promise((res) => {
+        soarSync(); // 刚放完的飞行技能，回到掷骰时就该看到造型
         const can = SJ.SKILLS[p.hero].some((_, i) => SJ.canLearn(p, i));
         const ready = SJ.SKILLS[p.hero].filter((_, i) => SJ.canCast(p, i)).length;
         const pnl = panel(`<div class="btn-row"><button class="btn primary bigbtn herobtn ${can ? 'hot' : ''}" id="b-hero">英雄${can ? `<i class="badge">${p.pts}</i>` : ready ? `<i class="badge g">${ready}</i>` : ''}</button><button class="btn primary bigbtn" id="b-roll">掷骰</button></div>`);
@@ -432,27 +440,36 @@
       case 'hurt': renderPlayers(); floaty(e.pid, `-${e.n}`, '#ff7a66'); sfx.hurt(); await wait(320); break;
       case 'roll': soarSync(); await showDice(e); break;
       case 'move': {
-        const pc = pieces[e.pid], p = S.players[e.pid], end = p.pos, ms = 230;
+        const pc = pieces[e.pid], p = S.players[e.pid], end = p.pos;
         soarSync();
-        pc.classList.add('walk');
+        const D = DASH[e.dash], yf = pc.classList.contains('yifu');
+        if (D && D.blink) { await blink(pc, e.path); p.pos = end; placePieces(); break; }
+        const ms = D ? D.ms : yf ? 190 : 230, cls = D ? ['dash', `dash-${e.dash}`] : [];
+        pc.classList.add('walk', ...cls);
         pc.style.setProperty('--step', `${ms / speed}ms`);
+        if (D) sfx.whoosh();
+        let k = 0;
         for (const pos of e.path) {
           const { x, y } = iso(pos);
+          if (D || yf) { ghost(pc, D ? D.trail : 'feather'); trail(parseFloat(pc.style.left), parseFloat(pc.style.top), D ? D.trail : 'feather'); }
           setPiece(pc, x, y + 6);
           B.look(x, y - 40, ms / speed);
-          sfx.step(SJ.BOARD[pos].terrain); await wait(ms);
+          if ((D && D.fly) || yf) { if (k % 2 === 0) sfx.flap(); } else if (D) { if (k % 2 === 0) sfx.step(SJ.BOARD[pos].terrain); } else sfx.step(SJ.BOARD[pos].terrain);
+          k++; await wait(ms);
         }
-        pc.classList.remove('walk');
+        pc.classList.remove('walk', ...cls);
+        if (D) { const { x, y } = iso(end); trail(x, y + 6, 'land'); if (D.fly) sfx.land(); }
         p.pos = end; placePieces(); break;
       }
       case 'jump': { sfx.portal(); const pc = pieces[e.pid]; pc.style.setProperty('--step', '0ms'); placePieces(); const q = iso(e.pos); B.look(q.x, q.y - 40, 300); await wait(620); break; }
       case 'msg': logLine(e.text); toast(e.text, e.kind); if (/拦下/.test(e.text)) sfx.block(); renderPlayers(); placePieces(); if (e.kind === 'skill') sfx.skill(); await wait(800); break;
-      case 'tile': renderTile(e.tile, e.built || e.buy); renderPlayers(); if (e.built || e.buy) sfx.build(); if (e.fire) sfx.fire(); if (e.built) logLine(`${S.players[e.pid].name} 建造了 ${SJ.BUILDINGS[S.tiles[e.tile].b].name}`); await wait(e.fire ? 450 : 240); break;
+      case 'tile': if (e.look) await lookTile(e.tile, e.look); renderTile(e.tile, e.built || e.buy); renderPlayers(); if (e.built || e.buy) sfx.build(); if (e.fire) sfx.fire(); if (e.built) logLine(`${S.players[e.pid].name} 建造了 ${SJ.BUILDINGS[S.tiles[e.tile].b].name}`); await wait(e.fire ? 450 : 240); break;
       case 'toll': { renderPlayers(); const q = S.players[e.to], p = S.players[e.pid]; logLine(`${p.name} 付给 ${q.name} ${e.n} 金`); floaty(e.pid, `-${e.n}`, '#ffd76a'); sfx.pay(); await wait(560); break; }
       case 'card': await showCard(e); renderPlayers(); S.tiles.forEach((_, i) => renderTile(i)); break;
       case 'battle': S.tiles.forEach((_, i) => renderTile(i)); await playBattle(e); renderPlayers(); S.tiles.forEach((_, i) => renderTile(i)); placePieces(); break;
       case 'levelup': toast(`${S.players[e.pid].name} 升到 ${e.level} 级${S.players[e.pid].human ? '，得到技能点' : ''}`, 'skill'); sfx.level(); renderPlayers(); await wait(620); break;
       case 'cast': {
+        if (ULT[e.sk]) { await ultShow(e); renderPlayers(); break; }
         const q = iso(S.players[e.pid].pos), st = $('#stage');
         const m = h(`<div class="castfx" style="left:${q.x}px;top:${q.y - 70}px">${img('sk_' + e.sk)}<b>${e.name}</b></div>`);
         st.append(m); setTimeout(() => m.remove(), 1300 / speed);
@@ -461,6 +478,131 @@
       case 'treasure': { const t = SJ.TREASURES.find((x) => x.id === e.id); toast(`${S.players[e.pid].name} 得到${TIER[t.tier]}宝物 ${t.name}：${t.desc}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1000); break; }
       case 'death': { const p = S.players[e.pid]; logLine(`${p.name} 阵亡`); toast(`${p.name} 阵亡了（${e.why || ''}）`, 'skill'); sfx.death(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers(); placePieces(); await wait(1100); break; }
     }
+  }
+
+  // ---------- 技能动画 ----------
+  // 位移技能：ms 每格多快，trail 留下的痕迹，fly 腾空，blink 闪现
+  const DASH = {
+    zhenyi: { ms: 140, trail: 'gust', fly: true },
+    benpao: { ms: 105, trail: 'dust' },
+    jizou: { ms: 115, trail: 'blood' },
+    xianzhu: { ms: 165, trail: 'candle' },
+    huanxing: { blink: true, trail: 'foxfire' },
+  };
+  function fxAt(x, y, cls, life, z) {
+    const st = $('#stage'); if (!st) return null;
+    const e = h(`<div class="${cls}" style="left:${x}px;top:${y}px;z-index:${z || Math.round(y) + 19}"></div>`);
+    st.append(e); setTimeout(() => e.remove(), life / Math.min(speed, 2)); return e;
+  }
+  // 地上留下的痕迹，几颗粒子错开一点
+  function trail(x, y, kind) {
+    if (Number.isNaN(x)) return;
+    const n = kind === 'land' ? 1 : 3;
+    for (let i = 0; i < n; i++) {
+      const e = fxAt(x + (Math.random() - 0.5) * 34, y - Math.random() * (kind === 'gust' || kind === 'feather' ? 70 : 24), `trail t-${kind}`, 1100);
+      if (e) { e.style.setProperty('--dx', `${(Math.random() - 0.5) * 50}px`); e.style.setProperty('--r', `${Math.random() * 360}deg`); e.style.animationDelay = `${i * 50}ms`; }
+    }
+  }
+  // 残影：把棋子复制一份留在原地慢慢淡掉
+  function ghost(pc, kind) {
+    const g = pc.cloneNode(true); g.classList.remove('active', 'walk'); g.classList.add('ghost', `g-${kind}`);
+    g.style.transition = 'none'; pc.parentNode.append(g); setTimeout(() => g.remove(), 520 / Math.min(speed, 2));
+  }
+  // 九尾狐幻形：原地化作狐火消失，沿路一串狐火，在终点现身
+  async function blink(pc, path) {
+    sfx.blink();
+    trail(parseFloat(pc.style.left), parseFloat(pc.style.top), 'puff');
+    pc.classList.add('vanish'); await wait(260);
+    for (const pos of path) { const { x, y } = iso(pos); trail(x, y + 6, 'foxfire'); B.look(x, y - 40, 90 / speed); await wait(90); }
+    const { x, y } = iso(path[path.length - 1]);
+    pc.style.setProperty('--step', '0ms'); setPiece(pc, x, y + 6);
+    trail(x, y + 6, 'puff'); sfx.blink();
+    pc.classList.remove('vanish'); pc.classList.add('appear'); await wait(380); pc.classList.remove('appear');
+  }
+  // 地图上某格出了事（抽卡拆楼、送地、发水），镜头先跟过去再改
+  async function lookTile(i, kind) {
+    const { x, y } = iso(i);
+    B.cam.free = 0; B.look(x, y - 30, 320 / speed); await wait(340);
+    fxAt(x, y + 14, `ping p-${kind}`, 1300, 9000); sfx.ping(kind);
+    await wait(520);
+  }
+
+  // 大招：全屏动画。fx 选背景特效，c1/c2 是主色，parts 是粒子
+  const ULT = {
+    zhuolu: { fx: 'drum', c1: '#ffd35a', c2: '#9e1f17', parts: 'spark', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
+    yifu: { fx: 'wings', c1: '#ffe08a', c2: '#c98a1a', parts: 'feather' },
+    qianli: { fx: 'sun', c1: '#ff8a3a', c2: '#7a1606', parts: 'ember', board: (p) => S.tiles.map((t, i) => (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city' ? i : -1)), bad: true },
+    bingzhu: { fx: 'blades', c1: '#ff5a4a', c2: '#4a0606', parts: 'ember' },
+    xingyao: { fx: 'blades', c1: '#e8a35a', c2: '#3a1208', parts: 'ember' },
+    yuri: { fx: 'sun', c1: '#ffd25a', c2: '#a8460c', parts: 'mote' },
+    chiling: { fx: 'ghost', c1: '#b48cff', c2: '#1d0b3a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
+    busi: { fx: 'jade', c1: '#8af0b0', c2: '#0b3a26', parts: 'mote', board: () => S.tiles.map((t, i) => (t.b ? i : -1)) },
+    tianhu: { fx: 'tails', c1: '#ff9ad2', c2: '#3a0b2e', parts: 'mote' },
+    zhuyin: { fx: 'lids', c1: '#ffb04a', c2: '#120a04', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.s && t.s.k === 'candle' && t.s.o === p.id ? i : -1)) },
+  };
+  const ULT_BG = {
+    drum: '<i class="ring"></i><i class="ring"></i><i class="ring"></i><b class="flag l"></b><b class="flag r"></b>',
+    wings: '<i class="rays"></i><b class="wing l"></b><b class="wing r"></b>',
+    sun: '<i class="sun"></i><svg class="cracks" viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M50 60 L46 48 L52 40 L44 30 L49 22 M46 48 L30 52 L18 58 M52 40 L66 44 L80 40 L96 46 M44 30 L28 26 L12 30 M49 22 L60 14 L70 16"/></svg>',
+    blades: '<i class="slash a"></i><i class="slash b"></i><i class="slash c"></i>',
+    ghost: '<i class="pillar"></i><i class="pillar"></i><i class="pillar"></i><b class="stamp">敕</b>',
+    jade: '<i class="beam"></i><i class="halo"></i>',
+    tails: Array.from({ length: 9 }, (_, i) => `<i class="tail" style="--a:${(i - 4) * 19}deg;--d:${i * 40}ms"></i>`).join(''),
+    lids: '<i class="lid top"></i><i class="lid bot"></i><i class="slit"></i>',
+  };
+  async function ultShow(e) {
+    const p = S.players[e.pid], u = ULT[e.sk], k = Object.values(SJ.SKILLS).flat().find((x) => x.id === e.sk), hero = Object.keys(SJ.SKILLS).find((id) => SJ.SKILLS[id].includes(k));
+    logLine(`${p.name} 释放大招 ${e.name}`);
+    sfx.ult(u.fx);
+    const l = h(`<div class="ult u-${u.fx}" style="--c1:${u.c1};--c2:${u.c2}"><canvas></canvas><div class="u-bg">${ULT_BG[u.fx] || ''}</div>
+      <div class="u-band"><img src="assets/hero_${hero}.webp" alt=""><div class="u-txt"><small>${SJ.HEROES[hero].name} · 大招</small><h2>${e.name}</h2><p>${k.desc}</p></div></div></div>`);
+    document.body.append(l);
+    const stop = ultParticles($('canvas', l), u);
+    let done = false; const end = new Promise((r) => { l.onclick = () => { done = true; r(); }; setTimeout(r, 2600 / speed); });
+    if (u.fx === 'drum') [250, 750, 1250].forEach((t) => setTimeout(() => { if (!done) { l.classList.remove('quake'); void l.offsetWidth; l.classList.add('quake'); } }, t / speed));
+    await end;
+    l.classList.add('out'); setTimeout(() => { stop(); l.remove(); }, 380);
+    await wait(240);
+    if (u.board) await mapReveal(u.board(p).filter((i) => i >= 0), u.bad ? 'bad' : 'good', u.c1);
+  }
+  // 大招影响全图时，拉远看一眼哪些格子被波及，再回来
+  async function mapReveal(list, kind, color) {
+    if (!list.length || !$('#stage')) return;
+    const c = { x: B.cam.x, y: B.cam.y, z: B.cam.z };
+    B.fitAll(); await wait(260);
+    list.forEach((i, n) => { const { x, y } = iso(i); setTimeout(() => { const e = fxAt(x, y + 14, `ping big p-${kind}`, 1400, 9000); if (e) e.style.setProperty('--pc', color); }, n * 25 / speed); });
+    sfx.ping(kind); await wait(1200);
+    Object.assign(B.cam, c); B.cam.free = 0; B.apply(320); await wait(340);
+  }
+  // 大招背景的粒子：火星往上飘，羽毛往下落，光点慢慢浮，火花从中心炸开
+  function ultParticles(cv, u) {
+    const ctx = cv.getContext('2d'); cv.width = innerWidth; cv.height = innerHeight;
+    const W = cv.width, H = cv.height, ps = []; let on = true, t0 = performance.now();
+    const add = () => {
+      const x = Math.random() * W;
+      if (u.parts === 'ember') ps.push({ x, y: H + 10, vx: (Math.random() - 0.5) * 1.5, vy: -3 - Math.random() * 5, s: 2 + Math.random() * 3, l: 1, c: Math.random() < 0.5 ? u.c1 : '#ffe2a0' });
+      else if (u.parts === 'feather') ps.push({ x, y: -20, vx: (Math.random() - 0.5) * 2, vy: 1.5 + Math.random() * 2.5, s: 4 + Math.random() * 6, l: 1.3, c: Math.random() < 0.6 ? u.c1 : '#fff6d8', rot: Math.random() * 6, f: true });
+      else if (u.parts === 'spark') { const a = Math.random() * 6.28, v = 4 + Math.random() * 9; ps.push({ x: W / 2, y: H * 0.45, vx: Math.cos(a) * v, vy: Math.sin(a) * v, s: 2 + Math.random() * 3, l: 1, c: Math.random() < 0.6 ? u.c1 : '#fff' }); }
+      else ps.push({ x, y: H * (0.4 + Math.random() * 0.7), vx: (Math.random() - 0.5) * 0.6, vy: -0.6 - Math.random() * 1.6, s: 2 + Math.random() * 4, l: 1.2, c: Math.random() < 0.7 ? u.c1 : '#ffffff', glow: true });
+    };
+    const tick = (now) => {
+      if (!on) return;
+      const age = now - t0;
+      for (let i = 0; i < (u.parts === 'spark' ? (age % 500 < 60 ? 40 : 2) : 6); i++) add();
+      ctx.clearRect(0, 0, W, H);
+      for (let i = ps.length - 1; i >= 0; i--) {
+        const p = ps[i]; p.x += p.vx; p.y += p.vy; p.l -= 0.012;
+        if (p.f) { p.rot += 0.08; p.vx += Math.sin(p.rot) * 0.15; }
+        if (p.l <= 0) { ps.splice(i, 1); continue; }
+        ctx.globalAlpha = Math.min(1, p.l); ctx.fillStyle = p.c;
+        if (p.glow) { ctx.shadowBlur = 10; ctx.shadowColor = p.c; } else ctx.shadowBlur = 0;
+        if (p.f) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * 0.35, 0, 0, 6.28); ctx.fill(); ctx.restore(); }
+        else { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 6.28); ctx.fill(); }
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    return () => { on = false; };
   }
 
   async function showDice(e) {
@@ -623,7 +765,7 @@
     $('#again', l).onclick = () => { l.remove(); setup(); };
   }
 
-  window.__sj = { get S() { return S; }, setSpeed(v) { speed = v; }, final: finalScreen };
+  window.__sj = { get S() { return S; }, setSpeed(v) { speed = v; }, final: finalScreen, play };
   title();
   count('open'); flushHits();
 })();

@@ -116,7 +116,7 @@
     const lampTile = s.tiles.findIndex((t) => t.owner === p.id && t.b && SJ.BUILDINGS[t.b].fx.soulLamp);
     return {
       kind: 'hero', pid: p.id, heroId: p.hero, name: SJ.HEROES[p.hero].name, hp: p.hp, maxhp: p.maxhp, atk: st.atk, def: st.def, dodge: st.dodge, proc: st.proc, crit: 0.1 + stat(p, 'crit'),
-      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), hitBack: pv(p, 'hitBack'), nine: pv(p, 'nine') > 0, pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0,
+      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), hitBack: pv(p, 'hitBack'), nine: pv(p, 'nine') > 0, pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0, xtRev: p.hero === 'xingtian' && p.sk[0] && p.cd[0] <= 0 ? 0.05 : 0,
       blind: p.status.blind ? 0.25 : 0, sealed: !!p.status.seal, lowHpAtk: ownFx(s, p, 'lowHpAtk'), lamp: lampTile >= 0 ? lampTile : null,
     };
   }
@@ -236,7 +236,8 @@
       dash: async (n, fly, o) => {
         o = o || {};
         const c = { n: 0 };
-        await move(s, io, p, n, false, fly, c);
+        p._dash = k.id; // 画面按技能放位移动画
+        try { await move(s, io, p, n, false, fly, c); } finally { delete p._dash; }
         if (!p.alive || s.over) return;
         if (o.heal) { const v = heal(p, Math.round(p.maxhp * o.heal * c.n)); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); }
         if (o.bloodGold) {
@@ -386,6 +387,13 @@
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 的魂灯灭了` });
   }
 
+  // 刑天断首再战复活后进冷却，冷却每用一次永久加长
+  function headCd(p, saved) {
+    if (!saved || p.hero !== 'xingtian') return;
+    const k = SJ.SKILLS.xingtian[0], len = p.xtCd || k.cd;
+    p.cd[0] = len; p.xtCd = len + k.cdUp[p.sk[0] - 1];
+  }
+
   async function attackTile(s, io, p, i, toll, forced) {
     const t = s.tiles[i], owner = s.players[t.owner], lv = Math.max(1, SJ.tileLevel(t));
     const A = heroC(s, p), D = buildingC(s, i, A);
@@ -397,6 +405,7 @@
     await io.ev({ t: 'battle', kind: 'tile', a: A, d: D, res, tile: i, forced, pid: p.id });
     await afterFight(s, io, p, res.aAbs);
     if (res.lampUsed) await useLamp(s, io, p, A.lamp);
+    headCd(p, res.aSaved);
     // 塔主人也拿经验，后期靠收租的英雄才升得动级：守住 2×，被拆 1×（按塔等级），打死来犯的英雄 6×（按对方等级）
     const guard = async (n) => { if (owner.alive && gainXp(s, owner, n)) await io.ev({ t: 'levelup', pid: owner.id, level: owner.level }); };
     if (p.hp <= 0) { await guard(6 * SJ.TUNE.fightXp * p.level); await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) return; }
@@ -437,6 +446,7 @@
     await afterFight(s, io, p, res.aAbs); await afterFight(s, io, q, res.dAbs);
     if (res.lampUsed) await useLamp(s, io, p, A.lamp);
     if (res.dLampUsed) await useLamp(s, io, q, D.lamp);
+    headCd(p, res.aSaved); headCd(q, res.dSaved);
     const w = res.winner === 'a' ? p : q, l = res.winner === 'a' ? q : p, loserLv = l.level;
     if (l.hp > 0 && res.winner !== 'draw') { const v = Math.floor(l.gold * 0.3); l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
     if (p.hp <= 0) await eliminate(s, io, p, q, '决斗阵亡');
@@ -466,6 +476,7 @@
     await io.ev({ t: 'battle', kind: 'nest', a: A, d: D, res, pid: p.id });
     await afterFight(s, io, p, res.aAbs);
     if (res.lampUsed) await useLamp(s, io, p, A.lamp);
+    headCd(p, res.aSaved);
     if (p.hp <= 0) { await eliminate(s, io, p, null, `被${m.name}吃了`); if (!p.alive) return; }
     if (res.winner === 'a') {
       const t0k = t.m.k; t.m = null;
@@ -526,9 +537,10 @@
     t.hp = null;
   }
 
-  async function playCard(s, io, p, card) {
+  async function playCard(s, io0, p, card) {
     s.stats.cards++;
-    await io.ev({ t: 'card', card, pid: p.id });
+    await io0.ev({ t: 'card', card, pid: p.id });
+    const io = { ask: io0.ask, ev: (e) => io0.ev(e.t === 'tile' ? Object.assign({ look: card.kind }, e) : e) }; // 卡改到的格子，镜头要跟过去
     const A = alive(s);
     switch (card.id) {
       case 'dangkang': s.harvest = A.length; break;
@@ -699,7 +711,7 @@
     const flush = async (last) => {
       if (!seg.length) return;
       const path = seg; seg = [];
-      await io.ev({ t: 'move', pid: p.id, path });
+      await io.ev({ t: 'move', pid: p.id, path, dash: p._dash, fly: !!fly });
       await passOver(s, io, p, last ? path.slice(0, -1) : path);
       if (p.alive && p.level < SJ.TUNE.walkXpLevel && gainXp(s, p, path.length * SJ.TUNE.walkXp)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); // 5 级前走一格 1 经验
       if (p.alive && hasBuff(p, 'trail')) for (const i of path) if (!s.tiles[i].s) { s.tiles[i].s = { k: 'fire', o: p.id, n: 3, v: 2 }; await io.ev({ t: 'tile', tile: i }); }

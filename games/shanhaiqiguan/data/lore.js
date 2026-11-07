@@ -1,4 +1,4 @@
-// 选英雄时的资料卡和胜利结局文案。结局图在 assets/end_<英雄 id>.webp。
+// 选英雄时的资料卡和胜利结局文案。结局图在 assets/end_<英雄 id>.jpg。
 (function (g) {
   const SJ = g.SJ = g.SJ || {};
 
@@ -29,6 +29,6 @@
     yayu: '死过一回，从此最惜命。六位巫师全聘成了私人医生，早晚各量一次血压。',
     jiuweihu: '青丘第一带货主播。九条尾巴同时举九件货，扫地机器人已经累死了三台。',
     jingwei: '有钱了，不填了，修桥。第一块石头还是要自己叼。',
-    zhulong: '买了副真丝眼罩，睡到自然醒。全天下跟着黑到下午三点。',
+    zhulong: '买了副真丝眼罩，睡到自然醒。全天下跟着黑到下午四点。',
   };
 })(typeof window !== 'undefined' ? window : globalThis);

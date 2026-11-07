@@ -53,7 +53,7 @@
   function title() {
     S = null; sfx.stopAmbient(); document.querySelector('.layer')?.remove();
     const has = !!store.get(SAVE);
-    app.innerHTML = `<div class="title"><img class="cover" src="assets/cover.webp" alt="" onerror="this.remove()">
+    app.innerHTML = `<div class="title"><video class="cover" src="assets/cover.mp4" poster="assets/cover.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
       <h1>${GAME}</h1>
       <div class="sub">踏遍山海，掷骰圈地，英雄单挑建筑，活到最后的赢</div><div class="title-gap"></div>
       <div class="btn-row">
@@ -66,6 +66,7 @@
         <a class="btn ghost" href="${OPC_URL}" target="_blank" rel="noopener">了解星弧 OPC</a>
         <button class="btn ghost" id="poll">完善后上 Steam，你会买吗？</button>
       </div></div>`;
+    const cv = $('.cover'); cv.muted = true; cv.play().catch(() => {}); // 自动播放被拦时停在 poster
     $('#new').onclick = () => { sfx.click(); setup(); };
     $('#how').onclick = () => { sfx.click(); help(); };
     $('#poll').onclick = () => { sfx.click(); poll(); };
@@ -607,7 +608,7 @@
     if (mine) sfx.win();
     const me = S.players.find((p) => p.human);
     const top = mine
-      ? `<img class="ending" src="assets/end_${w.hero}.webp" alt="" onerror="this.className='big';this.onerror=null;this.src='assets/hero_${w.hero}.webp'"><p class="ending-text">${SJ.ENDINGS[w.hero]}</p><p class="ending-note">已解锁结局 ${endings(w.hero)} / ${ids().length}</p>`
+      ? `<img class="ending" src="assets/end_${w.hero}.jpg" alt="" onerror="this.className='big';this.onerror=null;this.src='assets/hero_${w.hero}.webp'"><p class="ending-text">${SJ.ENDINGS[w.hero]}</p><p class="ending-note">已解锁结局 ${endings(w.hero)} / ${ids().length}</p>`
       : `${w ? img('hero_' + w.hero) : ''}${me ? `<p class="ending-note">用${SJ.HEROES[me.hero].name}赢一局，才能看到${SJ.HEROES[me.hero].name}的结局</p>` : ''}`;
     const l = h(`<div class="layer dim"><div class="result ${mine ? 'won' : ''}"><h2>${w ? `${w.name} 称霸四境` : '同归于尽'}</h2>${top}<p>一共打了 ${S.round} 轮</p>
       ${ranks().map((p, i) => `<div class="rank"><span>第 ${i + 1} 名 ${p.name}${p.human ? '（你）' : ''}</span><span>Lv${p.level}</span></div>`).join('')}

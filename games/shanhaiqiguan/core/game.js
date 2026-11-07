@@ -273,9 +273,9 @@
         const atk = Math.floor(n / 5); p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
         await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}${atk ? `，攻击 +${atk}` : ''}` });
       },
-      healAll: async (f) => {
-        for (const q of alive(s)) { const v = heal(q, Math.round(q.maxhp * f)); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); }
-        for (let j = 0; j < s.tiles.length; j++) { const t = s.tiles[j]; if (t.hp == null) continue; const m = SJ.tileMaxHp(t); t.hp += m * f; if (t.hp >= m) t.hp = null; await io.ev({ t: 'tile', tile: j }); }
+      healAll: async (f, own) => {
+        for (const q of alive(s)) { const v = heal(q, Math.round(q.maxhp * (q === p ? own : f))); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); }
+        for (let j = 0; j < s.tiles.length; j++) { const t = s.tiles[j]; if (t.hp == null) continue; const m = SJ.tileMaxHp(t); t.hp += m * (t.owner === p.id ? own : f); if (t.hp >= m) t.hp = null; await io.ev({ t: 'tile', tile: j }); }
       },
       repairAll: async (cost) => {
         for (let j = 0; j < s.tiles.length; j++) {

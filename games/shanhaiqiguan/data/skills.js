@@ -38,7 +38,7 @@
       S('qianli', '赤地千里', 'econ', 12, '所有敌方城邑停产 2 轮，你得 300 金', { ult: true, go: (g) => { g.stopEnemyCities(2); g.gold(300); } }, 'a parched red landscape with withered crops under a huge sun'),
     ],
     chiyou: [
-      S('bingqi', '浸血兵器', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内每次出手 33% 概率连打两下；血祭生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('xueji') ? 0.1 : 0.15); g.buff('twin', 1, [2, 3, 4][k]); } }, 'a whirlwind of bronze weapons'),
+      S('bingqi', '浸血兵器', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内每次出手 40% 概率连打两下；血祭生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('xueji') ? 0.1 : 0.15); g.buff('twin', 1, [2, 3, 4][k]); } }, 'a whirlwind of bronze weapons'),
       S('xueji', '血祭', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内攻击 +${pct([0.25, 0.4, 0.55])}；浸血兵器生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('twin') ? 0.1 : 0.15); g.buff('atkPct', [0.25, 0.4, 0.55][k], [2, 3, 4][k]); g.buff('xueji', 1, [2, 3, 4][k]); } }, 'a blood-filled bronze ritual cauldron'),
       S('tietou', '铜头铁额', 'buff', 6, `${L([2, 3, 4])} 回合内防御 +${pct([0.2, 0.3, 0.4])}，每回合回 15 血`, { go: (g, k) => { g.buff('def', [0.2, 0.3, 0.4][k], [2, 3, 4][k]); g.buff('regen', 15, [2, 3, 4][k]); } }, 'a horned bronze helmet'),
       S('bingzhu', '兵主降世', 'buff', 12, '献出 15% 最大血，3 回合内暴击 +55%；浸血兵器或血祭生效时只献 10%，两个都生效时不用献血', { ult: true, go: (g) => { g.bleed([0.15, 0.1, 0][(g.has('twin') ? 1 : 0) + (g.has('xueji') ? 1 : 0)]); g.buff('crit', 0.55, 3); } }, 'a giant demon war god silhouette with many weapons, red glow'),
@@ -46,13 +46,13 @@
     xingtian: [
       S('duanshou', '断首再战', 'passive', 0, `致命一击时 ${pct([0.25, 0.4, 0.55])} 留 1 点血；血越少攻击越高，最多 +${pct([0.5, 0.8, 1.2])}`, { pr: [0.25, 0.4, 0.55], pv: { lowHp: [0.5, 0.8, 1.2] } }, 'a headless torso with a roaring face on the chest'),
       S('ganqi', '干戚舞', 'buff', 5, `3 回合内反弹 ${pct([0.2, 0.3, 0.4])} 伤害，攻击 +10%`, { go: (g, k) => { g.buff('thorn', [0.2, 0.3, 0.4][k], 3); g.buff('atkPct', 0.1, 3); } }, 'a crossed battle axe and round shield'),
-      S('mengzhi', '猛志', 'buff', 6, `3 回合内吸收全部伤害，结束时一次受到吸收总量的 ${pct([1, 0.75, 0.5])}`, { go: (g, k) => g.buff('absorb', [1, 0.75, 0.5][k], 3) }, 'a charging warrior silhouette with dust'),
+      S('mengzhi', '猛志', 'buff', 6, `3 回合内吸收全部伤害，结束时一次受到吸收总量的 ${pct([0.75, 0.5, 0.25])}`, { go: (g, k) => g.buff('absorb', [0.75, 0.5, 0.25][k], 3) }, 'a charging warrior silhouette with dust'),
       S('xingyao', '形夭', 'buff', 12, '血量高于 20% 才能用：血量降到 20%，多出的血存起来。12 回合内，每回合结束时血量低于 20% 就从存量补到 20%，到期存量清零', { ult: true, can: (p) => p.hp > p.maxhp * 0.2, go: (g) => g.pool(12) }, 'a headless giant rising with blazing spirit'),
     ],
     kuafu: [
       S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}`, { pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
       S('denglin', '弃杖成林', 'summon', 8, `在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
-      S('benpao', '逐日', 'move', 5, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
+      S('benpao', '逐日', 'move', 9, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
     tubo: [
@@ -71,7 +71,7 @@
       S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35] } }, 'a bone rising from red earth with a green sprout'),
       S('huanhun', '还魂', 'buff', 9, `接下来 ${L([1, 2, 3])} 回合内阵亡时以 25% 血复活`, { go: (g, k) => g.buff('revive', 0.25, [1, 2, 3][k]) }, 'a glowing soul returning to a beast skeleton'),
       S('jizou', '疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金`, { go: (g, k) => g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }) }, 'running beast legs with dust'),
-      S('busi', '不死药', 'heal', 12, '全地图所有英雄和建筑，不分敌友，回 25% 血', { ult: true, go: (g) => g.healAll(0.25) }, 'a glowing jade medicine bottle'),
+      S('busi', '不死药', 'heal', 12, '全地图所有英雄和建筑回血：自己和自家建筑回 50%，其他回 25%', { ult: true, go: (g) => g.healAll(0.25, 0.5) }, 'a glowing jade medicine bottle'),
     ],
     jiuweihu: [
       S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),

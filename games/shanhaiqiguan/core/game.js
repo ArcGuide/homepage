@@ -448,7 +448,7 @@
       t.m = { k, sc: 1 + s.round * 0.03, hp: null };
     }
     const m = SJ.MONSTERS[t.m.k], sc = t.m.sc, maxhp = m.hp * sc;
-    const foe = () => ({ kind: 'monster', name: m.name, id: m.id, hp: t.m.hp != null ? t.m.hp : maxhp, maxhp, atk: m.atk * sc, def: 0, fx: {} });
+    const foe = () => ({ kind: 'monster', name: m.name, id: m.id, hp: t.m.hp != null ? t.m.hp : maxhp, maxhp, atk: m.atk * sc, def: 0, fx: {}, toDeath: true });
     const go = await io.ask('nest', { p, m, scale: sc, foe: foe() });
     if (!go) return;
     const A = heroC(s, p), D = foe();
@@ -589,7 +589,7 @@
       return;
     }
     if (tile.type === 'event') {
-      const n = ((p.hero === 'jiuweihu' && p.sk[0]) || ownFx(s, p, 'cardPeek')) ? 2 : 1;
+      const n = ownFx(s, p, 'cardPeek') ? 2 : 1;
       let card = drawCard(s);
       if (n === 2) { let c2 = drawCard(s); while (c2.id === card.id) c2 = drawCard(s); card = await io.ask('card', { p, cards: [card, c2] }); }
       await playCard(s, io, p, card);

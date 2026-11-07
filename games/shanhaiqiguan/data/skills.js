@@ -38,8 +38,8 @@
       S('qianli', '赤地千里', 'econ', 12, '所有敌方城邑停产 2 轮，你得 300 金', { ult: true, go: (g) => { g.stopEnemyCities(2); g.gold(300); } }, 'a parched red landscape with withered crops under a huge sun'),
     ],
     chiyou: [
-      S('bingqi', '浸血兵器', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内每次出手 50% 概率连打两下；血祭生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('xueji') ? 0.1 : 0.15); g.buff('twin', 1, [2, 3, 4][k]); } }, 'a whirlwind of bronze weapons'),
-      S('xueji', '血祭', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内攻击 +${pct([0.3, 0.45, 0.6])}；浸血兵器生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('twin') ? 0.1 : 0.15); g.buff('atkPct', [0.3, 0.45, 0.6][k], [2, 3, 4][k]); g.buff('xueji', 1, [2, 3, 4][k]); } }, 'a blood-filled bronze ritual cauldron'),
+      S('bingqi', '浸血兵器', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内每次出手 33% 概率连打两下；血祭生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('xueji') ? 0.1 : 0.15); g.buff('twin', 1, [2, 3, 4][k]); } }, 'a whirlwind of bronze weapons'),
+      S('xueji', '血祭', 'buff', 5, `献出 15% 最大血，${L([2, 3, 4])} 回合内攻击 +${pct([0.25, 0.4, 0.55])}；浸血兵器生效时只献 10%`, { go: (g, k) => { g.bleed(g.has('twin') ? 0.1 : 0.15); g.buff('atkPct', [0.25, 0.4, 0.55][k], [2, 3, 4][k]); g.buff('xueji', 1, [2, 3, 4][k]); } }, 'a blood-filled bronze ritual cauldron'),
       S('tietou', '铜头铁额', 'buff', 6, `${L([2, 3, 4])} 回合内防御 +${pct([0.2, 0.3, 0.4])}，每回合回 15 血`, { go: (g, k) => { g.buff('def', [0.2, 0.3, 0.4][k], [2, 3, 4][k]); g.buff('regen', 15, [2, 3, 4][k]); } }, 'a horned bronze helmet'),
       S('bingzhu', '兵主降世', 'buff', 12, '献出 15% 最大血，3 回合内暴击 +55%；浸血兵器或血祭生效时只献 10%，两个都生效时不用献血', { ult: true, go: (g) => { g.bleed([0.15, 0.1, 0][(g.has('twin') ? 1 : 0) + (g.has('xueji') ? 1 : 0)]); g.buff('crit', 0.55, 3); } }, 'a giant demon war god silhouette with many weapons, red glow'),
     ],
@@ -74,7 +74,7 @@
       S('busi', '不死药', 'heal', 12, '全地图所有英雄和建筑，不分敌友，回 25% 血', { ult: true, go: (g) => g.healAll(0.25) }, 'a glowing jade medicine bottle'),
     ],
     jiuweihu: [
-      S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降；学会后吉凶卡看两张选一张`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),
+      S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),
       S('humei', '狐媚', 'econ', 5, `2 回合内过路费减 ${pct([0.5, 0.7, 1])}`, { go: (g, k) => g.buff('tollCut', [0.5, 0.7, 1][k], 2) }, 'a white fox tail wrapping gold coins'),
       S('huanxing', '幻形', 'move', [5, 4, 3], '向前闪 3 格并转身，升级缩短冷却', { go: (g) => g.dash(3, true, { turn: true }) }, 'a fox silhouette dissolving into pale mist'),
       S('tianhu', '九尾天狐', 'econ', 12, '抽两张吉卡', { ult: true, go: (g) => g.goodCards(2) }, 'nine glowing fox tails fanned around a moon'),

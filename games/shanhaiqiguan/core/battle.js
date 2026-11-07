@@ -1,4 +1,4 @@
-// 自动战斗：每方最多出手 3 次，分不出胜负就收手，血量带回棋盘。只产生事件日志，不碰画面。
+// 自动战斗：打塔和决斗每方最多出手 3 次，分不出胜负就收手，血量带回棋盘；打异兽打到一方倒下。只产生事件日志，不碰画面。
 (function (g) {
   const SJ = g.SJ = g.SJ || {};
 
@@ -11,7 +11,7 @@
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 
-  const ROUNDS = 3;
+  const ROUNDS = 3, DEATH_ROUNDS = 200; // 后者只是防止谁都打不死时卡住
 
   SJ.fight = function (A, D, st) {
     const r = () => SJ.rand(st);
@@ -85,7 +85,7 @@
       if (x.fx.stunEvery && round % x.fx.stunEvery === 0) { y.stun = 1; snap({ t: 'skill', who: side(x), name: '震晕' }); }
       const nine = x.nine && r() < 0.85; // 九首吞山
       if (nine) snap({ t: 'skill', who: side(x), name: '九首吞山' });
-      const twin = x.twin && r() < 0.5; // 浸血兵器
+      const twin = x.twin && r() < 0.33; // 浸血兵器
       const n = nine ? 9 : twin ? 2 : x.fx.multi || 1;
       const mul = nine ? 0.15 : twin ? 1 : n > 1 ? 0.75 : 1;
       for (let i = 0; i < n && !dead(y) && !dead(x); i++) {
@@ -95,7 +95,8 @@
     };
 
     let round = 1;
-    for (; round <= ROUNDS && !dead(a) && !dead(d); round++) {
+    const limit = D.toDeath ? DEATH_ROUNDS : ROUNDS;
+    for (; round <= limit && !dead(a) && !dead(d); round++) {
       act(a, d, round);
       if (dead(a) || dead(d)) break;
       act(d, a, round);

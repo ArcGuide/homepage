@@ -32,7 +32,7 @@
       S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家建筑免费升一级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
     ],
     nuba: [
-      S('dahan', '大旱', 'passive', 0, `敌方攻击有 ${pct([0.1, 0.15, 0.2])} 落空`, { pv: { dodge: [0.1, 0.15, 0.2] } }, 'a blazing sun over cracked dry earth'),
+      S('dahan', '大旱', 'passive', 0, `敌方攻击有 ${pct([0.06, 0.09, 0.12])} 落空`, { pv: { dodge: [0.06, 0.09, 0.12] } }, 'a blazing sun over cracked dry earth'),
       S('fenshen', '焚身', 'buff', 5, `${L([2, 3, 4])} 回合内，路过的敌方建筑每座掉 ${L([10, 15, 20])} 血`, { go: (g, k) => g.buff('scorch', [10, 15, 20][k], [2, 3, 4][k]) }, 'a woman silhouette wrapped in flames'),
       S('chidi', '赤地', 'buff', 6, `${L([3, 4, 5])} 回合内走过的格子留下火焰，敌人踩到掉 2 血，火焰留 3 轮`, { go: (g, k) => g.buff('trail', 1, [3, 4, 5][k]) }, 'a ring of fire on red earth'),
       S('qianli', '赤地千里', 'econ', 12, '所有敌方城邑停产 2 轮，你得 300 金', { ult: true, go: (g) => { g.stopEnemyCities(2); g.gold(300); } }, 'a parched red landscape with withered crops under a huge sun'),

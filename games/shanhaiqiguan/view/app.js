@@ -53,7 +53,7 @@
   function title() {
     S = null; sfx.stopAmbient(); document.querySelector('.layer')?.remove();
     const has = !!store.get(SAVE);
-    app.innerHTML = `<div class="title"><video class="cover" src="assets/cover.mp4" poster="assets/cover.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+    app.innerHTML = `<div class="title"><video class="cover" src="assets/cover.mp4" poster="assets/cover.jpg" autoplay muted playsinline preload="auto" aria-hidden="true"></video>
       <h1>${GAME}</h1>
       <div class="sub">踏遍山海，掷骰圈地，英雄单挑建筑，活到最后的赢</div><div class="title-gap"></div>
       <div class="btn-row">
@@ -67,6 +67,7 @@
         <button class="btn ghost" id="poll">完善后上 Steam，你会买吗？</button>
       </div></div>`;
     const cv = $('.cover'); cv.muted = true; cv.play().catch(() => {}); // 自动播放被拦时停在 poster
+    cv.addEventListener('ended', () => setTimeout(() => { if (cv.isConnected) { cv.currentTime = 0; cv.play().catch(() => {}); } }, 2000)); // 最后一帧停 2 秒再重播
     $('#new').onclick = () => { sfx.click(); setup(); };
     $('#how').onclick = () => { sfx.click(); help(); };
     $('#poll').onclick = () => { sfx.click(); poll(); };

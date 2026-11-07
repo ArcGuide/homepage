@@ -52,6 +52,28 @@ jobs:
           json.dump(new, open(path, "w")); open("stats/snapshot-log.txt", "w").write(f"run {now}, got {got}/3\n" + "\n".join(log) + "\n")
           print(open("stats/snapshot-log.txt").read(), json.dumps(new))
           PY
+      # 《山海棋观》的计数快照，博客读 stats/shanhaiqiguan.json。没人投过的项计数服务返回 404，算 0。
+      - name: Snapshot Shanhai counters
+        run: |
+          python3 - <<'PY'
+          import json, time, urllib.request, urllib.error, datetime
+          path = "stats/shanhaiqiguan.json"
+          try: old = json.load(open(path))
+          except Exception: old = {}
+          new, got = dict(old), 0
+          for k in ("open", "start", "starc", "steam-no", "steam-free", "steam-18", "steam-38", "steam-68", "steam-98"):
+              for n in range(3):
+                  try:
+                      req = urllib.request.Request(f"https://abacus.jasoncameron.dev/get/starc-shanhaiqiguan/{k}", headers={"User-Agent": "starc-stats"})
+                      new[k] = max(int(json.load(urllib.request.urlopen(req, timeout=15))["value"]), old.get(k) or 0); got += 1; break
+                  except urllib.error.HTTPError as e:
+                      if e.code == 404: new[k] = old.get(k) or 0; got += 1; break
+                      time.sleep(5)
+                  except Exception:
+                      time.sleep(5)
+          if got: new["at"] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ")
+          json.dump(new, open(path, "w")); print(got, json.dumps(new))
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

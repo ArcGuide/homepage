@@ -68,9 +68,9 @@
       S('tunshan', '九首吞山', 'buff', 12, '5 回合内每次出手 70% 概率连打 9 段，每段攻击力 10%；不触发时正常打', { ult: true, go: (g) => g.buff('nine', 1, 5) }, 'a nine-headed serpent devouring a mountain'),
     ],
     yayu: [
-      S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35] } }, 'a bone rising from red earth with a green sprout'),
-      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉 ${L([4, 3, 2])} 座自家建筑，毁掉的地变回无主；建筑不够这个数就复活不了。被毁的建筑也能触发死而复生`, { sac: [4, 3, 2] }, 'a glowing soul returning to a beast skeleton'),
-      S('jizou', '疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金`, { go: (g, k) => g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }) }, 'running beast legs with dust'),
+      S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血；每回合回 ${L([2, 4, 6])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35], regen: [2, 4, 6] } }, 'a bone rising from red earth with a green sprout'),
+      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉 ${L([4, 3, 2])} 座自家建筑，毁掉的地变回无主；建筑不够这个数就复活不了。每复活一次攻击永久 +5。被毁的建筑也能触发死而复生`, { sac: [4, 3, 2] }, 'a glowing soul returning to a beast skeleton'),
+      S('jizou', '疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金；每放一次攻击永久 +0.5`, { go: (g, k) => { g.atkUp(0.5); g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }); } }, 'running beast legs with dust'),
       S('busi', '不死药', 'heal', 12, '花掉一半金币，自己和全部自家建筑回 50% 血。其他玩家付得起同样的钱就必须付给你，他和他的建筑也回 50%；付不起的不付钱、也不回血', { ult: true, go: (g) => g.elixir() }, 'a glowing jade medicine bottle'),
     ],
     jiuweihu: [
@@ -89,7 +89,7 @@
       S('zhengyan', '睁眼一击', 'passive', 0, `攻击 +${pct([0.12, 0.18, 0.24])}，防御 +${pct([0.06, 0.12, 0.18])}；在【烛】前后 5 格内再加攻击 12%、防御 6%；每场战斗后在脚下放一个【烛】`, { pv: { atkPct: [0.12, 0.18, 0.24], def: [0.06, 0.12, 0.18], candleNear: [1, 1, 1] } }, 'a huge glowing eye opening'),
       S('zhuzhao', '烛照', 'summon', 5, `在脚下放一个【烛】；烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g) => g.candle() }, 'a burning candle held in a serpent mouth'),
       S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
-      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2，每 5 个让攻击永久 +1', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
+      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2、攻击永久 +0.2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],
   };
 

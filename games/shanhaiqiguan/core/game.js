@@ -268,10 +268,11 @@
         }
       },
       candle: async () => { await placeCandle(s, io, p); },
+      atkUp: (v) => { p.atkBonus = Math.round(((p.atkBonus || 0) + v) * 10) / 10; },
       reclaim: async () => {
         let n = 0;
         for (let j = 0; j < s.tiles.length; j++) { const m = s.tiles[j].s; if (m && m.k === 'candle' && m.o === p.id) { s.tiles[j].s = null; n++; await io.ev({ t: 'tile', tile: j }); } }
-        const atk = Math.floor(n / 5); p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
+        const atk = Math.round(n * 2) / 10; p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
         await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}${atk ? `，攻击 +${atk}` : ''}` });
       },
       elixir: async () => { // 不死药：花一半钱自己回血，别人付同样的钱给窫窳才能回血，付得起就必须付
@@ -340,8 +341,8 @@
           if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { Object.assign(t, { owner: null, b: null, hp: null, stop: 0 }); lost++; }
           await io.ev({ t: 'tile', tile: i, fire: true });
         }
-        p.hp = Math.max(1, Math.round(p.maxhp * 0.25));
-        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了，毁掉 ${lost} 座自家建筑${back ? `，${back} 座死而复生` : ''}` });
+        p.hp = Math.max(1, Math.round(p.maxhp * 0.25)); p.atkBonus = (p.atkBonus || 0) + 5;
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了，攻击永久 +5，毁掉 ${lost} 座自家建筑${back ? `，${back} 座死而复生` : ''}` });
         return;
       }
     }

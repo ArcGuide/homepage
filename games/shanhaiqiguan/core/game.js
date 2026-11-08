@@ -101,8 +101,8 @@
     let atk = h.atk + (p.level - 1) * 1 + treasure(p, 'atk') + (p.atkBonus || 0);
     atk *= 1 + ownFx(s, p, 'heroAtk');
     const lit = pv(p, 'candleNear') && nearCandle(s, p.pos, p.id);
-    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + (lit ? 0.12 : 0);
-    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + (lit ? 0.06 : 0);
+    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + (lit ? 0.06 : 0);
+    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + (lit ? 0.03 : 0);
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
     const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge');
@@ -299,8 +299,9 @@
         for (let j = 0; j < s.tiles.length; j++) {
           const t = s.tiles[j];
           if (t.owner !== p.id || t.hp == null) continue;
-          t.hp = null;
-          if (cost) p.hp = Math.max(1, p.hp - Math.round(p.maxhp * cost));
+          const c = cost ? Math.max(1, Math.round(p.maxhp * cost)) : 0;
+          if (c && p.hp <= c) break; // 血不够就停
+          t.hp = null; p.hp -= c;
           await io.ev({ t: 'tile', tile: j });
         }
       },
@@ -409,10 +410,9 @@
     await io.ev({ t: 'tile', tile: p.pos });
   }
 
-  // 每场战斗之后：记下猛志吸收的伤害，烛龙留一个【烛】
+  // 每场战斗之后：记下猛志吸收的伤害
   async function afterFight(s, io, p, absorbed) {
     if (absorbed) p.store = (p.store || 0) + absorbed;
-    if (p.hp > 0 && pv(p, 'candleNear')) await placeCandle(s, io, p);
   }
 
   function turnAround(s, p) {

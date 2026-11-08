@@ -56,10 +56,10 @@
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
     tubo: [
-      S('fanzhen', '地府反震', 'passive', 0, `攻击时 20% 概率献出 5% 最大血，再对敌人造成献血量 ${pct([1, 1.5, 2])} 的伤害`, { pr: [0.2, 0.2, 0.2], pv: { hitBack: [1, 1.5, 2] } }, 'a shockwave cracking dark stone ground'),
-      S('tufu', '土府', 'buff', 5, `${L([2, 3, 4])} 回合内防御 -${pct([0.4, 0.3, 0.2])}，攻击 +50%`, { go: (g, k) => { g.buff('def', -[0.4, 0.3, 0.2][k], [2, 3, 4][k]); g.buff('atkPct', 0.5, [2, 3, 4][k]); } }, 'a dark stone underground gate'),
-      S('zhenmu', '镇墓兽', 'summon', 6, `在脚下放镇墓兽，拦下敌人并吸走 ${L([20, 30, 40])} 血给自己。永久存在，被碰到才消失，最多一只`, { go: (g, k) => g.summon('beast', 0, [20, 30, 40][k], { perm: true, one: true }) }, 'an antlered tomb guardian beast'),
-      S('chiling', '幽都敕令', 'buff', 12, '修满全部自家建筑，每修满一座献出 2% 最大血；所有敌人诅咒 3 回合', { ult: true, go: (g) => { g.repairAll(0.02); g.foes('curse', 3); } }, 'a pale bone tablet with teal ghost flames rising around it'),
+      S('fanzhen', '地府反震', 'passive', 0, `攻击时 20% 概率献出 5% 最大血，再对敌人造成献血量 ${pct([2, 2.5, 3])} 的伤害`, { pr: [0.2, 0.2, 0.2], pv: { hitBack: [2, 2.5, 3] } }, 'a shockwave cracking dark stone ground'),
+      S('tufu', '土府', 'buff', 5, `${L([2, 3, 4])} 回合内防御 -${pct([0.4, 0.3, 0.2])}，攻击 +75%`, { go: (g, k) => { g.buff('def', -[0.4, 0.3, 0.2][k], [2, 3, 4][k]); g.buff('atkPct', 0.75, [2, 3, 4][k]); } }, 'a dark stone underground gate'),
+      S('zhenmu', '镇墓兽', 'summon', 6, `在脚下放镇墓兽，拦下敌人并吸走 ${L([20, 30, 40])} 血给自己。持续 9 轮，被碰到就消失`, { go: (g, k) => g.summon('beast', 9, [20, 30, 40][k]) }, 'an antlered tomb guardian beast'),
+      S('chiling', '幽都敕令', 'buff', 12, '修满全部自家建筑，每修满一座献出 1% 最大血，血不够就停；所有敌人诅咒 3 回合', { ult: true, go: (g) => { g.repairAll(0.01); g.foes('curse', 3); } }, 'a pale bone tablet with teal ghost flames rising around it'),
     ],
     xiangliu: [
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([1, 2, 3])} 伤害，第 2 下 +${L([3, 6, 9])}，第 3 下 +${L([6, 12, 18])}，依次累加`, { pv: { stackHit: [1, 2, 3] } }, 'nine snake heads striking together'),
@@ -77,7 +77,7 @@
       S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),
       S('humei', '狐媚', 'econ', 5, `2 回合内过路费减 ${pct([0.5, 0.7, 1])}`, { go: (g, k) => g.buff('tollCut', [0.5, 0.7, 1][k], 2) }, 'a white fox tail wrapping gold coins'),
       S('huanxing', '幻形', 'move', [5, 4, 3], '向前闪 3 格并转身，升级缩短冷却', { go: (g) => g.dash(3, true, { turn: true }) }, 'a fox silhouette dissolving into pale mist'),
-      S('tianhu', '九尾天狐', 'econ', 12, '随机获得 3 块无主领地，各自动建一座 1 级建筑', { ult: true, go: (g) => g.claimLand(3) }, 'nine glowing fox tails fanned around a moon'),
+      S('tianhu', '九尾天狐', 'econ', 15, '随机获得 3 块无主领地，各自动建一座 1 级建筑', { ult: true, go: (g) => g.claimLand(3) }, 'nine glowing fox tails fanned around a moon'),
     ],
     jingwei: [
       S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 9% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),
@@ -86,8 +86,8 @@
       S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头永久存在，被碰到才消失；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
     ],
     zhulong: [
-      S('zhengyan', '睁眼一击', 'passive', 0, `攻击 +${pct([0.12, 0.18, 0.24])}，防御 +${pct([0.06, 0.12, 0.18])}；在【烛】前后 5 格内再加攻击 12%、防御 6%；每场战斗后在脚下放一个【烛】`, { pv: { atkPct: [0.12, 0.18, 0.24], def: [0.06, 0.12, 0.18], candleNear: [1, 1, 1] } }, 'a huge glowing eye opening'),
-      S('zhuzhao', '烛照', 'summon', 5, `在脚下放一个【烛】；烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g) => g.candle() }, 'a burning candle held in a serpent mouth'),
+      S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击 +${pct([0.06, 0.09, 0.12])}，防御 +${pct([0.03, 0.06, 0.09])}，在【烛】前后 5 格内再加攻击 6%、防御 3%`, { go: (g, k) => { g.candle(); g.buff('atkPct', [0.06, 0.09, 0.12][k], 3); g.buff('def', [0.03, 0.06, 0.09][k], 3); g.buff('candleNear', 1, 3); } }, 'a huge glowing eye opening'),
+      S('zhuzhao', '烛照', 'buff', 5, `在脚下放一个【烛】；3 回合内暴击率 +${pct([0.05, 0.1, 0.15])}，在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { go: (g, k) => { g.candle(); g.buff('crit', [0.05, 0.1, 0.15][k], 3); g.buff('candleToll', [0.15, 0.3, 0.45][k], 3); } }, 'a burning candle held in a serpent mouth'),
       S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
       S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2、攻击永久 +0.2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],

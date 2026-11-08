@@ -329,12 +329,13 @@
       await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了` });
       return;
     }
-    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳还魂：拿自家建筑换命，被毁的建筑还能死而复生
+    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳还魂：拿 7/5/3 座自家建筑换命，不够数就死；被毁的建筑还能死而复生
       const own = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].owner === p.id && s.tiles[i].b);
-      if (own.length) {
-        const n = SJ.SKILLS.yayu[1].sac[p.sk[1] - 1], proc = SJ.heroStats(s, p).proc;
+      const n = SJ.SKILLS.yayu[1].sac[p.sk[1] - 1];
+      if (own.length >= n) {
+        const proc = SJ.heroStats(s, p).proc;
         let lost = 0, back = 0;
-        for (let k = 0; k < n && own.length; k++) {
+        for (let k = 0; k < n; k++) {
           const i = own.splice(ri(s, own.length), 1)[0], t = s.tiles[i];
           if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { t.b = null; t.hp = null; lost++; }
           await io.ev({ t: 'tile', tile: i, fire: true });

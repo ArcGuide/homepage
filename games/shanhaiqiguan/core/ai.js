@@ -44,6 +44,14 @@
         return true;
       }
       case 'buy': return p.gold - c.price >= 40 || roll() < 0.3;
+      case 'build': {
+        const n = s.tiles.filter((t) => t.owner === p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city').length;
+        const w = { city: n < 2 ? 4 : 1.5, garrison: 1.6, archer: 2.4, magic: 1.6, academy: 1.4 };
+        let sum = 0; for (const k in w) sum += w[k];
+        let x = roll() * sum;
+        for (const k in w) { x -= w[k]; if (x <= 0) return k; }
+        return 'archer';
+      }
       case 'upgrade': return p.gold - c.cost >= 30;
       case 'fork': return p.gold - c.cost >= 30 ? c.options[Math.floor(roll() * c.options.length)] : null;
       case 'tollOrFight': {

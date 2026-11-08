@@ -654,7 +654,7 @@
       if (p.gold >= price && await io.ask('buy', { p, tile: i, price })) {
         p.gold -= price; t.owner = p.id;
         await io.ev({ t: 'tile', tile: i, buy: true, pid: p.id });
-        await autoBuild(s, io, p, i);
+        await autoBuild(s, io, p, i, true);
       }
       return;
     }
@@ -686,9 +686,12 @@
   const useBuild = (p) => { p.buffs = p.buffs.filter((b) => b.k !== 'buildCut'); };
 
   // 拿到地就免费随机建一座 1 级建筑
-  async function autoBuild(s, io, p, i) {
+  // 买下的地自己挑分支，打下来、抽卡得到、地基重建的随机
+  async function autoBuild(s, io, p, i, pick) {
     const t = s.tiles[i]; if (t.b || t.owner !== p.id) return;
-    const br = Object.keys(SJ.BRANCHES), k = br[ri(s, br.length)];
+    const br = Object.keys(SJ.BRANCHES);
+    let k = pick ? await io.ask('build', { p, tile: i, cost: 0 }) : null;
+    if (!br.includes(k)) k = br[ri(s, br.length)];
     t.b = `${p.race}_${k}_1`; t.hp = null;
     await io.ev({ t: 'tile', tile: i, built: true, pid: p.id });
   }

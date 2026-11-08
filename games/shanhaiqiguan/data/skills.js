@@ -86,9 +86,9 @@
       S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头永久存在，被碰到才消失；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
     ],
     zhulong: [
-      S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击 +${pct([0.06, 0.09, 0.12])}，防御 +${pct([0.03, 0.06, 0.09])}，在【烛】前后 5 格内再加攻击 6%、防御 3%`, { go: (g, k) => { g.candle(); g.buff('atkPct', [0.06, 0.09, 0.12][k], 3); g.buff('def', [0.03, 0.06, 0.09][k], 3); g.buff('candleNear', 1, 3); } }, 'a huge glowing eye opening'),
-      S('zhuzhao', '烛照', 'buff', 5, `在脚下放一个【烛】；3 回合内暴击率 +${pct([0.05, 0.1, 0.15])}，在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { go: (g, k) => { g.candle(); g.buff('crit', [0.05, 0.1, 0.15][k], 3); g.buff('candleToll', [0.15, 0.3, 0.45][k], 3); } }, 'a burning candle held in a serpent mouth'),
-      S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
+      S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击 +${pct([0.06, 0.09, 0.12])}，防御 +${pct([0.03, 0.06, 0.09])}。【烛】的特点：烛龙在【烛】前后 5 格内攻击 +6%、防御 +3%`, { pv: { candleNear: [1, 1, 1] }, go: (g, k) => { g.candle(); g.buff('atkPct', [0.06, 0.09, 0.12][k], 3); g.buff('def', [0.03, 0.06, 0.09][k], 3); } }, 'a huge glowing eye opening'),
+      S('zhuzhao', '烛照', 'buff', 5, `在脚下放一个【烛】；3 回合内暴击率 +${pct([0.05, 0.1, 0.15])}。【烛】的特点：烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g, k) => { g.candle(); g.buff('crit', [0.05, 0.1, 0.15][k], 3); } }, 'a burning candle held in a serpent mouth'),
+      S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。【烛】的特点：其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
       S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2、攻击永久 +0.2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],
   };

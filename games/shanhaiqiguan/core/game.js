@@ -436,23 +436,20 @@
     }
   }
 
-  async function duel(s, io, p, q) {
+  // 英雄比试：打到一方倒下，但血量不结算，不算战斗、没有经验。赢家拿走输家一部分金币，按等级差：
+  // 同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
+  SJ.sparCut = (wLv, lLv) => Math.max(0.1, Math.min(0.9, 0.5 + (lLv - wLv) * 0.4 / 9));
+  const sparC = (s, p) => Object.assign(heroC(s, p), { lamp: null, xtRev: 0, absorb: false, toDeath: true });
+  async function spar(s, io, p, q) {
+    if (!(await io.ask('duel', { p, q, A: sparC(s, p), D: sparC(s, q), win: SJ.sparCut(p.level, q.level), lose: SJ.sparCut(q.level, p.level) }))) return;
     s.stats.duels++;
-    const A = heroC(s, p), D = heroC(s, q);
-    A.atk *= 0.55; D.atk *= 0.55; // 决斗点到为止，一场打不死满血对手
-    p.bless = 0; q.bless = 0;
+    const A = sparC(s, p), D = sparC(s, q);
     const res = SJ.fight(A, D, s.rng);
-    p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
     await io.ev({ t: 'battle', kind: 'duel', a: A, d: D, res, pid: p.id, qid: q.id });
-    await afterFight(s, io, p, res.aAbs); await afterFight(s, io, q, res.dAbs);
-    if (res.lampUsed) await useLamp(s, io, p, A.lamp);
-    if (res.dLampUsed) await useLamp(s, io, q, D.lamp);
-    headCd(p, res.aSaved); headCd(q, res.dSaved);
-    const w = res.winner === 'a' ? p : q, l = res.winner === 'a' ? q : p, loserLv = l.level;
-    if (l.hp > 0 && res.winner !== 'draw') { const v = Math.floor(l.gold * 0.3); l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
-    if (p.hp <= 0) await eliminate(s, io, p, q, '决斗阵亡');
-    if (q.hp <= 0) await eliminate(s, io, q, p, '决斗阵亡');
-    if (res.winner !== 'draw' && w.alive) await winRewards(s, io, w, 6 * SJ.TUNE.fightXp * loserLv); // 打平没有奖励
+    if (res.winner === 'draw') return;
+    const w = res.winner === 'a' ? p : q, l = res.winner === 'a' ? q : p;
+    const v = Math.floor(l.gold * SJ.sparCut(w.level, l.level));
+    if (v > 0) { l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
   }
 
   async function nest(s, io, p) {
@@ -707,6 +704,7 @@
   // 沿路走。岔路随机选方向。c.n 记走了多少格
   async function move(s, io, p, steps, back, fly, c) {
     fly = fly || hasBuff(p, 'fly') || hasBuff(p, 'soar');
+    delete p._met;
     if (back) turnAround(s, p);
     let left = steps, seg = [];
     const flush = async (last) => {
@@ -727,6 +725,10 @@
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
       const tt = s.tiles[nx];
       if (tt.chest) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); await giveTreasure(s, io, p, rnd(s) < 0.6 ? 3 : 2); }
+      if (left > 0 && !fly && s.peace <= 0 && SJ.BOARD[nx].type !== 'corner') { // 路过别的英雄也可以比试，一次移动里同一个人只比一次
+        const q = s.players.find((x) => x.alive && x !== p && x.pos === nx && !(p._met || []).includes(x.id));
+        if (q) { await flush(false); if (!p.alive || s.over) return; (p._met = p._met || []).push(q.id); await spar(s, io, p, q); if (!p.alive || s.over) return; }
+      }
       if (!tt.s || fly) continue;
       const sm = SJ.SUMMONS[tt.s.k], mine = tt.s.o === p.id;
       if (mine) { if (sm.grove) { const v = heal(p, 30); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } continue; }
@@ -835,15 +837,16 @@
     }
   }
 
-  // 到达一格：结算格子，碰到人可以决斗，车阵的传送排在最后
+  // 到达一格：结算格子，碰到人可以比试，车阵的传送排在最后
   async function arrive(s, io, p) {
     await landOn(s, io, p, 0);
     if (!p.alive || s.over) return;
     const other = s.players.find((q) => q.alive && q !== p && q.pos === p.pos);
-    if (other && s.peace <= 0 && SJ.BOARD[p.pos].type !== 'corner' && !hasBuff(p, 'soar')) {
-      if (await io.ask('duel', { p, q: other, A: heroC(s, p), D: Object.assign(heroC(s, other), { fx: {} }) })) await duel(s, io, p, other);
+    if (other && s.peace <= 0 && SJ.BOARD[p.pos].type !== 'corner' && !hasBuff(p, 'soar') && !(p._met || []).includes(other.id)) {
+      await spar(s, io, p, other);
       if (!p.alive || s.over) return;
     }
+    delete p._met;
     if (p._warp) { delete p._warp; await teleport(s, io, p, ri(s, N())); }
   }
 

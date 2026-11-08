@@ -337,66 +337,63 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .ping.big::before, .ping.big::after { border-width: 10px; left: -70px; top: -36px; width: 140px; height: 72px; }
 @keyframes ping { 0% { opacity: 1; transform: scale(.3); } 70% { opacity: .9; } 100% { opacity: 0; transform: scale(1.6); } }
 
-/* ---------- 大招全屏 ---------- */
-.ult { position: fixed; inset: -24px; z-index: 1200; overflow: hidden; cursor: pointer; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--c2) 70%, #000) 0%, #000000f0 80%); animation: ultIn .3s ease-out; }
-.ult.out { animation: ultOut .38s ease-in forwards; }
-.ult canvas { position: absolute; inset: 0; z-index: 2; }
-.ult .u-bg { position: absolute; inset: 0; z-index: 1; }
-.ult.quake { animation: quake .32s; }
-@keyframes ultIn { from { opacity: 0; } }
-@keyframes ultOut { to { opacity: 0; transform: scale(1.06); } }
-@keyframes quake { 0%, 100% { translate: 0 0; } 20% { translate: -12px 6px; } 40% { translate: 10px -8px; } 60% { translate: -8px -4px; } 80% { translate: 6px 6px; } }
-/* 涿鹿号令：鼓声震波和两面大旗 */
-.u-drum .ring { position: absolute; left: 50%; top: 45%; width: 40vmin; height: 40vmin; margin: -20vmin; border-radius: 50%; border: 6px solid var(--c1); box-shadow: 0 0 40px var(--c1), inset 0 0 30px var(--c1); opacity: 0; animation: shock .9s ease-out forwards; }
-.u-drum .ring:nth-child(1) { animation-delay: .25s; } .u-drum .ring:nth-child(2) { animation-delay: .75s; } .u-drum .ring:nth-child(3) { animation-delay: 1.25s; }
-.u-drum .flag { position: absolute; top: -5%; width: 16vw; height: 90%; background: linear-gradient(90deg, #6e0f0a, var(--c2) 40%, #c0281c); border: 4px solid var(--c1); border-top: none; clip-path: polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%); transform-origin: 50% 0; animation: flag 1.3s ease-in-out infinite alternate, drop .5s cubic-bezier(.3, 1.4, .5, 1) both; }
-.u-drum .flag::after { content: "令"; position: absolute; left: 50%; top: 32%; transform: translateX(-50%); font: 900 9vw var(--serif); color: var(--c1); text-shadow: 0 0 12px #000; }
-.u-drum .flag.l { left: 3vw; } .u-drum .flag.r { right: 3vw; animation-delay: -.6s, .1s; }
-@keyframes shock { 0% { opacity: 1; transform: scale(.1); } 100% { opacity: 0; transform: scale(3.4); } }
-@keyframes flag { from { rotate: -3deg; } to { rotate: 3deg; } }
-@keyframes drop { from { transform: translateY(-100%); } }
-/* 赤地千里 / 与日逐走：巨大的太阳和裂开的大地 */
-.u-sun .sun { position: absolute; left: 50%; top: 4%; width: 60vmin; height: 60vmin; margin-left: -30vmin; border-radius: 50%; background: radial-gradient(circle, #fffbe0, #ffd25a 30%, var(--c1) 55%, #ff5a1a00 72%); filter: blur(2px); animation: sunUp 2.6s ease-out forwards, glow .5s ease-in-out infinite alternate; }
-.u-sun .cracks { position: absolute; left: 0; bottom: 0; width: 100%; height: 45%; }
-.u-sun .cracks path { fill: none; stroke: var(--c1); stroke-width: .7; vector-effect: non-scaling-stroke; stroke-width: 5px; filter: drop-shadow(0 0 6px var(--c1)); stroke-dasharray: 400; stroke-dashoffset: 400; animation: crack 1.4s .3s ease-out forwards; }
-.u-sun::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 40%, color-mix(in srgb, var(--c1) 35%, transparent)); animation: haze 1s ease-in-out infinite alternate; mix-blend-mode: screen; }
-@keyframes sunUp { from { transform: translateY(30vh) scale(.5); opacity: 0; } 40% { opacity: 1; } }
-@keyframes crack { to { stroke-dashoffset: 0; } }
-@keyframes haze { from { opacity: .5; } to { opacity: 1; } }
-/* 翼覆千里：两扇遮天的金翼 */
-.u-wings .rays { position: absolute; left: 50%; top: 45%; width: 160vmax; height: 160vmax; margin: -80vmax; background: repeating-conic-gradient(#ffe7a033 0 5deg, #ffe7a000 5deg 14deg); animation: spin 14s linear infinite; }
-.u-wings .wing { position: absolute; top: 4%; width: 52vw; height: 62vh; background: repeating-linear-gradient(118deg, #0000 0 3.2vw, #8a5a1255 3.2vw 3.5vw), linear-gradient(160deg, #fffbe8, var(--c1) 35%, var(--c2)); clip-path: polygon(0 60%, 18% 30%, 42% 12%, 70% 0, 100% 8%, 100% 40%, 84% 46%, 92% 58%, 70% 62%, 80% 76%, 56% 76%, 62% 90%, 38% 86%, 20% 80%); filter: drop-shadow(0 0 30px var(--c1)); opacity: .85; }
-.u-wings .wing.l { left: 50%; transform-origin: 0 70%; animation: wingL .9s cubic-bezier(.2, .9, .3, 1) both, wflapL .7s .9s ease-in-out infinite alternate; }
-.u-wings .wing.r { left: 50%; transform-origin: 0 70%; animation: wingR .9s cubic-bezier(.2, .9, .3, 1) both, wflapR .7s .9s ease-in-out infinite alternate; }
-@keyframes wingL { from { transform: scaleX(-.1) rotate(60deg); opacity: 0; } to { transform: scaleX(-1) rotate(0); } }
-@keyframes wingR { from { transform: scaleX(.1) rotate(-60deg); opacity: 0; } to { transform: scaleX(1) rotate(0); } }
-@keyframes wflapL { from { transform: scaleX(-1) rotate(0); } to { transform: scaleX(-1) rotate(10deg); } }
-@keyframes wflapR { from { transform: rotate(0); } to { transform: rotate(-10deg); } }
-/* 兵主降世 / 形夭：三道血色刀光 */
-.u-blades .slash { position: absolute; left: -10%; width: 120%; height: 10px; top: 45%; background: linear-gradient(90deg, #0000, #fff 45%, var(--c1) 55%, #0000); box-shadow: 0 0 24px var(--c1); opacity: 0; animation: slash .5s ease-out forwards; }
-.u-blades .slash.a { rotate: -24deg; animation-delay: .2s; } .u-blades .slash.b { rotate: 18deg; animation-delay: .45s; } .u-blades .slash.c { rotate: -4deg; animation-delay: .7s; height: 16px; }
-@keyframes slash { 0% { opacity: 1; clip-path: inset(0 100% 0 0); } 40% { opacity: 1; clip-path: inset(0 0 0 0); } 100% { opacity: .25; clip-path: inset(0 0 0 0); } }
-/* 幽都敕令：鬼火光柱和一方大印 */
-.u-ghost .pillar { position: absolute; bottom: 0; width: 14vw; height: 100%; background: linear-gradient(transparent, color-mix(in srgb, var(--c1) 45%, transparent)); filter: blur(10px); animation: pillar 1.6s ease-in-out infinite alternate; }
-.u-ghost .pillar:nth-child(1) { left: 8%; } .u-ghost .pillar:nth-child(2) { left: 43%; animation-delay: -.5s; } .u-ghost .pillar:nth-child(3) { right: 8%; animation-delay: -1s; }
-.u-ghost .stamp { position: absolute; right: 8vw; top: 10vh; width: 22vmin; height: 22vmin; display: grid; place-items: center; font: 900 15vmin var(--serif); color: #fff; background: #8c1420; border: 6px double #f6d2d2; border-radius: 10px; rotate: -8deg; box-shadow: 0 0 30px #c03040; animation: stamp .35s 1s cubic-bezier(.3, 1.6, .5, 1) both; }
-@keyframes pillar { from { opacity: .4; transform: scaleY(.8); } to { opacity: 1; transform: scaleY(1); } }
-@keyframes stamp { from { transform: scale(4); opacity: 0; } }
-/* 不死药：一道玉色光柱 */
-.u-jade .beam { position: absolute; left: 50%; top: 0; width: 26vmin; height: 100%; margin-left: -13vmin; background: linear-gradient(90deg, #0000, color-mix(in srgb, var(--c1) 70%, #fff), #0000); filter: blur(6px); animation: beam 1s ease-out both; }
-.u-jade .halo { position: absolute; left: 50%; top: 45%; width: 50vmin; height: 50vmin; margin: -25vmin; border-radius: 50%; border: 5px solid var(--c1); box-shadow: 0 0 40px var(--c1); animation: shock 1.4s .3s ease-out both; }
-@keyframes beam { from { transform: scaleX(0); opacity: 0; } }
-/* 九尾天狐：九条尾巴扇开 */
-.u-tails .tail { position: absolute; left: 50%; top: 62%; width: 9vmin; height: 52vmin; margin-left: -4.5vmin; border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%; transform-origin: 50% 100%; translate: 0 -100%; background: linear-gradient(#fff, var(--c1) 40%, color-mix(in srgb, var(--c1) 40%, #6a2a8a)); filter: drop-shadow(0 0 14px var(--c1)); rotate: 0deg; opacity: 0; animation: fan .7s calc(var(--d) + .1s) cubic-bezier(.2, 1.3, .4, 1) forwards, sway 1.2s 1s ease-in-out infinite alternate; }
-@keyframes fan { from { rotate: 0deg; opacity: 0; } to { rotate: var(--a); opacity: .9; } }
-@keyframes sway { from { rotate: var(--a); } to { rotate: calc(var(--a) + 5deg); } }
-/* 烛阴闭目：上下眼睑合上，只剩一线烛光 */
-.u-lids .lid { position: absolute; left: -10%; width: 120%; height: 52%; background: #070402; z-index: 1; animation: lid 1.1s .5s cubic-bezier(.6, 0, .4, 1) both; }
-.u-lids .lid.top { top: 0; border-radius: 0 0 50% 50% / 0 0 30% 30%; --y: -100%; }
-.u-lids .lid.bot { bottom: 0; border-radius: 50% 50% 0 0 / 30% 30% 0 0; --y: 100%; }
-.u-lids .slit { position: absolute; left: 10%; right: 10%; top: 50%; height: 6px; margin-top: -3px; background: var(--c1); box-shadow: 0 0 30px 10px var(--c1); border-radius: 50%; opacity: 0; animation: slit .6s 1.4s ease-out forwards; z-index: 2; }
-@keyframes lid { from { transform: translateY(var(--y)); } }
-@keyframes slit { to { opacity: 1; } }
+/* ---------- 大招：叠在地图上的特效 ---------- */
+.ult-layer { position: fixed; inset: 0; z-index: 1200; overflow: hidden; pointer-events: none; }
+.ult-layer > * { position: absolute; inset: 0; pointer-events: none; }
+.ult-glow { z-index: 1201; }
+.ult { z-index: 1202; cursor: pointer; pointer-events: auto; }
+.ult-layer.out { animation: ultOut .45s ease-in forwards; }
+.ult-layer .u-tint { background: var(--tint); opacity: .32; animation: tintIn .5s ease-out both; }
+.ult-layer .u-vig { background: radial-gradient(ellipse at var(--hx) var(--hy), #0000 20%, #0008 75%, #000b 100%); animation: tintIn .5s ease-out both; }
+.ult-layer .fxi, .ult-stage .fxi { position: absolute; max-width: none; transform-origin: 50% 50%; opacity: 0; }
+.ult-stage { position: absolute; width: 0; height: 0; pointer-events: none; }
+.ult-stage.out { animation: ultOut .45s ease-in forwards; }
+@keyframes tintIn { from { opacity: 0; } }
+@keyframes ultOut { to { opacity: 0; } }
+@keyframes quake { 0%, 100% { translate: 0 0; } 20% { translate: -10px 5px; } 40% { translate: 9px -7px; } 60% { translate: -7px -3px; } 80% { translate: 5px 5px; } }
+/* 涿鹿号令：三声鼓，三道金色冲击波贴着地面从英雄脚下扩开 */
+.u-drum .shock { width: 900px; left: -450px; top: -281px; scale: 1 .5; animation: shockFx 1s ease-out forwards; }
+.u-drum .shock.a { animation-delay: .3s; } .u-drum .shock.b { animation-delay: .8s; } .u-drum .shock.c { animation-delay: 1.3s; }
+@keyframes shockFx { 0% { opacity: 1; transform: scale(.08); } 60% { opacity: .9; } 100% { opacity: 0; transform: scale(1.6); } }
+/* 翼覆千里：一对金翼从英雄背后展开 */
+.u-wings .wings { width: 760px; left: -380px; top: -287px; transform-origin: 50% 55%; animation: wingsFx 2.3s cubic-bezier(.2, .8, .3, 1) forwards; }
+@keyframes wingsFx { 0% { opacity: 0; transform: scale(.15, .05); } 25% { opacity: 1; transform: scale(1, 1); } 45% { transform: scale(1, .9); } 65% { transform: scale(1, 1.03); } 85% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1, 1); } }
+/* 赤地千里：烈日压顶，整张地图烤成赤红，热浪起伏 */
+.u-drought .u-tint { opacity: .45; animation: tintIn .8s ease-out both, burn 1.2s ease-in-out infinite alternate; }
+.u-drought .sun { width: 115vmax; left: calc(50% - 57.5vmax); top: -30vmax; animation: sunFx 2.3s ease-out forwards; }
+.u-drought .heat { background: linear-gradient(transparent 30%, #ff6a2a22 70%, #ff3a1a44); animation: haze .5s ease-in-out infinite alternate; }
+@keyframes sunFx { 0% { opacity: 0; transform: translateY(-20%) scale(.7); } 30% { opacity: 1; } 100% { opacity: .95; transform: translateY(0) scale(1); } }
+@keyframes burn { from { opacity: .38; } to { opacity: .5; } }
+@keyframes haze { from { opacity: .6; } to { opacity: 1; } }
+/* 与日逐走：太阳从英雄身后升起 */
+.u-sunrise .sun { width: 560px; left: -280px; top: -300px; animation: riseFx 2.3s ease-out forwards; }
+@keyframes riseFx { 0% { opacity: 0; transform: translateY(35%) scale(.5); } 40% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(0) scale(1.05); } }
+/* 兵主降世 / 形夭：巨大的战神虚影从英雄身后升起，刀光一闪 */
+.u-wargod .wargod, .u-spirit .spirit { width: 520px; left: -260px; top: -398px; transform-origin: 50% 92%; animation: godFx 2.3s cubic-bezier(.2, .8, .3, 1) forwards; }
+.u-wargod .slash, .u-spirit .slash { width: 110vw; left: -5vw; top: calc(var(--hy) - 32vw); animation: slashFx .6s .9s ease-out forwards; }
+@keyframes godFx { 0% { opacity: 0; transform: translateY(30%) scale(.6); } 35% { opacity: .95; transform: translateY(0) scale(1); } 80% { opacity: .9; } 100% { opacity: 0; transform: scale(1.06); } }
+@keyframes slashFx { 0% { opacity: 0; clip-path: inset(0 100% 0 0); } 30% { opacity: 1; clip-path: inset(0 0 0 0); } 100% { opacity: 0; } }
+/* 幽都敕令：地底鬼火往上涌 */
+.u-ghost .ghost { width: 70vw; bottom: -6vh; animation: ghostFx 2.3s ease-out forwards; }
+.u-ghost .ghost.l { left: -8vw; } .u-ghost .ghost.r { right: -8vw; scale: -1 1; animation-delay: .2s; }
+@keyframes ghostFx { 0% { opacity: 0; transform: translateY(40%); } 35% { opacity: 1; } 80% { opacity: .9; } 100% { opacity: 0; transform: translateY(-10%); } }
+/* 不死药：天上落下一道玉色光柱，罩住英雄 */
+.u-jade .jade { width: 480px; left: -240px; top: -352px; transform-origin: 50% 0; animation: jadeFx 2.3s ease-out forwards; }
+@keyframes jadeFx { 0% { opacity: 0; transform: scaleY(.1); } 30% { opacity: 1; transform: scaleY(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+/* 九尾天狐：九条尾巴从英雄身后扇开 */
+.u-tails .tails { width: 760px; left: -380px; top: -390px; transform-origin: 50% 82%; animation: tailsFx 2.3s cubic-bezier(.2, 1.2, .4, 1) forwards; }
+@keyframes tailsFx { 0% { opacity: 0; transform: scale(.2) rotate(-25deg); } 35% { opacity: 1; transform: scale(1) rotate(0); } 60% { transform: rotate(3deg); } 85% { opacity: 1; transform: rotate(-2deg); } 100% { opacity: 0; } }
+/* 烛阴闭目：巨眼浮现、眼睑合上，天下一片黑，只剩自己的烛光，再睁开 */
+.u-eye .u-tint { background: #1a0a04; opacity: .55; animation: tintIn .4s both; }
+.u-eye .eye { width: 120vw; left: -10vw; top: calc(50% - 34vw); animation: eyeFx 3s ease-in-out forwards; }
+.u-eye .lid { position: absolute; inset: auto; left: -20%; right: -20%; height: 60%; background: #050302; z-index: 2; animation: lidFx 3s cubic-bezier(.6, 0, .4, 1) forwards; }
+.u-eye .lid.top { top: 0; border-radius: 0 0 50% 50% / 0 0 40% 40%; --y: -102%; box-shadow: 0 6px 18px #ff7a1a55; }
+.u-eye .lid.bot { bottom: 0; border-radius: 50% 50% 0 0 / 40% 40% 0 0; --y: 102%; box-shadow: 0 -6px 18px #ff7a1a55; }
+.u-eye .candle, .ult .candle { position: absolute; inset: auto; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: #fff2c0; box-shadow: 0 0 14px 6px #ffb04a, 0 0 40px 18px #ff7a1a88; z-index: 3; opacity: 0; animation: candleFx 1.5s ease-out forwards; }
+.u-eye .candle.me { width: 22px; height: 22px; margin: -11px; animation-delay: 1.1s; }
+@keyframes eyeFx { 0% { opacity: 0; transform: scale(1.15); } 25% { opacity: 1; transform: scale(1); } 45% { opacity: 1; } 55% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes lidFx { 0%, 28% { transform: translateY(var(--y)); } 50% { transform: translateY(0); } 85% { transform: translateY(0); } 100% { transform: translateY(var(--y)); } }
+@keyframes candleFx { 0% { opacity: 0; scale: .2; } 30% { opacity: 1; scale: 1.3; } 75% { opacity: 1; scale: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ult *, .trail::before, .piece .aura * { animation-duration: .01s !important; } }
 
 /* 加持大招期间的人物造型 */

@@ -108,10 +108,12 @@
       <h2>怎么玩</h2>
       <p>这是一局大富翁。选一位上古英雄，在山海大地图上走，买地、盖建筑、收过路费。起点和朝向是随机的，到岔路随机选方向。英雄阵亡就出局，活到最后的人赢。</p>
       <h3>踩到别人的地</h3>
-      <ul><li>交过路费，或者开打。</li><li>打塔和决斗双方各出手 3 下就收手，血量都记下来，下回接着打。打异兽要打到一方倒下，绕开也要挨它一下。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
+      <ul><li>交过路费，或者开打。</li><li>打塔双方各出手 3 下就收手，血量都记下来，下回接着打。打异兽要打到一方倒下，绕开也要挨它一下。</li></ul>
+      <h3>碰到别的英雄</h3>
+      <ul><li>路过或停在别的英雄那一格，可以比试比试。打到一方倒下，但打完谁都不掉血，也没有经验。</li><li>赢家拿走输家一部分金币，按等级差算：同级拿 50%，以下克上拿得多（低 9 级赢了拿 90%），以大欺小拿得少（高 9 级赢了只拿 10%）。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
-      <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔、打异兽和决斗。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
+      <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，比试没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
       <p>停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
       <h3>英雄成长</h3>
       <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>最多装备 4 件宝物。1 阶在宝铺买或打异兽，2 阶在自家满级城邑买，3 阶只有天降宝箱和地标大事件才有。</li></ul>
@@ -210,6 +212,7 @@
 
   function buildBoard() {
     const st = $('#stage');
+    setTimeout(preloadFx, 1500);
     st.insertAdjacentHTML('beforeend', B.tilesSvg());
     SJ.BOARD.forEach((_, i) => renderTile(i));
     S.players.forEach((p) => {
@@ -428,7 +431,7 @@
         const o = S.players[S.tiles[c.tile].owner], d = SJ.bdef(S.tiles[c.tile]);
         return choose(`<h4>${c.D.name}${d ? ` Lv${d.level}` : ''}（${o.name}）</h4><p>没拆掉就付半价过路费。</p><div class="btn-row"><button class="btn" ${V(false)}>交过路费 ${c.toll}</button><button class="btn primary" ${V(true)}>开打</button></div>`);
       }
-      case 'duel': return choose(`<h4>遇到 ${c.q.name} Lv${c.q.level}</h4><p>赢家抢走 30% 金币。</p><div class="btn-row"><button class="btn primary" ${V(true)}>决斗</button><button class="btn" ${V(false)}>走开</button></div>`);
+      case 'duel': return choose(`<h4>遇到 ${c.q.name} Lv${c.q.level}</h4><p>比试比试：打到一方倒下，但谁都不掉血。赢了拿走他 ${Math.round(c.win * 100)}% 的金币，输了被拿走 ${Math.round(c.lose * 100)}%。</p><div class="btn-row"><button class="btn primary" ${V(true)}>比试</button><button class="btn" ${V(false)}>走开</button></div>`);
       case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>打到一方倒下，中途不能收手。打死得金币和经验，可能得到宝物。绕开也要挨它一下。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
       case 'kunlun': return choose(`<h4>昆仑</h4><p>选一种恩赐。</p><div class="btn-row"><button class="btn primary" ${V('heal')}>回 40 血</button><button class="btn" ${V('bless')}>下一战攻击 +50%</button></div>`);
       case 'shop': return choose(`<h4>${c.city ? `${c.city}的二阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
@@ -542,41 +545,69 @@
     await wait(520);
   }
 
-  // 大招：全屏动画。fx 选背景特效，c1/c2 是主色，parts 是粒子
+  // 大招：叠在地图上的特效。镜头推近英雄，地图染色，发光素材用 screen 混合叠上去。
+  // fx 选特效，tint 是地图染色（multiply），c1 是光色，parts 是粒子
   const ULT = {
-    zhuolu: { fx: 'drum', c1: '#ffd35a', c2: '#9e1f17', parts: 'spark', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
-    yifu: { fx: 'wings', c1: '#ffe08a', c2: '#c98a1a', parts: 'feather', form: true },
-    qianli: { fx: 'sun', c1: '#ff8a3a', c2: '#7a1606', parts: 'ember', board: (p) => S.tiles.map((t, i) => (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city' ? i : -1)), bad: true },
-    bingzhu: { fx: 'blades', c1: '#ff5a4a', c2: '#4a0606', parts: 'ember', form: true },
-    xingyao: { fx: 'blades', c1: '#e8a35a', c2: '#3a1208', parts: 'ember', form: true },
-    yuri: { fx: 'sun', c1: '#ffd25a', c2: '#a8460c', parts: 'mote', form: true },
-    chiling: { fx: 'ghost', c1: '#b48cff', c2: '#1d0b3a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
-    busi: { fx: 'jade', c1: '#8af0b0', c2: '#0b3a26', parts: 'mote', board: () => S.tiles.map((t, i) => (t.b ? i : -1)) },
-    tianhu: { fx: 'tails', c1: '#ff9ad2', c2: '#3a0b2e', parts: 'mote' },
-    zhuyin: { fx: 'lids', c1: '#ffb04a', c2: '#120a04', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.s && t.s.k === 'candle' && t.s.o === p.id ? i : -1)) },
+    zhuolu: { fx: 'drum', c1: '#ffd35a', tint: '#ffcf7a', parts: 'spark', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
+    yifu: { fx: 'wings', c1: '#ffe08a', tint: '#ffe2a0', parts: 'feather', form: true },
+    qianli: { fx: 'drought', c1: '#ff8a3a', tint: '#ff7a3a', parts: 'ember', board: (p) => S.tiles.map((t, i) => (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city' ? i : -1)), bad: true },
+    bingzhu: { fx: 'wargod', c1: '#ff4a3a', tint: '#c8503c', parts: 'ember', form: true },
+    xingyao: { fx: 'spirit', c1: '#ffa040', tint: '#c87a4a', parts: 'ember', form: true },
+    yuri: { fx: 'sunrise', c1: '#ffd25a', tint: '#ffc070', parts: 'mote', form: true },
+    chiling: { fx: 'ghost', c1: '#b48cff', tint: '#6a5a9a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
+    busi: { fx: 'jade', c1: '#8af0b0', tint: '#a8e8c0', parts: 'mote', board: () => S.tiles.map((t, i) => (t.b ? i : -1)) },
+    tianhu: { fx: 'tails', c1: '#ff9ad2', tint: '#e8a0c8', parts: 'mote' },
+    zhuyin: { fx: 'eye', c1: '#ffb04a', tint: '#8a5a3a', parts: 'none', board: (p) => S.tiles.map((t, i) => (t.s && t.s.k === 'candle' && t.s.o === p.id ? i : -1)) },
+  };
+  // 特效素材是亮度转成透明度的 PNG，正常叠加就像发光；不用混合模式，大地图在高清屏上混合会整张丢掉
+  const fxImg = (n, cls) => `<img class="fxi ${n} ${cls || ''}" src="assets/fx_${n}.png" alt="">`;
+  let fxLoaded = false;
+  function preloadFx() { if (fxLoaded) return; fxLoaded = true; ['wings', 'eye', 'sun', 'tails', 'ghost', 'wargod', 'jade', 'shock', 'slash', 'spirit'].forEach((n) => { const i = new Image(); i.src = `assets/fx_${n}.png`; }); }
+  // 跟着英雄的特效放进地图里、压在英雄身后；铺满全屏的放在地图上面
+  const ULT_STAGE = {
+    drum: fxImg('shock', 'a') + fxImg('shock', 'b') + fxImg('shock', 'c'),
+    wings: fxImg('wings'), wargod: fxImg('wargod') + fxImg('wargod'), spirit: fxImg('spirit'), sunrise: fxImg('sun'), jade: fxImg('jade'), tails: fxImg('tails'),
   };
   const ULT_BG = {
-    drum: '<i class="ring"></i><i class="ring"></i><i class="ring"></i><b class="flag l"></b><b class="flag r"></b>',
-    wings: '<i class="rays"></i><b class="wing l"></b><b class="wing r"></b>',
-    sun: '<i class="sun"></i><svg class="cracks" viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M50 60 L46 48 L52 40 L44 30 L49 22 M46 48 L30 52 L18 58 M52 40 L66 44 L80 40 L96 46 M44 30 L28 26 L12 30 M49 22 L60 14 L70 16"/></svg>',
-    blades: '<i class="slash a"></i><i class="slash b"></i><i class="slash c"></i>',
-    ghost: '<i class="pillar"></i><i class="pillar"></i><i class="pillar"></i><b class="stamp">敕</b>',
-    jade: '<i class="beam"></i><i class="halo"></i>',
-    tails: Array.from({ length: 9 }, (_, i) => `<i class="tail" style="--a:${(i - 4) * 19}deg;--d:${i * 40}ms"></i>`).join(''),
-    lids: '<i class="lid top"></i><i class="lid bot"></i><i class="slit"></i>',
+    drought: fxImg('sun') + '<i class="heat"></i>',
+    wargod: fxImg('slash'), spirit: fxImg('slash'),
+    ghost: fxImg('ghost', 'l') + fxImg('ghost', 'r'),
+    eye: fxImg('eye'),
   };
+  const ULT_TOP = { eye: '<i class="lid top"></i><i class="lid bot"></i>' };
+  // 世界坐标换成屏幕坐标（镜头已经停在 cam 上时）
+  function toScreen(wx, wy) {
+    const r = B.cam.wrap.getBoundingClientRect(), z = B.cam.z;
+    return [r.left + r.width / 2 + (wx - B.cam.x) * z, r.top + r.height / 2 + (wy - B.cam.y) * z];
+  }
   async function ultShow(e) {
     const p = S.players[e.pid], u = ULT[e.sk];
     logLine(`${p.name} 释放大招 ${e.name}`);
-    sfx.ult(u.fx);
-    const l = h(`<div class="ult u-${u.fx}" style="--c1:${u.c1};--c2:${u.c2}"><canvas></canvas><div class="u-bg">${ULT_BG[u.fx] || ''}</div></div>`);
-    document.body.append(l);
-    const stop = ultParticles($('canvas', l), u);
-    let done = false; const end = new Promise((r) => { l.onclick = () => { done = true; r(); }; setTimeout(r, 2200 / speed); });
-    if (u.fx === 'drum') [250, 750, 1250].forEach((t) => setTimeout(() => { if (!done) { l.classList.remove('quake'); void l.offsetWidth; l.classList.add('quake'); } }, t / speed));
-    await end;
-    l.classList.add('out'); setTimeout(() => { stop(); l.remove(); }, 380);
-    await wait(240);
+    sfx.ult(u.fx === 'eye' ? 'lids' : u.fx === 'wargod' || u.fx === 'spirit' ? 'blades' : u.fx === 'drought' || u.fx === 'sunrise' ? 'sun' : u.fx === 'jade' ? 'heal' : u.fx);
+    const c0 = { x: B.cam.x, y: B.cam.y, z: B.cam.z }, { x, y } = iso(p.pos);
+    B.cam.free = 0; B.cam.x = x; B.cam.y = y - 40; B.cam.z = Math.min(1.6, c0.z * 1.3); B.apply(450 / speed);
+    const [hx, hy] = toScreen(x, y - 10);
+    // 三层：地图染色、发光素材和粒子、最上层的眼睑和烛光
+    const vars = `--c1:${u.c1};--tint:${u.tint};--hx:${hx}px;--hy:${hy}px;--z:${B.cam.z}`;
+    const tint = h(`<div class="ult-layer ult-tint u-${u.fx}" style="${vars}"><i class="u-tint"></i><i class="u-vig"></i></div>`);
+    const glow = h(`<div class="ult-layer ult-glow u-${u.fx}" style="${vars}"><div class="u-bg">${ULT_BG[u.fx] || ''}</div><canvas></canvas></div>`);
+    const l = h(`<div class="ult-layer ult u-${u.fx}" style="${vars}">${ULT_TOP[u.fx] || ''}</div>`);
+    if (u.fx === 'eye') { // 烛阴闭目：眼睛合上以后，天下只剩自己的烛光
+      (u.board(p).filter((i) => i >= 0)).forEach((i, n) => { const q = iso(i), [sx, sy] = toScreen(q.x, q.y); l.append(h(`<i class="candle" style="left:${sx}px;top:${sy - 20}px;animation-delay:${1200 + n * 40}ms"></i>`)); });
+      if (pieces[p.id]) { const [sx, sy] = toScreen(x, y - 40); l.append(h(`<i class="candle me" style="left:${sx}px;top:${sy}px"></i>`)); }
+    }
+    const layers = [tint, glow, l];
+    document.body.append(...layers);
+    if (ULT_STAGE[u.fx]) { const sf = h(`<div class="ult-stage u-${u.fx}" style="left:${x}px;top:${y + 6}px;z-index:${Math.round(y + 6) + 19}">${ULT_STAGE[u.fx]}</div>`); $('#stage').append(sf); layers.push(sf); }
+    const stop = u.parts === 'none' ? () => {} : ultParticles($('canvas', glow), u, hx, hy);
+    // 鼓声震屏：抖镜头，不给大地图加动画（会整张重画成空白）
+    const shake = () => { const bx = B.cam.x, by = B.cam.y; [[-9, 5], [8, -6], [-6, -3], [4, 4], [0, 0]].forEach(([dx, dy], n) => setTimeout(() => { B.cam.x = bx + dx; B.cam.y = by + dy; B.apply(0); }, n * 50)); };
+    if (u.fx === 'drum') [300, 800, 1300].forEach((t) => setTimeout(shake, t / speed));
+    let done = false; const end = new Promise((r) => { l.onclick = () => { done = true; r(); }; setTimeout(r, (u.fx === 'eye' ? 3000 : 2300) / speed); });
+    await end; void done;
+    layers.forEach((x) => x.classList.add('out')); setTimeout(() => { stop(); layers.forEach((x) => x.remove()); }, 450);
+    Object.assign(B.cam, c0); B.apply(450 / speed);
+    await wait(300);
   }
   // 加持类大招放完：镜头回到英雄身上，看他变身
   async function morph(pid) {
@@ -594,28 +625,29 @@
     sfx.ping(kind); await wait(1200);
     Object.assign(B.cam, c); B.cam.free = 0; B.apply(320); await wait(340);
   }
-  // 大招背景的粒子：火星往上飘，羽毛往下落，光点慢慢浮，火花从中心炸开
-  function ultParticles(cv, u) {
+  // 特效粒子：火星往上飘，羽毛往下落，光点慢慢浮，火花从英雄身上炸开
+  function ultParticles(cv, u, hx, hy) {
     const ctx = cv.getContext('2d'); cv.width = innerWidth; cv.height = innerHeight;
-    const W = cv.width, H = cv.height, ps = []; let on = true, t0 = performance.now();
+    const W = cv.width, H = cv.height, ps = []; let on = true; const t0 = performance.now();
     const add = () => {
       const x = Math.random() * W;
-      if (u.parts === 'ember') ps.push({ x, y: H + 10, vx: (Math.random() - 0.5) * 1.5, vy: -3 - Math.random() * 5, s: 2 + Math.random() * 3, l: 1, c: Math.random() < 0.5 ? u.c1 : '#ffe2a0' });
-      else if (u.parts === 'feather') ps.push({ x, y: -20, vx: (Math.random() - 0.5) * 2, vy: 1.5 + Math.random() * 2.5, s: 4 + Math.random() * 6, l: 1.3, c: Math.random() < 0.6 ? u.c1 : '#fff6d8', rot: Math.random() * 6, f: true });
-      else if (u.parts === 'spark') { const a = Math.random() * 6.28, v = 4 + Math.random() * 9; ps.push({ x: W / 2, y: H * 0.45, vx: Math.cos(a) * v, vy: Math.sin(a) * v, s: 2 + Math.random() * 3, l: 1, c: Math.random() < 0.6 ? u.c1 : '#fff' }); }
-      else ps.push({ x, y: H * (0.4 + Math.random() * 0.7), vx: (Math.random() - 0.5) * 0.6, vy: -0.6 - Math.random() * 1.6, s: 2 + Math.random() * 4, l: 1.2, c: Math.random() < 0.7 ? u.c1 : '#ffffff', glow: true });
+      if (u.parts === 'ember') ps.push({ x: hx + (Math.random() - 0.5) * W * 0.6, y: hy + Math.random() * 40, vx: (Math.random() - 0.5) * 1.5, vy: -2 - Math.random() * 4, s: 1.5 + Math.random() * 2.5, l: 1, c: Math.random() < 0.5 ? u.c1 : '#ffe2a0', glow: true });
+      else if (u.parts === 'feather') ps.push({ x, y: -20, vx: (Math.random() - 0.5) * 2, vy: 1.5 + Math.random() * 2.5, s: 4 + Math.random() * 5, l: 1.3, c: Math.random() < 0.6 ? u.c1 : '#fff6d8', rot: Math.random() * 6, f: true });
+      else if (u.parts === 'spark') { const a = Math.random() * 6.28, v = 3 + Math.random() * 7; ps.push({ x: hx, y: hy, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.5, s: 1.5 + Math.random() * 2.5, l: 1, c: Math.random() < 0.6 ? u.c1 : '#fff', glow: true }); }
+      else ps.push({ x: hx + (Math.random() - 0.5) * W * 0.8, y: hy + (Math.random() - 0.3) * H * 0.5, vx: (Math.random() - 0.5) * 0.5, vy: -0.5 - Math.random() * 1.3, s: 1.5 + Math.random() * 3, l: 1.2, c: Math.random() < 0.7 ? u.c1 : '#ffffff', glow: true });
     };
     const tick = (now) => {
       if (!on) return;
       const age = now - t0;
-      for (let i = 0; i < (u.parts === 'spark' ? (age % 500 < 60 ? 40 : 2) : 6); i++) add();
+      const n = u.parts === 'spark' ? ([300, 800, 1300].some((t) => age > t && age < t + 70) ? 30 : 0) : 3;
+      for (let i = 0; i < n; i++) add();
       ctx.clearRect(0, 0, W, H);
       for (let i = ps.length - 1; i >= 0; i--) {
-        const p = ps[i]; p.x += p.vx; p.y += p.vy; p.l -= 0.012;
+        const p = ps[i]; p.x += p.vx; p.y += p.vy; p.l -= 0.013;
         if (p.f) { p.rot += 0.08; p.vx += Math.sin(p.rot) * 0.15; }
         if (p.l <= 0) { ps.splice(i, 1); continue; }
         ctx.globalAlpha = Math.min(1, p.l); ctx.fillStyle = p.c;
-        if (p.glow) { ctx.shadowBlur = 10; ctx.shadowColor = p.c; } else ctx.shadowBlur = 0;
+        ctx.shadowBlur = p.glow ? 8 : 0; ctx.shadowColor = p.c;
         if (p.f) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * 0.35, 0, 0, 6.28); ctx.fill(); ctx.restore(); }
         else { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 6.28); ctx.fill(); }
       }
@@ -657,7 +689,7 @@
   function playBattle(e) {
     return new Promise((res) => {
       const { a, d, res: R } = e;
-      const head = (e.kind === 'duel' ? '决斗' : e.kind === 'nest' ? '打异兽' : e.forced ? '被迫开打！' : '开打') + (e.kind === 'nest' ? ' · 打到一方倒下' : ' · 各出手 3 下');
+      const head = (e.kind === 'duel' ? '比试' : e.kind === 'nest' ? '打异兽' : e.forced ? '被迫开打！' : '开打') + (e.kind === 'nest' ? ' · 打到一方倒下' : e.kind === 'duel' ? ' · 点到为止，不掉血' : ' · 各出手 3 下');
       const human = S.players[e.pid].human || (e.qid != null && S.players[e.qid].human);
       const b = h(`<div class="battle"><canvas class="fx"></canvas><div class="bt-head">${head}</div>
         <div class="bt-field">

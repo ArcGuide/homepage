@@ -60,9 +60,10 @@
         if (e.win > 0.5) return true;
         return c.toll > 40 ? roll() < 0.5 : roll() < 0.2; // 打不穿也要蹭点血，省一半过路费
       }
-      case 'duel': {
+      case 'duel': { // 比试不掉血，只看钱：赢面 × 能拿到的 对比 输面 × 会被拿走的
         const e = estimate(c.A, c.D, (s.seed + s.stats.turns) | 0, 10);
-        return e.die < 0.1 && e.left / p.maxhp > 0.5 && roll() < 0.5;
+        const gain = e.win * c.win * c.q.gold, loss = (1 - e.win) * c.lose * p.gold;
+        return gain > loss * 1.1 || (gain > loss * 0.8 && roll() < 0.3);
       }
       case 'nest': {
         const A = Object.assign({}, SJ.heroStats(s, p), { kind: 'hero', heroId: p.hero, fx: {}, crit: 0.1 });

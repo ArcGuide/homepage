@@ -94,7 +94,7 @@
       ['academy', '幽碑', '冥灯龛', '英雄打赢后回少量血', { winHeal: 4 }, { winHeal: 8 },
         'a dark stone stele carved with spirits',
         'a stone niche holding a pale blue flame lamp',
-        { name: '魂灯', desc: '自家英雄致死时保命一次，灯灭', fx: { winHeal: 8, soulLamp: 1 }, art: 'a tall bronze lamp with a large teal soul flame in a stone pavilion' },
+        { name: '魂灯', desc: '自家英雄致死时保命一次，灯灭，地变回无主', fx: { winHeal: 8, soulLamp: 1 }, art: 'a tall bronze lamp with a large teal soul flame in a stone pavilion' },
         { name: '鬼录', desc: '英雄打赢后大量回血', fx: { winHeal: 28 }, art: 'a dark stone archive with a giant open ledger of names' }],
     ],
     qingqiu: [

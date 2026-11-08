@@ -415,7 +415,7 @@
 
   async function useLamp(s, io, p, tile) {
     const t = s.tiles[tile];
-    t.b = null; t.hp = null;
+    Object.assign(t, { owner: null, b: null, hp: null, stop: 0 });
     await io.ev({ t: 'tile', tile });
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 的魂灯灭了` });
   }
@@ -563,7 +563,7 @@
   async function downgrade(s, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
     if (!b) return;
-    if (b.level === 1) t.b = null;
+    if (b.level === 1) Object.assign(t, { owner: null, b: null, stop: 0 }); // 建筑没了，地变回无主
     else t.b = `${b.race}_${b.branch}_${b.level - 1 === 1 ? 1 : 2}`;
     t.hp = null;
   }

@@ -61,7 +61,7 @@
     { id: 'zhuyan', name: '朱厌', kind: 'bad', desc: '大兵，所有人下一次踩到别人的地必须开打', art: 'a white-headed red-footed ape holding a spear' },
     { id: 'taotie', name: '饕餮', kind: 'bad', desc: '吞掉你一半金币', art: 'a monstrous gaping beast with a huge mouth swallowing gold coins, no lower body visible' },
     { id: 'kui', name: '夔', kind: 'bad', desc: '雷击，你掉 20 血', art: 'a one-legged grey ox-like creature with no horns, lightning storm around it' },
-    { id: 'huashe', name: '化蛇', kind: 'bad', desc: '大水，随机一个区域的建筑全部降一级', art: 'a snake with a woman face and wings over a flood wave' },
+    { id: 'huashe', name: '化蛇', kind: 'bad', desc: '大水，随机一个区域的建筑全部降一级，1 级的冲没，地变回无主', art: 'a snake with a woman face and wings over a flood wave' },
     { id: 'qiongqi', name: '穷奇', kind: 'bad', desc: '被抢走 100 金，交给最有钱的人', art: 'a huge winged tiger with spiked fur carrying a bag of gold' },
     { id: 'zhu', name: '鴸', kind: 'bad', desc: '被放逐到归墟，停一回合', art: 'a bird with human hands instead of feet, hooting mournfully' },
     { id: 'qizhong', name: '跂踵', kind: 'bad', desc: '大疫，所有人掉 15 血', art: 'a one-legged owl with a pig tail, sickly fog' },

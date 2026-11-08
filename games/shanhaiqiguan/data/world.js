@@ -56,7 +56,7 @@
     { id: 'dijiang', name: '帝江', kind: 'good', desc: '免费升级一座自家建筑', art: 'a round red sack-like creature with six legs and four wings and no face, dancing' },
     { id: 'lushu', name: '鹿蜀', kind: 'good', desc: '免费获得一块无主领地', art: 'a horse with a white head, tiger stripes and a red tail' },
     { id: 'qinggeng', name: '青耕', kind: 'good', desc: '三回合内免疫负面状态', art: 'a small blue-green bird with white beak and white tail perched on a branch' },
-    { id: 'bifang', name: '毕方', kind: 'bad', desc: '大火，随机烧毁两座建筑', art: 'a crane balancing on one single leg, only one leg visible, blue body with red spots, white beak, small flames around it' },
+    { id: 'bifang', name: '毕方', kind: 'bad', desc: '大火，随机烧毁两座建筑，烧掉的地变回无主', art: 'a crane balancing on one single leg, only one leg visible, blue body with red spots, white beak, small flames around it' },
     { id: 'feiyi', name: '肥遗', kind: 'bad', desc: '大旱，全场下回合没有收入', art: 'a six-legged snake with four wings over cracked dry earth' },
     { id: 'zhuyan', name: '朱厌', kind: 'bad', desc: '大兵，所有人下一次踩到别人的地必须开打', art: 'a white-headed red-footed ape holding a spear' },
     { id: 'taotie', name: '饕餮', kind: 'bad', desc: '吞掉你一半金币', art: 'a monstrous gaping beast with a huge mouth swallowing gold coins, no lower body visible' },

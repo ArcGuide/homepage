@@ -29,7 +29,7 @@
       S('baoyu', '暴雨', 'passive', 0, `每下 ${pct([0.15, 0.22, 0.3])} 让对手停手两拍并受伤`, { pr: [0.15, 0.22, 0.3] }, 'a grey storm cloud with many bright blue rain streaks and a lightning bolt'),
       S('xushui', '蓄水', 'econ', 5, `存起全部金币，3 回合后取出，并多得 ${pct([0.15, 0.3, 0.45])}`, { go: (g, k) => g.vault([0.15, 0.3, 0.45][k], 3) }, 'a swirling orb of gathered water held by a dragon claw'),
       S('zhenyi', '振翼', 'move', 5, `向前飞 ${L([6, 9, 12])} 格，无视地形和路障；每飞一格，落地这一格的结算中攻击 +5%`, { go: (g, k) => g.dash([6, 9, 12][k], true, { atk: 0.05 }) }, 'a golden feathered wing beating'),
-      S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家建筑免费升一级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
+      S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家 1 级建筑免费升到 2 级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
     ],
     nuba: [
       S('dahan', '大旱', 'passive', 0, `敌方攻击有 ${pct([0.06, 0.09, 0.12])} 落空`, { pv: { dodge: [0.06, 0.09, 0.12] } }, 'a blazing sun over cracked dry earth'),
@@ -52,7 +52,7 @@
     kuafu: [
       S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}`, { pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
       S('denglin', '弃杖成林', 'summon', 8, `在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
-      S('benpao', '逐日', 'move', 10, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
+      S('benpao', '逐日', 'move', 10, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身。只管跑：路上的宝箱、英雄、召唤物、驿站和地形都不生效`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
     tubo: [
@@ -69,7 +69,7 @@
     ],
     yayu: [
       S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35] } }, 'a bone rising from red earth with a green sprout'),
-      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉 ${L([7, 5, 3])} 座自家建筑；建筑不够这个数就复活不了。被毁的建筑也能触发死而复生`, { sac: [7, 5, 3] }, 'a glowing soul returning to a beast skeleton'),
+      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉 ${L([7, 5, 3])} 座自家建筑，毁掉的地变回无主；建筑不够这个数就复活不了。被毁的建筑也能触发死而复生`, { sac: [7, 5, 3] }, 'a glowing soul returning to a beast skeleton'),
       S('jizou', '疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金`, { go: (g, k) => g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }) }, 'running beast legs with dust'),
       S('busi', '不死药', 'heal', 12, '花掉一半金币，自己和全部自家建筑回 50% 血。其他玩家付得起同样的钱就必须付给你，他和他的建筑也回 50%；付不起的不付钱、也不回血', { ult: true, go: (g) => g.elixir() }, 'a glowing jade medicine bottle'),
     ],

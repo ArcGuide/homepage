@@ -337,7 +337,7 @@
         let lost = 0, back = 0;
         for (let k = 0; k < n; k++) {
           const i = own.splice(ri(s, own.length), 1)[0], t = s.tiles[i];
-          if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { t.b = null; t.hp = null; lost++; }
+          if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { Object.assign(t, { owner: null, b: null, hp: null, stop: 0 }); lost++; }
           await io.ev({ t: 'tile', tile: i, fire: true });
         }
         p.hp = Math.max(1, Math.round(p.maxhp * 0.25));
@@ -356,7 +356,7 @@
     if (left.length <= 1) { s.over = true; s.winner = left.length ? left[0].id : null; if (left[0]) left[0].rank = 1; }
   }
 
-  SJ._eliminate = eliminate; // 测试用
+  SJ._eliminate = eliminate; SJ._playCard = playCard; // 测试用
 
   async function hurtPlain(s, io, p, n, why) {
     if (hasBuff(p, 'absorb')) { p.store = (p.store || 0) + n; return; }
@@ -591,7 +591,7 @@
       case 'qinggeng': p.status.immune = 3; break;
       case 'bifang': {
         const c = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].b);
-        for (let k = 0; k < 2 && c.length; k++) { const i = c.splice(ri(s, c.length), 1)[0]; s.tiles[i].b = null; s.tiles[i].hp = null; await io.ev({ t: 'tile', tile: i, fire: true }); }
+        for (let k = 0; k < 2 && c.length; k++) { const i = c.splice(ri(s, c.length), 1)[0]; Object.assign(s.tiles[i], { owner: null, b: null, hp: null, stop: 0 }); await io.ev({ t: 'tile', tile: i, fire: true }); }
         break;
       }
       case 'feiyi': s.drought = A.length; break;
@@ -734,13 +734,14 @@
       if (!p.alive || s.over) break;
       const t = s.tiles[i];
       if (scorch && t.owner != null && t.owner !== p.id && t.b) { const m = SJ.tileMaxHp(t); t.hp = Math.max(1, (t.hp != null ? t.hp : m) - scorch); await io.ev({ t: 'tile', tile: i }); }
-      if (hasBuff(p, 'autoUp') && t.owner === p.id && t.b && SJ.tileLevel(t) < 3) await upgradeTile(s, io, p, i);
+      if (hasBuff(p, 'autoUp') && t.owner === p.id && t.b && SJ.tileLevel(t) === 1) await upgradeTile(s, io, p, i);
     }
   }
 
   // 沿路走。岔路随机选方向。c.n 记走了多少格
   async function move(s, io, p, steps, back, fly, c) {
     fly = fly || hasBuff(p, 'fly') || hasBuff(p, 'soar');
+    const dry = p._dash === 'benpao'; // 逐日只管跑：路上的宝箱、英雄、召唤物、驿站和地形都不生效
     delete p._met;
     if (back) turnAround(s, p);
     let left = steps, seg = [];
@@ -748,7 +749,7 @@
       if (!seg.length) return;
       const path = seg; seg = [];
       await io.ev({ t: 'move', pid: p.id, path, dash: p._dash, fly: !!fly });
-      await passOver(s, io, p, last ? path.slice(0, -1) : path);
+      if (!dry) await passOver(s, io, p, last ? path.slice(0, -1) : path);
       if (p.alive && p.level < SJ.TUNE.walkXpLevel && gainXp(s, p, path.length * SJ.TUNE.walkXp)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); // 5 级前走一格 1 经验
       if (p.alive && hasBuff(p, 'trail')) for (const i of path) if (!s.tiles[i].s) { s.tiles[i].s = { k: 'fire', o: p.id, n: 3, v: 2 }; await io.ev({ t: 'tile', tile: i }); }
       if (p.alive && p._burn) { const v = p._burn; delete p._burn; await hurtPlain(s, io, p, v, '死在火焰里'); }
@@ -761,12 +762,12 @@
       if (c) c.n++;
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
       const tt = s.tiles[nx];
-      if (tt.chest) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); await giveTreasure(s, io, p, rnd(s) < 0.6 ? 3 : 2); }
-      if (left > 0 && !fly && s.peace <= 0 && SJ.BOARD[nx].type !== 'corner') { // 路过别的英雄也可以比试，一次移动里同一个人只比一次
+      if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); await giveTreasure(s, io, p, rnd(s) < 0.6 ? 3 : 2); }
+      if (left > 0 && !fly && !dry && s.peace <= 0 && SJ.BOARD[nx].type !== 'corner') { // 路过别的英雄也可以比试，一次移动里同一个人只比一次
         const q = s.players.find((x) => x.alive && x !== p && x.pos === nx && !(p._met || []).includes(x.id));
         if (q) { await flush(false); if (!p.alive || s.over) return; (p._met = p._met || []).push(q.id); await spar(s, io, p, q); if (!p.alive || s.over) return; }
       }
-      if (!tt.s || fly) continue;
+      if (!tt.s || fly || dry) continue;
       const sm = SJ.SUMMONS[tt.s.k], mine = tt.s.o === p.id;
       if (mine) { if (sm.grove) { const v = heal(p, 30); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } continue; }
       if (sm.trail) p._burn = (p._burn || 0) + tt.s.v;

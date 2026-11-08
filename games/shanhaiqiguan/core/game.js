@@ -284,10 +284,11 @@
           for (let j = 0; j < s.tiles.length; j++) { const t = s.tiles[j]; if (t.owner !== q.id || t.hp == null) continue; const m = SJ.tileMaxHp(t); t.hp += m * 0.5; if (t.hp >= m) t.hp = null; await io.ev({ t: 'tile', tile: j }); }
         };
         await cure(p);
-        for (const q of alive(s)) {
-          if (q === p || q.gold < fee) continue;
-          q.gold -= fee; gain(s, p, fee); if (fee) await io.ev({ t: 'toll', pid: q.id, to: p.id, n: fee });
-          await cure(q);
+        for (const q of alive(s)) { // 付不起的交出自己一半的钱，但不回血
+          if (q === p) continue;
+          const can = q.gold >= fee, v = can ? fee : Math.floor(q.gold * 0.5);
+          q.gold -= v; gain(s, p, v); if (v) await io.ev({ t: 'toll', pid: q.id, to: p.id, n: v });
+          if (can) await cure(q);
         }
       },
       healAll: async (f, own) => {
@@ -305,11 +306,15 @@
       },
       stopEnemyCities: (n) => { s.tiles.forEach((t) => { if (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city') t.stop = n; }); },
       foes: (st, n) => { alive(s).forEach((q) => { if (q !== p) addStatus(s, q, st, n); }); },
+      claimLand: async (n) => { // 九尾天狐：随机拿 n 块无主领地，各自动建一座 1 级建筑
+        const c = s.tiles.map((t, i) => i).filter((i) => SJ.BOARD[i].type === 'land' && s.tiles[i].owner == null);
+        for (let k = 0; k < n && c.length; k++) { const i = c.splice(ri(s, c.length), 1)[0]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i }); await autoBuild(s, io, p, i); }
+      },
       goodCards: async (n) => { for (let c = 0; c < n && p.alive && !s.over; c++) await playCard(s, io, p, drawCard(s, 'good')); },
     };
     // 效果按写的顺序一个个跑完
     const queue = [];
-    for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'elixir', 'repairAll', 'goodCards']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
+    for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'elixir', 'repairAll', 'goodCards', 'claimLand']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
     k.go(g, lv);
     for (const f of queue) { if (p.alive && !s.over) await f(); }
     if (p.alive && !s.over) await io.ev({ t: 'casted', pid: p.id, sk: k.id }); // 效果已经生效，画面可以换造型了
@@ -331,9 +336,9 @@
       await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了` });
       return;
     }
-    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳还魂：拿 7/5/3 座自家建筑换命，不够数就死；被毁的建筑还能死而复生
+    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳还魂：第一次拿 1 座自家建筑换命，之后每复活一次永久多 5/4/3 座，不够数就死；被毁的建筑还能死而复生
       const own = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].owner === p.id && s.tiles[i].b);
-      const n = SJ.SKILLS.yayu[1].sac[p.sk[1] - 1];
+      const n = p.revCost || 1;
       if (own.length >= n) {
         const proc = SJ.heroStats(s, p).proc;
         let lost = 0, back = 0;
@@ -342,8 +347,8 @@
           if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { Object.assign(t, { owner: null, b: null, hp: null, stop: 0 }); lost++; }
           await io.ev({ t: 'tile', tile: i, fire: true });
         }
-        p.hp = Math.max(1, Math.round(p.maxhp * 0.25)); p.atkBonus = (p.atkBonus || 0) + 5;
-        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了，攻击永久 +5，毁掉 ${lost} 座自家建筑${back ? `，${back} 座死而复生` : ''}` });
+        p.hp = Math.max(1, Math.round(p.maxhp * 0.25)); p.atkBonus = (p.atkBonus || 0) + 5; p.revCost = n + SJ.SKILLS.yayu[1].sacUp[p.sk[1] - 1];
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了，攻击永久 +5，毁掉 ${lost} 座自家建筑${back ? `，${back} 座死而复生` : ''}；下次要 ${p.revCost} 座` });
         return;
       }
     }
@@ -824,7 +829,7 @@
       case 'swamp': addStatus(s, p, 'poison', 3); break;
       case 'study': if (gainXp(s, p, 50)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); await say(`${p.name} 在书斋读书，经验 +50`); break;
       case 'venture':
-        if (rnd(s) < 0.5) { gain(s, p, 80); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '路演融资' }); }
+        if (rnd(s) < 0.5) { gain(s, p, 80); await say(`${p.name} 路演成功，融到 80 金`); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '路演融资' }); }
         else { const v = Math.min(40, p.gold); p.gold -= v; await say(`${p.name} 路演没人投，烧掉 ${v} 金`); }
         break;
       case 'star':

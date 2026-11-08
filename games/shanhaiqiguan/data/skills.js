@@ -69,15 +69,15 @@
     ],
     yayu: [
       S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血；每回合回 ${L([1, 2, 3])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35], regen: [1, 2, 3] } }, 'a bone rising from red earth with a green sprout'),
-      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉 ${L([4, 3, 2])} 座自家建筑，毁掉的地变回无主；建筑不够这个数就复活不了。每复活一次攻击永久 +5。被毁的建筑也能触发死而复生`, { sac: [4, 3, 2] }, 'a glowing soul returning to a beast skeleton'),
+      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉自家建筑：第一次 1 座，之后每复活一次永久多 ${L([5, 4, 3])} 座，毁掉的地变回无主；建筑不够这个数就复活不了。每复活一次攻击永久 +5。被毁的建筑也能触发死而复生`, { sacUp: [5, 4, 3] }, 'a glowing soul returning to a beast skeleton'),
       S('jizou', '疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金；每放一次攻击永久 +0.5`, { go: (g, k) => { g.atkUp(0.5); g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }); } }, 'running beast legs with dust'),
-      S('busi', '不死药', 'heal', 12, '花掉一半金币，自己和全部自家建筑回 50% 血。其他玩家付得起同样的钱就必须付给你，他和他的建筑也回 50%；付不起的不付钱、也不回血', { ult: true, go: (g) => g.elixir() }, 'a glowing jade medicine bottle'),
+      S('busi', '不死药', 'heal', 12, '花掉一半金币，自己和全部自家建筑回 50% 血。其他玩家付得起同样的钱就必须付给你，他和他的建筑也回 50%；付不起的交出自己一半的钱，不回血', { ult: true, go: (g) => g.elixir() }, 'a glowing jade medicine bottle'),
     ],
     jiuweihu: [
       S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),
       S('humei', '狐媚', 'econ', 5, `2 回合内过路费减 ${pct([0.5, 0.7, 1])}`, { go: (g, k) => g.buff('tollCut', [0.5, 0.7, 1][k], 2) }, 'a white fox tail wrapping gold coins'),
       S('huanxing', '幻形', 'move', [5, 4, 3], '向前闪 3 格并转身，升级缩短冷却', { go: (g) => g.dash(3, true, { turn: true }) }, 'a fox silhouette dissolving into pale mist'),
-      S('tianhu', '九尾天狐', 'econ', 12, '抽两张吉卡', { ult: true, go: (g) => g.goodCards(2) }, 'nine glowing fox tails fanned around a moon'),
+      S('tianhu', '九尾天狐', 'econ', 12, '随机获得 3 块无主领地，各自动建一座 1 级建筑', { ult: true, go: (g) => g.claimLand(3) }, 'nine glowing fox tails fanned around a moon'),
     ],
     jingwei: [
       S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 9% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),

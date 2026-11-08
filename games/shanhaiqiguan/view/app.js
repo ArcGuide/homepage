@@ -223,7 +223,8 @@
   function renderTile(i, pop) {
     const st = $('#stage'); if (!st) return;
     const t = S.tiles[i], { x, y } = iso(i);
-    const key = `${t.owner}|${t.b}|${t.hp == null ? '' : Math.round(t.hp)}|${t.m ? `${t.m.k}:${Math.round(t.m.hp || 0)}` : ''}|${t.s ? t.s.k : ''}|${t.chest}`;
+    const rally = t.b && t.owner != null && S.players[t.owner].buffs.some((b) => b.k === 'towerAtk');
+    const key = `${rally}|${t.owner}|${t.b}|${t.hp == null ? '' : Math.round(t.hp)}|${t.m ? `${t.m.k}:${Math.round(t.m.hp || 0)}` : ''}|${t.s ? t.s.k : ''}|${t.chest}`;
     if (tileKey[i] === key && !pop) return;
     tileKey[i] = key;
     (sprites[i] || []).forEach((e) => e.remove());
@@ -231,7 +232,7 @@
     if (top) { top.style.fill = t.owner != null ? PCOLOR[t.owner] + '66' : ''; top.style.stroke = t.owner != null ? PCOLOR[t.owner] : ''; top.style.strokeWidth = t.owner != null ? '3.5' : ''; }
     if (t.b) {
       const b = SJ.BUILDINGS[t.b];
-      list.push(h(`<div class="sprite bld ${pop ? 'pop' : ''}" style="left:${x}px;top:${y + 15}px;width:${[0, 74, 88, 104][b.level]}px;height:${[0, 68, 82, 98][b.level]}px;z-index:${Math.round(y)}">${img('b_' + b.id, b.name)}</div>`));
+      list.push(h(`<div class="sprite bld ${pop ? 'pop' : ''} ${rally ? 'rally' : ''}" style="left:${x}px;top:${y + 15}px;width:${[0, 74, 88, 104][b.level]}px;height:${[0, 68, 82, 98][b.level]}px;z-index:${Math.round(y)}">${img('b_' + b.id, b.name)}</div>`));
       list.push(h(`<div class="lv" style="left:${x - 27}px;top:${y + 8}px;z-index:${Math.round(y) + 1};background:${PCOLOR[t.owner]}">${b.level}</div>`));
       if (t.hp != null) list.push(h(`<div class="bhp" style="left:${x}px;top:${y + 19}px;z-index:${Math.round(y) + 1}"><i style="width:${Math.max(4, t.hp / SJ.tileMaxHp(t) * 100)}%"></i></div>`));
     }
@@ -247,12 +248,19 @@
   }
 
   // 精卫展翅的造型：放技能时状态还没加上，所以掷骰、走路时也要再刷一次
-  // 应龙翼覆千里也一样：飞行期间一直展开金翼和流苏
+  // 加持期间人物换造型：翼覆千里金翼流苏，兵主降世血焰，形夭战魂，与日逐走背日
+  const has = (p, k) => p.buffs.some((b) => b.k === k);
+  const FORMS = {
+    soar: (p) => has(p, 'soar'),
+    yifu: (p) => has(p, 'fly'),
+    berserk: (p) => p.hero === 'chiyou' && has(p, 'crit'),
+    spirit: (p) => has(p, 'pool'),
+    sunrun: (p) => p.bonusTurns > 0,
+  };
   function soarSync() {
     if (S) S.players.forEach((p) => {
       const e = pieces[p.id]; if (!e) return;
-      e.classList.toggle('soar', p.alive && p.buffs.some((b) => b.k === 'soar'));
-      e.classList.toggle('yifu', p.alive && p.buffs.some((b) => b.k === 'fly'));
+      for (const [c, f] of Object.entries(FORMS)) e.classList.toggle(c, p.alive && !!f(p));
     });
   }
 
@@ -475,6 +483,13 @@
         st.append(m); setTimeout(() => m.remove(), 1300 / speed);
         sfx.cast(SJ.SKILLS[S.players[e.pid].hero].find((k) => k.id === e.sk).kind); logLine(`${S.players[e.pid].name} 释放 ${e.name}`); B.look(q.x, q.y - 40, 200); renderPlayers(); await wait(900); break;
       }
+      case 'casted': {
+        soarSync(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers();
+        const u = ULT[e.sk]; if (!u) break;
+        if (u.form) await morph(e.pid);
+        if (u.board) await mapReveal(u.board(S.players[e.pid]).filter((i) => i >= 0), u.bad ? 'bad' : 'good', u.c1);
+        break;
+      }
       case 'treasure': { const t = SJ.TREASURES.find((x) => x.id === e.id); toast(`${S.players[e.pid].name} 得到${TIER[t.tier]}宝物 ${t.name}：${t.desc}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1000); break; }
       case 'death': { const p = S.players[e.pid]; logLine(`${p.name} 阵亡`); toast(`${p.name} 阵亡了（${e.why || ''}）`, 'skill'); sfx.death(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers(); placePieces(); await wait(1100); break; }
     }
@@ -530,11 +545,11 @@
   // 大招：全屏动画。fx 选背景特效，c1/c2 是主色，parts 是粒子
   const ULT = {
     zhuolu: { fx: 'drum', c1: '#ffd35a', c2: '#9e1f17', parts: 'spark', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
-    yifu: { fx: 'wings', c1: '#ffe08a', c2: '#c98a1a', parts: 'feather' },
+    yifu: { fx: 'wings', c1: '#ffe08a', c2: '#c98a1a', parts: 'feather', form: true },
     qianli: { fx: 'sun', c1: '#ff8a3a', c2: '#7a1606', parts: 'ember', board: (p) => S.tiles.map((t, i) => (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city' ? i : -1)), bad: true },
-    bingzhu: { fx: 'blades', c1: '#ff5a4a', c2: '#4a0606', parts: 'ember' },
-    xingyao: { fx: 'blades', c1: '#e8a35a', c2: '#3a1208', parts: 'ember' },
-    yuri: { fx: 'sun', c1: '#ffd25a', c2: '#a8460c', parts: 'mote' },
+    bingzhu: { fx: 'blades', c1: '#ff5a4a', c2: '#4a0606', parts: 'ember', form: true },
+    xingyao: { fx: 'blades', c1: '#e8a35a', c2: '#3a1208', parts: 'ember', form: true },
+    yuri: { fx: 'sun', c1: '#ffd25a', c2: '#a8460c', parts: 'mote', form: true },
     chiling: { fx: 'ghost', c1: '#b48cff', c2: '#1d0b3a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
     busi: { fx: 'jade', c1: '#8af0b0', c2: '#0b3a26', parts: 'mote', board: () => S.tiles.map((t, i) => (t.b ? i : -1)) },
     tianhu: { fx: 'tails', c1: '#ff9ad2', c2: '#3a0b2e', parts: 'mote' },
@@ -551,19 +566,24 @@
     lids: '<i class="lid top"></i><i class="lid bot"></i><i class="slit"></i>',
   };
   async function ultShow(e) {
-    const p = S.players[e.pid], u = ULT[e.sk], k = Object.values(SJ.SKILLS).flat().find((x) => x.id === e.sk), hero = Object.keys(SJ.SKILLS).find((id) => SJ.SKILLS[id].includes(k));
+    const p = S.players[e.pid], u = ULT[e.sk];
     logLine(`${p.name} 释放大招 ${e.name}`);
     sfx.ult(u.fx);
-    const l = h(`<div class="ult u-${u.fx}" style="--c1:${u.c1};--c2:${u.c2}"><canvas></canvas><div class="u-bg">${ULT_BG[u.fx] || ''}</div>
-      <div class="u-band"><img src="assets/hero_${hero}.webp" alt=""><div class="u-txt"><small>${SJ.HEROES[hero].name} · 大招</small><h2>${e.name}</h2><p>${k.desc}</p></div></div></div>`);
+    const l = h(`<div class="ult u-${u.fx}" style="--c1:${u.c1};--c2:${u.c2}"><canvas></canvas><div class="u-bg">${ULT_BG[u.fx] || ''}</div></div>`);
     document.body.append(l);
     const stop = ultParticles($('canvas', l), u);
-    let done = false; const end = new Promise((r) => { l.onclick = () => { done = true; r(); }; setTimeout(r, 2600 / speed); });
+    let done = false; const end = new Promise((r) => { l.onclick = () => { done = true; r(); }; setTimeout(r, 2200 / speed); });
     if (u.fx === 'drum') [250, 750, 1250].forEach((t) => setTimeout(() => { if (!done) { l.classList.remove('quake'); void l.offsetWidth; l.classList.add('quake'); } }, t / speed));
     await end;
     l.classList.add('out'); setTimeout(() => { stop(); l.remove(); }, 380);
     await wait(240);
-    if (u.board) await mapReveal(u.board(p).filter((i) => i >= 0), u.bad ? 'bad' : 'good', u.c1);
+  }
+  // 加持类大招放完：镜头回到英雄身上，看他变身
+  async function morph(pid) {
+    const pc = pieces[pid], p = S.players[pid]; if (!pc || !p.alive) return;
+    const { x, y } = iso(p.pos); B.cam.free = 0; B.look(x, y - 40, 260 / speed); await wait(280);
+    pc.classList.remove('morph'); void pc.offsetWidth; pc.classList.add('morph');
+    trail(x, y + 6, 'land'); sfx.land(); await wait(900); pc.classList.remove('morph');
   }
   // 大招影响全图时，拉远看一眼哪些格子被波及，再回来
   async function mapReveal(list, kind, color) {

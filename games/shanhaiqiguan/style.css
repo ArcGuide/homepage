@@ -271,7 +271,7 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .piece .aura { position: absolute; left: 50%; bottom: 20px; width: 0; height: 0; display: none; pointer-events: none; }
 .piece .px { position: relative; z-index: 1; transition: translate .25s ease-out; }
 /* 翼覆千里：腾空、金翼、背后转动的光、身下的流苏 */
-.piece.yifu .aura, .piece.dash-zhenyi .aura, .piece.dash-benpao .aura, .piece.dash-xianzhu .aura { display: block; }
+.piece.yifu .aura, .piece.dash-zhenyi .aura, .piece.dash-benpao .aura, .piece.dash-xianzhu .aura, .piece.berserk .aura, .piece.spirit .aura, .piece.sunrun .aura { display: block; }
 .piece.yifu .px, .piece.dash-zhenyi .px { translate: 0 -34px; }
 .piece.yifu .px { animation: px-idle .9s steps(2) infinite, soar-bob 1.4s ease-in-out infinite alternate; }
 .piece.yifu.walk .px { animation: px-walk .46s steps(4) infinite, soar-bob 1.4s ease-in-out infinite alternate; }
@@ -342,18 +342,9 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .ult.out { animation: ultOut .38s ease-in forwards; }
 .ult canvas { position: absolute; inset: 0; z-index: 2; }
 .ult .u-bg { position: absolute; inset: 0; z-index: 1; }
-.ult .u-band { position: absolute; left: 0; right: 0; top: 50%; z-index: 3; height: clamp(150px, 30vh, 250px); margin-top: calc(clamp(150px, 30vh, 250px) / -2); display: flex; align-items: center; gap: clamp(10px, 3vw, 34px); padding: 0 6vw; background: linear-gradient(90deg, #000c, color-mix(in srgb, var(--c2) 60%, #000c) 40%, #0000); border-top: 2px solid var(--c1); border-bottom: 2px solid var(--c1); box-shadow: 0 0 30px color-mix(in srgb, var(--c1) 50%, #0000); animation: band 2.6s cubic-bezier(.2, .9, .2, 1) forwards; }
-.ult .u-band img { height: 125%; align-self: flex-end; filter: drop-shadow(0 0 18px var(--c1)); animation: heroIn .5s cubic-bezier(.2, .9, .2, 1.2) both; }
-.ult .u-txt { color: #fff; animation: txtIn .55s .12s cubic-bezier(.2, .9, .2, 1) both; min-width: 0; }
-.ult .u-txt small { display: block; font-size: clamp(13px, 2.2vw, 18px); color: var(--c1); letter-spacing: .3em; }
-.ult .u-txt h2 { margin: 2px 0 6px; font: 900 clamp(46px, 11vw, 110px)/1 var(--serif); letter-spacing: .12em; color: #fff; -webkit-text-stroke: 1px var(--c1); text-shadow: 0 0 22px var(--c1), 0 0 4px var(--c1), 0 4px 0 #000; white-space: nowrap; }
-.ult .u-txt p { margin: 0; font-size: clamp(12px, 2vw, 17px); color: #f4ecd9; max-width: 34em; }
 .ult.quake { animation: quake .32s; }
 @keyframes ultIn { from { opacity: 0; } }
 @keyframes ultOut { to { opacity: 0; transform: scale(1.06); } }
-@keyframes band { 0% { clip-path: inset(48% 0 48% 0); } 12% { clip-path: inset(0 0 0 0); } 100% { clip-path: inset(0 0 0 0); } }
-@keyframes heroIn { from { transform: translateX(-60vw) scale(1.2); opacity: 0; } }
-@keyframes txtIn { from { transform: translateX(40vw); opacity: 0; letter-spacing: 1em; } }
 @keyframes quake { 0%, 100% { translate: 0 0; } 20% { translate: -12px 6px; } 40% { translate: 10px -8px; } 60% { translate: -8px -4px; } 80% { translate: 6px 6px; } }
 /* 涿鹿号令：鼓声震波和两面大旗 */
 .u-drum .ring { position: absolute; left: 50%; top: 45%; width: 40vmin; height: 40vmin; margin: -20vmin; border-radius: 50%; border: 6px solid var(--c1); box-shadow: 0 0 40px var(--c1), inset 0 0 30px var(--c1); opacity: 0; animation: shock .9s ease-out forwards; }
@@ -407,3 +398,29 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 @keyframes lid { from { transform: translateY(var(--y)); } }
 @keyframes slit { to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .ult *, .trail::before, .piece .aura * { animation-duration: .01s !important; } }
+
+/* 加持大招期间的人物造型 */
+/* 兵主降世：身形变大，血焰缠身，火星往上冒 */
+.piece.berserk .px { scale: 1.2; transform-origin: 50% 100%; filter: drop-shadow(0 0 3px #ff2a1a) drop-shadow(0 0 10px #c0100a) brightness(1.1) saturate(1.3); }
+.piece.berserk.flip .px { transform: scaleX(-1); }
+.piece.berserk .aura::before { content: ""; position: absolute; left: -52px; top: -118px; width: 104px; height: 130px; border-radius: 50% 50% 40% 40% / 65% 65% 35% 35%; background: radial-gradient(ellipse at 50% 80%, #ffd0a0cc, #ff3a1aaa 30%, #8a0a0a66 55%, #8a0a0a00 72%); animation: flicker .18s steps(2) infinite alternate, glow .8s ease-in-out infinite alternate; mix-blend-mode: screen; }
+.piece.berserk .aura i, .piece.spirit .aura i { display: block; top: -20px; width: 5px; height: 5px; border-radius: 50%; background: #ffb04a; box-shadow: 0 0 6px 2px #ff3a1a; animation: ember 1s ease-out infinite; }
+.piece.berserk .aura i::after, .piece.spirit .aura i::after { display: none; }
+.piece.berserk .aura i:nth-of-type(n), .piece.spirit .aura i:nth-of-type(n) { height: 5px; }
+/* 形夭：一团冲天的战魂之火 */
+.piece.spirit .px { scale: 1.12; transform-origin: 50% 100%; filter: drop-shadow(0 0 6px #ffb04a) sepia(.3) brightness(1.15); animation: px-idle .9s steps(2) infinite, spiritFade 1.2s ease-in-out infinite alternate; }
+.piece.spirit .aura::before { content: ""; position: absolute; left: -40px; top: -140px; width: 80px; height: 150px; border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%; background: radial-gradient(ellipse at 50% 85%, #fff2c0bb, #ffa040aa 30%, #c0501a44 60%, #c0501a00 75%); animation: flicker .22s steps(2) infinite alternate; mix-blend-mode: screen; }
+.piece.spirit .aura i { background: #ffe0a0; box-shadow: 0 0 6px 2px #ff9a3a; }
+/* 与日逐走：背后一轮烈日 */
+.piece.sunrun .aura::before { content: ""; position: absolute; left: -48px; top: -130px; width: 96px; height: 96px; border-radius: 50%; background: radial-gradient(circle, #fffbe0, #ffd25a 35%, #ff8a2a66 60%, #ff8a2a00 72%); box-shadow: 0 0 30px #ffb02e88; animation: glow 1s ease-in-out infinite alternate; }
+.piece.sunrun .aura::after { content: ""; position: absolute; left: -75px; top: -157px; width: 150px; height: 150px; border-radius: 50%; background: repeating-conic-gradient(#ffd25a55 0 6deg, #ffd25a00 6deg 18deg); -webkit-mask: radial-gradient(circle, #000 25%, #0000 70%); mask: radial-gradient(circle, #000 25%, #0000 70%); animation: spin 8s linear infinite; }
+/* 变身那一下：闪白放大再落回 */
+.piece.morph .px { animation: morph .9s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes morph { 0% { filter: brightness(1); } 25% { filter: brightness(4) drop-shadow(0 0 20px #fff); translate: 0 -20px; } 100% { translate: 0 0; } }
+@keyframes flicker { from { opacity: .75; scale: 1 1; } to { opacity: 1; scale: 1.06 1.1; } }
+@keyframes ember { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(0, -70px) scale(.4); } }
+@keyframes spiritFade { from { opacity: 1; } to { opacity: .8; } }
+.piece .aura i:nth-of-type(1) { animation-delay: -.2s; } .piece .aura i:nth-of-type(2) { animation-delay: -.5s; } .piece .aura i:nth-of-type(3) { animation-delay: -.1s; } .piece .aura i:nth-of-type(4) { animation-delay: -.7s; } .piece .aura i:nth-of-type(5) { animation-delay: -.35s; }
+/* 涿鹿号令期间，自家建筑金光闪闪 */
+.sprite.bld.rally img { filter: drop-shadow(0 0 4px #ffd35a) drop-shadow(0 0 10px #ff9a2a); animation: rally 1s ease-in-out infinite alternate; }
+@keyframes rally { from { filter: drop-shadow(0 0 3px #ffd35a) drop-shadow(0 0 6px #ff9a2a); } to { filter: drop-shadow(0 0 6px #ffe9a0) drop-shadow(0 0 16px #ffb02e); } }

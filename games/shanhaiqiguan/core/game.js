@@ -296,6 +296,7 @@
     for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'repairAll', 'goodCards']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
     k.go(g, lv);
     for (const f of queue) { if (p.alive && !s.over) await f(); }
+    if (p.alive && !s.over) await io.ev({ t: 'casted', pid: p.id, sk: k.id }); // 效果已经生效，画面可以换造型了
   }
 
   // 掷骰前的英雄操作

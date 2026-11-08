@@ -138,10 +138,12 @@
     kunlun() { const r = Math.random(); if (r < 0.6) { const f = 2600 + Math.random() * 1200; [0, 0.13, 0.24].forEach((at) => tone(f, 0.09, { to: f * 1.25, vol: 0.012, at, wet: true })); } else metal(520, 1.8, { vol: 0.012 }); },
     penglai() { const f = 1500 + Math.random() * 500; tone(f, 0.28, { to: f * 0.72, vol: 0.012, wet: true }); tone(f, 0.22, { to: f * 0.75, vol: 0.01, at: 0.34, wet: true }); },
     youdu() { if (Math.random() < 0.5) metal(210, 2.4, { vol: 0.016 }); else tone(330, 1.5, { to: 240, vol: 0.008, wet: true, attack: 0.5 }); },
+    starc() { const f = [1568, 1760, 2093, 2349, 2637][Math.floor(Math.random() * 5)]; tone(f, 0.6, { vol: 0.01, wet: true }); tone(f * 1.5, 0.5, { vol: 0.006, at: 0.18, wet: true }); },
   };
   const MAKE = {
     kunlun() { const w = loopNoise('bandpass', 520, 0.7, 0.05); lfo(w.b.frequency, 0.11, 220); lfo(w.g.gain, 0.07, 0.02); },
     penglai() { const w = loopNoise('lowpass', 620, 0.4, 0.06); lfo(w.g.gain, 0.13, 0.04); const h = loopNoise('highpass', 3000, 0.5, 0.008); lfo(h.g.gain, 0.13, 0.006); },
+    starc() { drone(110, 0.006); drone(164.8, 0.004); drone(220.6, 0.003); const w = loopNoise('highpass', 4200, 0.5, 0.006); lfo(w.g.gain, 0.09, 0.004); },
     youdu() { drone(55, 0.011); drone(55.7, 0.009); drone(82.4, 0.004); const w = loopNoise('bandpass', 340, 2.2, 0.02); lfo(w.b.frequency, 0.05, 130); },
   };
   S.ambient = function (id) {

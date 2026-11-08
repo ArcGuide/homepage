@@ -162,6 +162,7 @@
     if (b.fx.adjIncome) v += b.fx.adjIncome * SJ.adjacent(i).filter((j) => s.tiles[j].owner === t.owner && s.tiles[j].b).length;
     if (b.fx.incomeMul) v *= b.fx.incomeMul;
     if (SJ.BOARD[i].terrain === 'jade') v *= 2;
+    if (SJ.BOARD[i].terrain === 'venture') v = Math.round(v * 1.5);
     return v;
   };
 
@@ -821,6 +822,14 @@
       case 'rock': if (rnd(s) < 0.2) { const v = 80 + ri(s, 121); gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '金矿' }); } break;
       case 'water': { const v = heal(p, 20); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }
       case 'swamp': addStatus(s, p, 'poison', 3); break;
+      case 'study': if (gainXp(s, p, 50)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); await say(`${p.name} 在书斋读书，经验 +50`); break;
+      case 'venture':
+        if (rnd(s) < 0.5) { gain(s, p, 80); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '路演融资' }); }
+        else { const v = Math.min(40, p.gold); p.gold -= v; await say(`${p.name} 路演没人投，烧掉 ${v} 金`); }
+        break;
+      case 'star':
+        if (depth < 2) { await say(`${p.name} 被星流带走`); await move(s, io, p, 4 + ri(s, 9)); if (p.alive && !s.over) await landOn(s, io, p, depth + 1); return true; }
+        break;
       case 'lava': addStatus(s, p, 'burn', 1); gain(s, p, 80); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '火中取金' }); break;
       case 'snow':
         if (depth < 2) { await say(`${p.name} 在冰上滑了出去`); await move(s, io, p, 1 + ri(s, 3)); if (p.alive && !s.over) await landOn(s, io, p, depth + 1); return true; }
@@ -875,6 +884,15 @@
       case 'guimen': if (others.length) { await say(`${p.name} 穿过鬼门`); await teleport(s, io, p, others[ri(s, others.length)].pos); } break;
       case 'dushuo': for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; heal(p, 30); await say('神荼郁垒替你驱鬼'); break;
       case 'youdu': gain(s, p, 300); addStatus(s, p, 'curse', 3); await io.ev({ t: 'gold', pid: p.id, n: 300, why: '土伯借贷' }); break;
+      case 'xinghu': if (gainXp(s, p, SJ.xpNeed(p.level))) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); await say(`${p.name} 进了星弧，英雄升一级`); break;
+      case 'dabian': {
+        const d = 2 + ri(s, 6) + ri(s, 6);
+        if (d >= 7) { await say(`答辩掷出 ${d}，${p.name} 通过了，经验 +200`); if (gainXp(s, p, 200)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); if (d >= 11) await giveTreasure(s, io, p, 2); }
+        else { await say(`答辩掷出 ${d}，${p.name} 被问倒了`); await hurtPlain(s, io, p, 25, '倒在答辩厅'); }
+        break;
+      }
+      case 'luyan': { const d = 2 + ri(s, 6) + ri(s, 6), v = d * 30; gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: `路演掷出 ${d}` }); break; }
+      case 'tushuguan': await say(`${p.name} 在图书馆借到一件宝物`); await giveTreasure(s, io, p, rnd(s) < 0.3 ? 3 : 2); break;
       case 'zhongshan': others.forEach((q) => addStatus(s, q, 'slow', 2)); await say('烛龙闭眼，天下昏暗，其他人减速'); break;
     }
   }

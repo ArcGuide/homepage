@@ -11,6 +11,7 @@
     sand: [['cactusbone', 0.03, 74], ['rock1', 0.02, 46]], jade: [['crystal', 0.1, 58]], reef: [['coral', 0.06, 48], ['shell', 0.025, 44]], ash: [['deadtree', 0.07, 72], ['tomb', 0.03, 44], ['lantern', 0.02, 46]],
     bone: [['skull', 0.06, 50], ['tomb', 0.05, 46], ['deadtree', 0.04, 70]], rock: [['peak1', 0.17, 120], ['rock1', 0.08, 56], ['pine', 0.03, 60]], snow: [['peak2', 0.13, 120], ['pine', 0.02, 56]],
     water: [['reed', 0.04, 44]], sea: [['shell', 0.004, 40]], swamp: [['reed', 0.06, 46], ['mushroom', 0.05, 46], ['deadtree', 0.04, 66]], lava: [['fire', 0.1, 54], ['rock1', 0.05, 50]], cloud: [['cloudpuff', 0.05, 80]], ink: [['lantern', 0.012, 44]],
+    study: [['books', 0.05, 46], ['lamppost', 0.025, 64], ['bamboo', 0.02, 66]], venture: [['lamppost', 0.04, 64], ['armillary', 0.02, 56]], star: [['starshard', 0.035, 40]],
   };
   const LABEL = { event: ['吉', '#f2d27a', '#7d2519'], nest: ['兽', '#b08f7c', '#fff6e6'], post: ['驿', '#e7b24e', '#4a2a10'], shop: ['宝', '#8ec5b4', '#123c34'], portal: ['门', '#a593d8', '#fff6e6'] };
 

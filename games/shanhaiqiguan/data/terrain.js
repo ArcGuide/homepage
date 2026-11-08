@@ -19,6 +19,10 @@
     lava: { name: '熔岩', build: false, desc: '不能建造。路过掉 1 血，停下灼烧 1 回合但得 80 金' },
     cloud: { name: '云海', build: false, desc: '不能建造。停下被风吹出 8 到 20 格' },
     ink: { name: '黑水', build: false, desc: '不能建造。路过得 15 金掉 2 血，停下和随机一人换位' },
+    // 新地形只能加在最后：地图按下标存地形
+    study: { name: '书斋', build: true, desc: '停下读书，经验 +50' },
+    venture: { name: '创业园', build: true, desc: '城邑产金 +50%；停下路演，一半概率融到 80 金，一半概率烧掉 40 金' },
+    star: { name: '星海', build: false, desc: '不能建造。停下被星流带走 4 到 12 格' },
   };
 
   SJ.LANDMARKS = {
@@ -38,6 +42,10 @@
     guimen: { name: '鬼门', art: 'lm_guimen', desc: '穿门闪现到随机对手身边' },
     dushuo: { name: '度朔山', art: 'lm_dushuo', desc: '神荼郁垒：清除负面状态，回 30 血' },
     youdu: { name: '幽都', art: 'lm_youdu', desc: '土伯借贷：得 300 金，但中诅咒 3 回合' },
+    xinghu: { name: '星弧', art: 'lm_xinghu', desc: '入学：英雄升一级' },
+    dabian: { name: '答辩厅', art: 'lm_dabian', desc: '答辩：掷骰 7 以上通过，经验 +200；11 以上再得一件宝物；6 以下被问倒，掉 25 血' },
+    luyan: { name: '路演台', art: 'lm_luyan', desc: '路演：掷两颗骰，得点数 × 30 金' },
+    tushuguan: { name: '图书馆', art: 'lm_tushuguan', desc: '借到一件宝物' },
     zhongshan: { name: '钟山', art: 'lm_zhongshan', desc: '烛龙闭眼：其他人下回合减速' },
   };
 })(typeof window !== 'undefined' ? window : globalThis);

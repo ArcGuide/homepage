@@ -36,7 +36,7 @@
           if (!SJ.canCast(p, i)) continue;
           const k = SJ.SKILLS[p.hero][i];
           if (k.kind === 'heal' && p.hp > p.maxhp * 0.6) continue;
-          if ((k.id === 'xingyao' || k.id === 'jizou') && p.hp < p.maxhp * 0.6) continue;
+          if ((k.id === 'xingyao' || k.id === 'jizou' || k.id === 'bingqi' || k.id === 'xueji' || k.id === 'bingzhu') && p.hp < p.maxhp * 0.6) continue; // 献血的技能血少时不放
           if (k.kind === 'summon' && s.tiles[p.pos].s) continue;
           if (k.id === 'xushui' && p.gold < 300) continue;
           if (roll() < 0.6) return { a: 'cast', i };

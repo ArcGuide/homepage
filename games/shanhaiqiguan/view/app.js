@@ -116,7 +116,7 @@
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，比试没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
       <p>买下的地免费建一座 Lv1 建筑，分支自己选；打下来、抽卡得到的地免费随机建一座。停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
       <h3>英雄成长</h3>
-      <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>最多装备 4 件宝物。1 阶在宝铺买或打异兽，2 阶在自家满级城邑买，3 阶只有天降宝箱和地标大事件才有。</li></ul>
+      <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>最多装备 4 件宝物。1 阶在宝铺买或打异兽，2 阶在自家满级城邑买，3 阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出 1 阶，60 轮后才有 3 阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li></ul>
       <h3>地形和地标</h3>
       <ul><li>山地不能造房，走得慢，还可能挖到金矿；灵河一路回血；毒沼路过中毒；云海把你吹飞；大海把你卷走；黑水和别人换位。停在抽卡、异兽、驿站这些功能格上，只结算功能，地形不起作用。</li><li>驿站发钱，宝铺卖宝物，门是传送门，兽窝的异兽血量也会记住。</li><li>每个地标都有夸张效果。点地图上任意一格可以看详情，拖动看地图，滚轮或双指缩放。</li></ul>
       <div class="btn-row" style="margin-top:12px"><button class="btn primary">知道了</button></div></div></div>`);
@@ -136,12 +136,13 @@
     const ids = Object.keys(SJ.HEROES);
     const shuffle = ids.slice().sort(() => Math.random() - 0.5);
     const seats = [{ kind: 'human', hero: shuffle[0] }, { kind: 'ai', hero: null }, { kind: 'ai', hero: null }, { kind: 'off', hero: null }];
-    let on = 0, mapId = Object.keys(SJ.MAPS)[0];
+    const SCALES = [['small', '小型地图', '约 30–60 分钟一局'], ['medium', '中型地图', '约 1–1.5 小时一局'], ['large', '大型地图', '约 1–3 小时一局']];
+    let on = 0, mapId = (Object.values(SJ.MAPS).find((m) => m.scale === 'small') || Object.values(SJ.MAPS)[0]).id;
     const KIND = { human: '真人', ai: '电脑', off: '空位' };
     function draw() {
       const used = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
       app.innerHTML = `<div class="setup"><h2>选择地图</h2>
-        <div class="maps">${Object.values(SJ.MAPS).map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>
+        ${SCALES.map(([sc, label, time]) => { const ms = Object.values(SJ.MAPS).filter((m) => (m.scale || 'large') === sc); return ms.length ? `<h3 class="scale-h">${label}<small>${time}</small></h3><div class="maps">${ms.map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>` : ''; }).join('')}
         <div class="pick-head"><h2>选择英雄</h2><button class="btn" id="rand">随机英雄</button></div>
         <div class="seats">${seats.map((x, i) => `<div class="seat ${i === on ? 'on' : ''} ${x.kind === 'off' ? 'off' : ''}" data-i="${i}">
           ${x.kind === 'human' ? img('hero_' + x.hero) : `<div class="qmark">${x.kind === 'ai' ? '?' : ''}</div>`}<b>${x.kind === 'human' ? SJ.HEROES[x.hero].name : x.kind === 'ai' ? '等你选完' : '—'}</b><small>玩家 ${i + 1}</small>
@@ -203,7 +204,7 @@
     $('#b-all').onclick = () => { all = !all; if (all) B.fitAll(); else { B.zoomDefault(); B.cam.free = 0; focusCur(0); } };
     $('#mini').onclick = (e) => { const r = e.target.getBoundingClientRect(); B.cam.x = (e.clientX - r.left) / r.width * B.W; B.cam.y = (e.clientY - r.top) / r.height * B.H; B.cam.free = Date.now() + 3000; B.apply(200); };
     focusCur(0);
-    sfx.ambient(S.map);
+    sfx.ambient((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map);
     runLoop();
   }
 

@@ -65,7 +65,7 @@
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([1, 2, 3])} 伤害，第 2 下 +${L([3, 6, 9])}，第 3 下 +${L([6, 12, 18])}，依次累加`, { pv: { stackHit: [1, 2, 3] } }, 'nine snake heads striking together'),
       S('duxue', '噬血', 'buff', 5, `3 回合内吸血 ${pct([0.2, 0.3, 0.4])}`, { go: (g, k) => { g.buff('lifesteal', [0.2, 0.3, 0.4][k], 3); } }, 'fangs dripping green and red venom'),
       S('duze', '毒泽', 'summon', 6, `在脚下吐出毒泽，地面持续 ${L([3, 4, 5])} 轮。敌人走过后，接下来 2 回合的收入全归相柳，不掉血`, { go: (g, k) => g.summon('poison', [3, 4, 5][k]) }, 'a bubbling green poison swamp'),
-      S('tunshan', '九首吞山', 'buff', 12, '4 回合内每次出手都连打 9 段，每段攻击力 10%', { ult: true, go: (g) => g.buff('nine', 1, 4) }, 'a nine-headed serpent devouring a mountain'),
+      S('tunshan', '九首吞山', 'buff', 12, '4 回合内每次出手都连打 9 段，每段攻击力 10%，每段也算九首连噬的一下，但连噬加成只吃 10%', { ult: true, go: (g) => g.buff('nine', 1, 4) }, 'a nine-headed serpent devouring a mountain'),
     ],
     yayu: [
       S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血；每回合回 ${L([1, 2, 3])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35], regen: [1, 2, 3] } }, 'a bone rising from red earth with a green sprout'),
@@ -77,7 +77,7 @@
       S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),
       S('humei', '狐媚', 'econ', 5, `2 回合内过路费减 ${pct([0.5, 0.7, 1])}`, { go: (g, k) => g.buff('tollCut', [0.5, 0.7, 1][k], 2) }, 'a white fox tail wrapping gold coins'),
       S('huanxing', '幻形', 'move', [5, 4, 3], '向前闪 3 格并转身，升级缩短冷却', { go: (g) => g.dash(3, true, { turn: true }) }, 'a fox silhouette dissolving into pale mist'),
-      S('tianhu', '九尾天狐', 'econ', 15, '随机获得 3 块无主领地，各自动建一座 1 级建筑', { ult: true, go: (g) => g.claimLand(3) }, 'nine glowing fox tails fanned around a moon'),
+      S('tianhu', '九尾天狐', 'econ', 15, '随机获得 3 块无主领地，各自动建一座 1 级建筑；无主领地不够时，每少一块就免费升级一座自家建筑', { ult: true, go: (g) => g.claimLand(3) }, 'nine glowing fox tails fanned around a moon'),
     ],
     jingwei: [
       S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 9% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),
@@ -86,9 +86,9 @@
       S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头永久存在，被碰到才消失；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
     ],
     zhulong: [
-      S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击 +${pct([0.06, 0.09, 0.12])}，防御 +${pct([0.03, 0.06, 0.09])}。【烛】的特点：烛龙在【烛】前后 5 格内攻击 +6%、防御 +3%`, { pv: { candleNear: [1, 1, 1] }, go: (g, k) => { g.candle(); g.buff('atkPct', [0.06, 0.09, 0.12][k], 3); g.buff('def', [0.03, 0.06, 0.09][k], 3); } }, 'a huge glowing eye opening'),
-      S('zhuzhao', '烛照', 'buff', 5, `在脚下放一个【烛】；3 回合内暴击率 +${pct([0.05, 0.1, 0.15])}。【烛】的特点：烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g, k) => { g.candle(); g.buff('crit', [0.05, 0.1, 0.15][k], 3); } }, 'a burning candle held in a serpent mouth'),
-      S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。【烛】的特点：其他英雄停在【烛】上，传送到随机另一个【烛】，这两个【烛】随后消失`, { go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
+      S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击和防御各 +${pct([0.08, 0.12, 0.16])}。学会后所有【烛】都有这个特点：烛龙在【烛】前后 5 格内攻击和防御各 +8%`, { pv: { candleNear: [1, 1, 1] }, go: (g, k) => { g.candle(); g.buff('atkPct', [0.08, 0.12, 0.16][k], 3); g.buff('def', [0.08, 0.12, 0.16][k], 3); } }, 'a huge glowing eye opening'),
+      S('zhuzhao', '烛照', 'buff', 5, `在脚下放一个【烛】；3 回合内暴击率 +${pct([0.05, 0.1, 0.15])}。学会后所有【烛】都有这个特点：烛龙在【烛】前后 5 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g, k) => { g.candle(); g.buff('crit', [0.05, 0.1, 0.15][k], 3); } }, 'a burning candle held in a serpent mouth'),
+      S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。学会后所有【烛】都有这个特点：其他英雄停在【烛】上，传送到随机另一个【烛】并掉 ${L([5, 10, 15])} 血，这两个【烛】随后消失`, { pv: { candleHurt: [5, 10, 15] }, go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
       S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2、攻击永久 +0.2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],
   };

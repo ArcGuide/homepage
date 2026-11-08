@@ -101,8 +101,8 @@
     let atk = h.atk + (p.level - 1) * 1 + treasure(p, 'atk') + (p.atkBonus || 0);
     atk *= 1 + ownFx(s, p, 'heroAtk');
     const lit = pv(p, 'candleNear') && nearCandle(s, p.pos, p.id);
-    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + (lit ? 0.06 : 0);
-    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + (lit ? 0.03 : 0);
+    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + (lit ? 0.08 : 0);
+    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + (lit ? 0.08 : 0);
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
     const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge');
@@ -128,7 +128,7 @@
     if (!b) return { kind: 'building', name: '空地基', hp: t.hp != null ? t.hp : 30, maxhp: 30, atk: 1, def: 0, fx: {}, tile: i };
     const base = SJ.BRANCHES[b.branch], mul = SJ.LEVEL_MUL[b.level];
     const fx = b.fx;
-    let atk = base.atk * mul * SJ.TUNE.towerAtk * (1 + s.round * SJ.TUNE.towerGrow), def = 0;
+    let atk = base.atk * mul * SJ.TUNE.towerAtk * (1 + s.round * SJ.TUNE.towerGrow * (SJ.MAP.grow || 1)), def = 0;
     const adj = SJ.adjacent(i).filter((j) => s.tiles[j].owner === t.owner && s.tiles[j].b);
     if (fx.adjDef) def += fx.adjDef * adj.length;
     const op = s.players[t.owner]; if (op) atk *= 1 + pv(op, 'towerAtk');
@@ -147,7 +147,7 @@
     const reg = SJ.BOARD[i].region;
     const all = s.tiles.every((x, j) => SJ.BOARD[j].type !== 'land' || SJ.BOARD[j].region !== reg || x.owner === t.owner);
     if (all) v *= 2;
-    v *= 1 + s.round * SJ.TUNE.tollGrow;
+    v *= 1 + s.round * SJ.TUNE.tollGrow * (SJ.MAP.grow || 1);
     const op = s.players[t.owner]; if (op) v *= 1 + treasure(op, 'tollUp');
     return Math.round(v);
   };
@@ -307,9 +307,11 @@
       },
       stopEnemyCities: (n, take) => { s.tiles.forEach((t) => { if (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city') { t.stop = n; t.stopTo = take ? p.id : null; } }); },
       foes: (st, n) => { alive(s).forEach((q) => { if (q !== p) addStatus(s, q, st, n); }); },
-      claimLand: async (n) => { // 九尾天狐：随机拿 n 块无主领地，各自动建一座 1 级建筑
+      claimLand: async (n) => { // 九尾天狐：随机拿 n 块无主领地，各自动建一座 1 级建筑；没有无主地了就升级自家建筑
         const c = s.tiles.map((t, i) => i).filter((i) => SJ.BOARD[i].type === 'land' && s.tiles[i].owner == null);
-        for (let k = 0; k < n && c.length; k++) { const i = c.splice(ri(s, c.length), 1)[0]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i }); await autoBuild(s, io, p, i); }
+        for (let k = 0; k < n; k++) {
+          if (c.length) { const i = c.splice(ri(s, c.length), 1)[0]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i }); await autoBuild(s, io, p, i); } else await freeUpgrade(s, io, p);
+        }
       },
       goodCards: async (n) => { for (let c = 0; c < n && p.alive && !s.over; c++) await playCard(s, io, p, drawCard(s, 'good')); },
     };
@@ -534,7 +536,10 @@
   }
 
   // 得到一件指定阶的宝物。有空栏直接装上，否则进包袱，包袱满了换成钱
+  // 宝物按轮数解锁：大图 30 轮前只出 1 阶，60 轮前最多 2 阶；中小图按地图的 tierAt 提前
+  SJ.maxTier = (s) => { const at = SJ.MAP.tierAt || [30, 60]; return s.round < at[0] ? 1 : s.round < at[1] ? 2 : 3; };
   async function giveTreasure(s, io, p, tier, id) {
+    if (!id) tier = Math.min(tier, SJ.maxTier(s));
     const own = (x) => p.items.includes(x.id) || p.bag.includes(x.id);
     const pool = SJ.TREASURES.filter((x) => x.tier === tier && !own(x));
     if (!pool.length && !id) { gain(s, p, [0, 60, 150, 300][tier]); await io.ev({ t: 'gold', pid: p.id, n: [0, 60, 150, 300][tier], why: '宝物换钱' }); return false; }
@@ -669,7 +674,7 @@
       if (t.hp != null) { t.hp = null; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: `${p.name} 修好了这里的建筑` }); }
       await buildHere(s, io, p, i);
       const bd = SJ.bdef(t);
-      if (bd && bd.level === 3 && bd.branch === 'city' && p.gold >= SJ.TUNE.shop2Price) {
+      if (bd && bd.level === 3 && bd.branch === 'city' && p.gold >= SJ.TUNE.shop2Price && SJ.maxTier(s) >= 2) {
         const pool = SJ.TREASURES.filter((x) => x.tier === 2 && !p.items.includes(x.id) && !p.bag.includes(x.id));
         if (pool.length) { const item = pool[ri(s, pool.length)]; if (await io.ask('shop', { p, item, price: SJ.TUNE.shop2Price, city: bd.name })) { p.gold -= SJ.TUNE.shop2Price; await giveTreasure(s, io, p, 2, item.id); } }
       }
@@ -784,6 +789,7 @@
       if (sm.status) { addStatus(s, p, sm.status, sm.turns || 2); if (sm.status === 'leech') p.leechBy = tt.s.o; }
       if (sm.candle) {
         if (left > 0) continue; // 路过不算，停在上面才传送
+        const ow = s.players[tt.s.o]; if (!ow || !ow.sk[2]) continue; // 传送是衔烛夜行给【烛】的特点
         const others = s.tiles.map((t, i) => i).filter((i) => i !== nx && s.tiles[i].s && s.tiles[i].s.k === 'candle' && s.tiles[i].s.o === tt.s.o);
         if (!others.length) continue;
         await flush(true);
@@ -793,6 +799,7 @@
         await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'tile', tile: j });
         await io.ev({ t: 'msg', text: `${p.name} 被【烛】传走了` });
         await teleport(s, io, p, j);
+        const hv = pv(ow, 'candleHurt'); if (hv) await hurtPlain(s, io, p, hv, '烛火');
         return;
       }
       if (sm.stop) {
@@ -969,7 +976,7 @@
       for (let i = 0; i < s.tiles.length; i++) { const t = s.tiles[i]; if (t.s && t.s.o === p.id && !t.s.perm && --t.s.n <= 0) { t.s = null; await io.ev({ t: 'tile', tile: i }); } }
       if (p.id === 0 && s.round % SJ.TUNE.chestEvery === 0) { // 天降宝箱
         const c = SJ.BOARD.map((b, i) => i).filter((i) => ['land', 'wild'].includes(SJ.BOARD[i].type) && !s.tiles[i].b && !s.players.some((q) => q.pos === i));
-        const i = c[ri(s, c.length)]; s.tiles[i].chest = 1; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: '远方有宝光落下，看看小地图' });
+        const i = c[ri(s, c.length)]; if (i != null) { s.tiles[i].chest = 1; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: '远方有宝光落下，看看小地图' }); }
       }
       if (taken) await io.ev({ t: 'toll', pid: p.id, to: taken2.id, n: Math.round(taken) });
       const thief = p.status.leech ? s.players[p.leechBy] : null;

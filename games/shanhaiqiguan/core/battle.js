@@ -54,7 +54,7 @@
       if (r() < (x.crit || 0)) { dmg *= 2; crit = true; }
       if (x.fx.bigHit && r() < x.fx.bigHit) { dmg *= 8; big = true; }
       dmg *= 1 - Math.min(0.8, y.def || 0);
-      if (x.stack) { x.hits = (x.hits || 0) + 1; dmg += x.stack * x.hits * (x.hits + 1) / 2; } // 第 N 下额外 stack×(1+…+N)
+      if (x.stack) { x.hits = (x.hits || 0) + 1; dmg += x.stack * x.hits * (x.hits + 1) / 2 * (x._nine ? 0.1 : 1); } // 九首吞山的每段只吃 10% 的连噬加成 // 第 N 下额外 stack×(1+…+N)
       hurt(y, dmg, x);
       snap({ t: 'hit', who: side(x), dmg: Math.max(1, Math.round(dmg)), crit: crit || big, label });
       if (y.fx.thorns) { hurt(x, dmg * y.fx.thorns, y); snap({ t: 'thorn', who: side(y), dmg: Math.round(dmg * y.fx.thorns) }); }
@@ -88,10 +88,12 @@
       const twin = x.twin && r() < 0.4; // 浸血兵器
       const n = nine ? 9 : twin ? 2 : x.fx.multi || 1;
       const mul = nine ? 0.1 : twin ? 1 : n > 1 ? 0.75 : 1;
+      x._nine = nine;
       for (let i = 0; i < n && !dead(y) && !dead(x); i++) {
         strike(x, y, mul);
         if (x.fx.double && !dead(y) && !dead(x) && r() < x.fx.double) strike(x, y, 1, '连射');
       }
+      x._nine = false;
     };
 
     let round = 1;

@@ -274,6 +274,20 @@
         const atk = Math.floor(n / 5); p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
         await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}${atk ? `，攻击 +${atk}` : ''}` });
       },
+      elixir: async () => { // 不死药：花一半钱自己回血，别人付同样的钱给窫窳才能回血，付得起就必须付
+        const fee = Math.floor(p.gold * 0.5); p.gold -= fee;
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 花 ${fee} 金炼成不死药` });
+        const cure = async (q) => {
+          const v = heal(q, Math.round(q.maxhp * 0.5)); if (v) await io.ev({ t: 'heal', pid: q.id, n: v });
+          for (let j = 0; j < s.tiles.length; j++) { const t = s.tiles[j]; if (t.owner !== q.id || t.hp == null) continue; const m = SJ.tileMaxHp(t); t.hp += m * 0.5; if (t.hp >= m) t.hp = null; await io.ev({ t: 'tile', tile: j }); }
+        };
+        await cure(p);
+        for (const q of alive(s)) {
+          if (q === p || q.gold < fee) continue;
+          q.gold -= fee; gain(s, p, fee); if (fee) await io.ev({ t: 'toll', pid: q.id, to: p.id, n: fee });
+          await cure(q);
+        }
+      },
       healAll: async (f, own) => {
         for (const q of alive(s)) { const v = heal(q, Math.round(q.maxhp * (q === p ? own : f))); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); }
         for (let j = 0; j < s.tiles.length; j++) { const t = s.tiles[j]; if (t.hp == null) continue; const m = SJ.tileMaxHp(t); t.hp += m * (t.owner === p.id ? own : f); if (t.hp >= m) t.hp = null; await io.ev({ t: 'tile', tile: j }); }
@@ -293,7 +307,7 @@
     };
     // 效果按写的顺序一个个跑完
     const queue = [];
-    for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'repairAll', 'goodCards']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
+    for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'elixir', 'repairAll', 'goodCards']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
     k.go(g, lv);
     for (const f of queue) { if (p.alive && !s.over) await f(); }
     if (p.alive && !s.over) await io.ev({ t: 'casted', pid: p.id, sk: k.id }); // 效果已经生效，画面可以换造型了
@@ -315,6 +329,21 @@
       await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了` });
       return;
     }
+    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳还魂：拿自家建筑换命，被毁的建筑还能死而复生
+      const own = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].owner === p.id && s.tiles[i].b);
+      if (own.length) {
+        const n = SJ.SKILLS.yayu[1].sac[p.sk[1] - 1], proc = SJ.heroStats(s, p).proc;
+        let lost = 0, back = 0;
+        for (let k = 0; k < n && own.length; k++) {
+          const i = own.splice(ri(s, own.length), 1)[0], t = s.tiles[i];
+          if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { t.b = null; t.hp = null; lost++; }
+          await io.ev({ t: 'tile', tile: i, fire: true });
+        }
+        p.hp = Math.max(1, Math.round(p.maxhp * 0.25));
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了，毁掉 ${lost} 座自家建筑${back ? `，${back} 座死而复生` : ''}` });
+        return;
+      }
+    }
     p.alive = false; p.hp = 0;
     p.rank = alive(s).length + 1;
     s.tiles.forEach((t) => { if (t.owner === p.id) { t.owner = null; t.b = null; t.stop = 0; t.hp = null; } if (t.s && t.s.o === p.id) t.s = null; });
@@ -325,6 +354,8 @@
     const left = alive(s);
     if (left.length <= 1) { s.over = true; s.winner = left.length ? left[0].id : null; if (left[0]) left[0].rank = 1; }
   }
+
+  SJ._eliminate = eliminate; // 测试用
 
   async function hurtPlain(s, io, p, n, why) {
     if (hasBuff(p, 'absorb')) { p.store = (p.store || 0) + n; return; }
@@ -441,8 +472,8 @@
   SJ.sparCut = (wLv, lLv) => Math.max(0.1, Math.min(0.9, 0.5 + (lLv - wLv) * 0.4 / 9));
   const sparC = (s, p) => Object.assign(heroC(s, p), { lamp: null, xtRev: 0, absorb: false, toDeath: true });
   async function spar(s, io, p, q) {
-    if (!(await io.ask('duel', { p, q, A: sparC(s, p), D: sparC(s, q), win: SJ.sparCut(p.level, q.level), lose: SJ.sparCut(q.level, p.level) }))) return;
-    s.stats.duels++;
+    s.stats.duels++; // 碰上就必须比，不再询问
+    await io.ev({ t: 'msg', text: `${p.name} 撞上 ${q.name}，比试一场` });
     const A = sparC(s, p), D = sparC(s, q);
     const res = SJ.fight(A, D, s.rng);
     await io.ev({ t: 'battle', kind: 'duel', a: A, d: D, res, pid: p.id, qid: q.id });

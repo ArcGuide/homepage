@@ -69,9 +69,9 @@
     ],
     yayu: [
       S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35] } }, 'a bone rising from red earth with a green sprout'),
-      S('huanhun', '还魂', 'buff', 9, `接下来 ${L([3, 5, 7])} 回合内阵亡时以 25% 血复活`, { go: (g, k) => g.buff('revive', 0.25, [3, 5, 7][k]) }, 'a glowing soul returning to a beast skeleton'),
+      S('huanhun', '还魂', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉 ${L([7, 5, 3])} 座自家建筑；一座建筑都没有就复活不了。被毁的建筑也能触发死而复生`, { sac: [7, 5, 3] }, 'a glowing soul returning to a beast skeleton'),
       S('jizou', '疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金`, { go: (g, k) => g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }) }, 'running beast legs with dust'),
-      S('busi', '不死药', 'heal', 12, '全地图所有英雄和建筑回血：自己和自家建筑回 50%，其他回 25%', { ult: true, go: (g) => g.healAll(0.25, 0.5) }, 'a glowing jade medicine bottle'),
+      S('busi', '不死药', 'heal', 12, '花掉一半金币，自己和全部自家建筑回 50% 血。其他玩家付得起同样的钱就必须付给你，他和他的建筑也回 50%；付不起的不付钱、也不回血', { ult: true, go: (g) => g.elixir() }, 'a glowing jade medicine bottle'),
     ],
     jiuweihu: [
       S('meihuo', '魅惑', 'passive', 0, `开战时 ${pct([0.08, 0.12, 0.16])} 让塔直接归降`, { pr: [0.08, 0.12, 0.16] }, 'a fox eye with a pink glowing charm'),

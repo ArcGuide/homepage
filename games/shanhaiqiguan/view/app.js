@@ -110,7 +110,7 @@
       <h3>踩到别人的地</h3>
       <ul><li>交过路费，或者开打。</li><li>打塔双方各出手 3 下就收手，血量都记下来，下回接着打。打异兽要打到一方倒下，绕开也要挨它一下。</li></ul>
       <h3>碰到别的英雄</h3>
-      <ul><li>路过或停在别的英雄那一格，可以比试比试。打到一方倒下，但打完谁都不掉血，也没有经验。</li><li>赢家拿走输家一部分金币，按等级差算：同级拿 50%，以下克上拿得多（低 9 级赢了拿 90%），以大欺小拿得少（高 9 级赢了只拿 10%）。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
+      <ul><li>路过或停在别的英雄那一格，一定会比试一场。打到一方倒下，但打完谁都不掉血，也没有经验。</li><li>赢家拿走输家一部分金币，按等级差算：同级拿 50%，以下克上拿得多（低 9 级赢了拿 90%），以大欺小拿得少（高 9 级赢了只拿 10%）。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，比试没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
@@ -431,7 +431,6 @@
         const o = S.players[S.tiles[c.tile].owner], d = SJ.bdef(S.tiles[c.tile]);
         return choose(`<h4>${c.D.name}${d ? ` Lv${d.level}` : ''}（${o.name}）</h4><p>没拆掉就付半价过路费。</p><div class="btn-row"><button class="btn" ${V(false)}>交过路费 ${c.toll}</button><button class="btn primary" ${V(true)}>开打</button></div>`);
       }
-      case 'duel': return choose(`<h4>遇到 ${c.q.name} Lv${c.q.level}</h4><p>比试比试：打到一方倒下，但谁都不掉血。赢了拿走他 ${Math.round(c.win * 100)}% 的金币，输了被拿走 ${Math.round(c.lose * 100)}%。</p><div class="btn-row"><button class="btn primary" ${V(true)}>比试</button><button class="btn" ${V(false)}>走开</button></div>`);
       case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>打到一方倒下，中途不能收手。打死得金币和经验，可能得到宝物。绕开也要挨它一下。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
       case 'kunlun': return choose(`<h4>昆仑</h4><p>选一种恩赐。</p><div class="btn-row"><button class="btn primary" ${V('heal')}>回 40 血</button><button class="btn" ${V('bless')}>下一战攻击 +50%</button></div>`);
       case 'shop': return choose(`<h4>${c.city ? `${c.city}的二阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);

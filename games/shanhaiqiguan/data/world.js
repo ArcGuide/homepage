@@ -18,7 +18,7 @@
       art: 'a fierce drought goddess in a dark blue robe with long wild hair, heat waves and small flames around her hands' },
     chiyou: { race: 'jiuli', name: '蚩尤', type: '战士', hp: 98, atk: 13, def: 0,
       art: 'a huge war chief with bronze head and iron forehead, bull horns, six arms holding bronze weapons' },
-    xingtian: { race: 'jiuli', name: '刑天', type: '不死', hp: 95, atk: 10, def: 0,
+    xingtian: { race: 'jiuli', name: '刑天', type: '不死', hp: 115, atk: 12, def: 0,
       art: 'a decapitated giant warrior with no head and no neck, his shoulders end in a flat stump, a huge angry face is on his torso with two large eyes on the chest and a wide roaring mouth on the belly, holding a battle axe and a round shield' },
     kuafu: { race: 'jiuli', name: '夸父', type: '机动', hp: 120, atk: 13, def: 0,
       art: 'a towering giant running with huge strides, holding a wooden staff, snakes in his ears, red setting sun behind him' },

@@ -305,7 +305,7 @@
           await io.ev({ t: 'tile', tile: j });
         }
       },
-      stopEnemyCities: (n) => { s.tiles.forEach((t) => { if (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city') t.stop = n; }); },
+      stopEnemyCities: (n, take) => { s.tiles.forEach((t) => { if (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city') { t.stop = n; t.stopTo = take ? p.id : null; } }); },
       foes: (st, n) => { alive(s).forEach((q) => { if (q !== p) addStatus(s, q, st, n); }); },
       claimLand: async (n) => { // 九尾天狐：随机拿 n 块无主领地，各自动建一座 1 级建筑
         const c = s.tiles.map((t, i) => i).filter((i) => SJ.BOARD[i].type === 'land' && s.tiles[i].owner == null);
@@ -946,21 +946,24 @@
       p.cd = p.cd.map((c) => Math.max(0, c - 1 - treasure(p, 'cdFast')));
       { const rg = stat(p, 'regen'); if (rg) { const v = heal(p, rg); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } }
       // 收入
-      let inc = 0;
+      let inc = 0, taken = 0, taken2 = null;
       if (s.drought <= 0) {
         inc = SJ.TUNE.baseIncome + treasure(p, 'income');
         s.tiles.forEach((t, i) => {
           if (t.owner !== p.id) return;
-          let v = SJ.cityIncome(s, i);
+          const to = t.stop > 0 && t.stopTo != null ? s.players[t.stopTo] : null; // 赤地千里：停产期间的产出归女魃
+          if (to) { const st = t.stop; t.stop = 0; var vt = SJ.cityIncome(s, i); t.stop = st; } else vt = SJ.cityIncome(s, i);
+          let v = vt;
           const b = SJ.bdef(t);
           if (b && b.fx.randIncome && v) v *= b.fx.randIncome[0] + rnd(s) * (b.fx.randIncome[1] - b.fx.randIncome[0]);
           if (s.harvest > 0) v *= 2;
+          if (to) { if (to.alive && to !== p) { gain(s, to, v); taken += v; taken2 = to; } return; }
           inc += v;
         });
       }
       s.tiles.forEach((t) => {
         if (t.owner !== p.id) return;
-        if (t.stop > 0) t.stop--;
+        if (t.stop > 0 && --t.stop === 0) t.stopTo = null;
         if (t.hp != null) { const m = SJ.tileMaxHp(t); t.hp += m * (SJ.TUNE.repair + treasure(p, 'repair')); if (t.hp >= m) t.hp = null; }
       });
       for (let i = 0; i < s.tiles.length; i++) { const t = s.tiles[i]; if (t.s && t.s.o === p.id && !t.s.perm && --t.s.n <= 0) { t.s = null; await io.ev({ t: 'tile', tile: i }); } }
@@ -968,6 +971,7 @@
         const c = SJ.BOARD.map((b, i) => i).filter((i) => ['land', 'wild'].includes(SJ.BOARD[i].type) && !s.tiles[i].b && !s.players.some((q) => q.pos === i));
         const i = c[ri(s, c.length)]; s.tiles[i].chest = 1; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: '远方有宝光落下，看看小地图' });
       }
+      if (taken) await io.ev({ t: 'toll', pid: p.id, to: taken2.id, n: Math.round(taken) });
       const thief = p.status.leech ? s.players[p.leechBy] : null;
       if (thief && thief.alive) { gain(s, thief, inc); if (inc) await io.ev({ t: 'toll', pid: p.id, to: thief.id, n: Math.round(inc) }); }
       else { gain(s, p, inc); if (inc) await io.ev({ t: 'gold', pid: p.id, n: Math.round(inc), why: '收入' }); }

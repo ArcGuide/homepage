@@ -10,7 +10,7 @@
     academy: { name: '学宫', hint: '强化英雄，被拆失效', hp: 60, atk: 0.5 },
   };
   SJ.LEVEL_MUL = [0, 1, 1.6, 2.5];
-  SJ.BUILD_COST = [0, 80, 120, 200];
+  SJ.BUILD_COST = [0, 0, 120, 200]; // 1 级拿到地就免费随机建
   SJ.CITY_INCOME = [0, 30, 60, 100];
   SJ.TOLL = [15, 30, 70, 140]; // 下标 0 是空地基
 

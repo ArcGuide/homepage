@@ -455,6 +455,7 @@
         if (!stay) { t.owner = p.id; t.b = null; t.stop = 0; t.hp = null; await io.ev({ t: 'msg', text: `${p.name} 拆掉了 ${D.name}，夺下这块地` }); }
       }
       await io.ev({ t: 'tile', tile: i });
+      await autoBuild(s, io, p, i);
       await winRewards(s, io, p, 5 * SJ.TUNE.fightXp * lv);
     } else {
       // 三下打完没拆掉：双方血量留着，半价过路
@@ -584,7 +585,7 @@
       case 'dijiang': await freeUpgrade(s, io, p); break;
       case 'lushu': {
         const c = s.tiles.map((t, i) => i).filter((i) => SJ.BOARD[i].type === 'land' && s.tiles[i].owner == null);
-        if (c.length) { const i = c[ri(s, c.length)]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i }); }
+        if (c.length) { const i = c[ri(s, c.length)]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i }); await autoBuild(s, io, p, i); }
         break;
       }
       case 'qinggeng': p.status.immune = 3; break;
@@ -653,7 +654,7 @@
       if (p.gold >= price && await io.ask('buy', { p, tile: i, price })) {
         p.gold -= price; t.owner = p.id;
         await io.ev({ t: 'tile', tile: i, buy: true, pid: p.id });
-        await buildHere(s, io, p, i);
+        await autoBuild(s, io, p, i);
       }
       return;
     }
@@ -684,15 +685,19 @@
 
   const useBuild = (p) => { p.buffs = p.buffs.filter((b) => b.k !== 'buildCut'); };
 
+  // 拿到地就免费随机建一座 1 级建筑
+  async function autoBuild(s, io, p, i) {
+    const t = s.tiles[i]; if (t.b || t.owner !== p.id) return;
+    const br = Object.keys(SJ.BRANCHES), k = br[ri(s, br.length)];
+    t.b = `${p.race}_${k}_1`; t.hp = null;
+    await io.ev({ t: 'tile', tile: i, built: true, pid: p.id });
+  }
+  SJ._autoBuild = autoBuild; // 测试用
+
   async function buildHere(s, io, p, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
-    if (!b) {
-      const cost = SJ.buildCost(p, 1);
-      if (p.gold < cost) return;
-      const br = await io.ask('build', { p, tile: i, cost });
-      if (!br) return;
-      p.gold -= cost; t.b = `${p.race}_${br}_1`; t.hp = null; useBuild(p);
-    } else if (b.level === 1) {
+    if (!b) { await autoBuild(s, io, p, i); return; }
+    if (b.level === 1) {
       const cost = SJ.buildCost(p, 2);
       if (p.gold < cost) return;
       const id = `${b.race}_${b.branch}_2`;

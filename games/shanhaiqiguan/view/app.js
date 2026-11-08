@@ -114,7 +114,7 @@
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，比试没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
-      <p>停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
+      <p>拿到一块地（买下、打下或抽卡得到），会免费随机建一座 Lv1 建筑。停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
       <h3>英雄成长</h3>
       <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>最多装备 4 件宝物。1 阶在宝铺买或打异兽，2 阶在自家满级城邑买，3 阶只有天降宝箱和地标大事件才有。</li></ul>
       <h3>地形和地标</h3>
@@ -425,8 +425,7 @@
         $('#b-hero', pnl).onclick = () => { sfx.click(); heroPanel(p, act); };
         if (reopen) { reopen = false; heroPanel(p, act); }
       });
-      case 'buy': return choose(`<h4>${SJ.BOARD[c.tile].name}</h4><p>无主领地，价格 ${c.price} 金。你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
-      case 'build': return choose(`<h4>在这里建什么</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${Object.keys(SJ.BRANCHES).map((k) => { const id = `${p.race}_${k}_1`, d = SJ.BUILDINGS[id], B = SJ.BRANCHES[k]; return `<button class="opt" ${V(k)}>${img('b_' + id)}<div><b>${d.name}</b><span>${B.name}：${B.hint}</span><span>${d.desc}</span></div></button>`; }).join('')}</div><div class="btn-row"><button class="btn" ${V(null)}>先不建</button></div>`);
+      case 'buy': return choose(`<h4>${SJ.BOARD[c.tile].name}</h4><p>无主领地，价格 ${c.price} 金，买下后免费随机建一座 1 级建筑。你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
       case 'upgrade': return choose(`<h4>升级建筑</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${bOpt(c.options[0], true)}</div><div class="btn-row"><button class="btn" ${V(false)}>不升级</button></div>`);
       case 'fork': return choose(`<h4>升到 Lv3，二选一</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${c.options.map((id) => bOpt(id, id)).join('')}</div><div class="btn-row"><button class="btn" ${V(null)}>先不升</button></div>`);
       case 'tollOrFight': {

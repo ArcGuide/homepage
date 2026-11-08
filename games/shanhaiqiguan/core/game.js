@@ -116,7 +116,7 @@
     const lampTile = s.tiles.findIndex((t) => t.owner === p.id && t.b && SJ.BUILDINGS[t.b].fx.soulLamp);
     return {
       kind: 'hero', pid: p.id, heroId: p.hero, name: SJ.HEROES[p.hero].name, hp: p.hp, maxhp: p.maxhp, atk: st.atk, def: st.def, dodge: st.dodge, proc: st.proc, crit: 0.1 + stat(p, 'crit'),
-      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), hitBack: pv(p, 'hitBack'), nine: pv(p, 'nine') > 0, pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0, xtRev: p.hero === 'xingtian' && p.sk[0] && p.cd[0] <= 0 ? 0.05 : 0,
+      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), hitBack: pv(p, 'hitBack'), nine: hasBuff(p, 'nine'), pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0, xtRev: p.hero === 'xingtian' && p.sk[0] && p.cd[0] <= 0 ? 0.05 : 0,
       blind: p.status.blind ? 0.25 : 0, sealed: !!p.status.seal, lowHpAtk: ownFx(s, p, 'lowHpAtk'), lamp: lampTile >= 0 ? lampTile : null,
     };
   }

@@ -259,6 +259,8 @@
     berserk: (p) => p.hero === 'chiyou' && has(p, 'crit'),
     spirit: (p) => has(p, 'pool'),
     sunrun: (p) => p.bonusTurns > 0,
+    hydra: (p) => has(p, 'nine'),
+    buqu: (p) => p.hero === 'jingwei' && p.sk[3] > 0,
   };
   function soarSync() {
     if (S) S.players.forEach((p) => {
@@ -479,10 +481,10 @@
       case 'battle': S.tiles.forEach((_, i) => renderTile(i)); await playBattle(e); renderPlayers(); S.tiles.forEach((_, i) => renderTile(i)); placePieces(); break;
       case 'levelup': toast(`${S.players[e.pid].name} 升到 ${e.level} 级${S.players[e.pid].human ? '，得到技能点' : ''}`, 'skill'); sfx.level(); renderPlayers(); await wait(620); break;
       case 'cast': {
-        if (ULT[e.sk]) { await ultShow(e); renderPlayers(); break; }
         const q = iso(S.players[e.pid].pos), st = $('#stage');
         const m = h(`<div class="castfx" style="left:${q.x}px;top:${q.y - 70}px">${img('sk_' + e.sk)}<b>${e.name}</b></div>`);
         st.append(m); setTimeout(() => m.remove(), 1300 / speed);
+        if (ULT[e.sk]) { await ultShow(e); renderPlayers(); break; }
         sfx.cast(SJ.SKILLS[S.players[e.pid].hero].find((k) => k.id === e.sk).kind); logLine(`${S.players[e.pid].name} 释放 ${e.name}`); B.look(q.x, q.y - 40, 200); renderPlayers(); await wait(900); break;
       }
       case 'casted': {
@@ -555,17 +557,18 @@
     yuri: { fx: 'sunrise', c1: '#ffd25a', tint: '#ffc070', parts: 'mote', form: true },
     chiling: { fx: 'ghost', c1: '#b48cff', tint: '#6a5a9a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
     busi: { fx: 'jade', c1: '#8af0b0', tint: '#a8e8c0', parts: 'mote', board: () => S.tiles.map((t, i) => (t.b ? i : -1)) },
+    tunshan: { fx: 'hydra', c1: '#5af0b0', tint: '#3a8a6a', parts: 'mote', form: true },
     tianhu: { fx: 'tails', c1: '#ff9ad2', tint: '#e8a0c8', parts: 'mote' },
     zhuyin: { fx: 'eye', c1: '#ffb04a', tint: '#8a5a3a', parts: 'none', board: (p) => S.tiles.map((t, i) => (t.s && t.s.k === 'candle' && t.s.o === p.id ? i : -1)) },
   };
   // 特效素材是亮度转成透明度的 PNG，正常叠加就像发光；不用混合模式，大地图在高清屏上混合会整张丢掉
   const fxImg = (n, cls) => `<img class="fxi ${n} ${cls || ''}" src="assets/fx_${n}.png" alt="">`;
   let fxLoaded = false;
-  function preloadFx() { if (fxLoaded) return; fxLoaded = true; ['wings', 'eye', 'sun', 'tails', 'ghost', 'wargod', 'jade', 'shock', 'slash', 'spirit'].forEach((n) => { const i = new Image(); i.src = `assets/fx_${n}.png`; }); }
+  function preloadFx() { if (fxLoaded) return; fxLoaded = true; ['wings', 'eye', 'sun', 'tails', 'ghost', 'wargod', 'jade', 'shock', 'slash', 'spirit', 'hydra'].forEach((n) => { const i = new Image(); i.src = `assets/fx_${n}.png`; }); }
   // 跟着英雄的特效放进地图里、压在英雄身后；铺满全屏的放在地图上面
   const ULT_STAGE = {
     drum: fxImg('shock', 'a') + fxImg('shock', 'b') + fxImg('shock', 'c'),
-    wings: fxImg('wings'), wargod: fxImg('wargod') + fxImg('wargod'), spirit: fxImg('spirit'), sunrise: fxImg('sun'), jade: fxImg('jade'), tails: fxImg('tails'),
+    wings: fxImg('wings'), wargod: fxImg('wargod') + fxImg('wargod'), spirit: fxImg('spirit'), sunrise: fxImg('sun'), jade: fxImg('jade'), tails: fxImg('tails'), hydra: fxImg('hydra'),
   };
   const ULT_BG = {
     drought: fxImg('sun') + '<i class="heat"></i>',
@@ -582,7 +585,7 @@
   async function ultShow(e) {
     const p = S.players[e.pid], u = ULT[e.sk];
     logLine(`${p.name} 释放大招 ${e.name}`);
-    sfx.ult(u.fx === 'eye' ? 'lids' : u.fx === 'wargod' || u.fx === 'spirit' ? 'blades' : u.fx === 'drought' || u.fx === 'sunrise' ? 'sun' : u.fx === 'jade' ? 'heal' : u.fx);
+    sfx.ult(u.fx === 'eye' ? 'lids' : u.fx === 'wargod' || u.fx === 'spirit' ? 'blades' : u.fx === 'drought' || u.fx === 'sunrise' ? 'sun' : u.fx === 'jade' ? 'heal' : u.fx === 'hydra' ? 'blades' : u.fx);
     const c0 = { x: B.cam.x, y: B.cam.y, z: B.cam.z }, { x, y } = iso(p.pos);
     B.cam.free = 0; B.cam.x = x; B.cam.y = y - 40; B.cam.z = Math.min(1.6, c0.z * 1.3); B.apply(450 / speed);
     const [hx, hy] = toScreen(x, y - 10);

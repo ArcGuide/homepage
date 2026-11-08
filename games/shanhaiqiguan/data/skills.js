@@ -65,7 +65,7 @@
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([1, 2, 3])} 伤害，第 2 下 +${L([3, 6, 9])}，第 3 下 +${L([6, 12, 18])}，依次累加`, { pv: { stackHit: [1, 2, 3] } }, 'nine snake heads striking together'),
       S('duxue', '噬血', 'buff', 5, `3 回合内吸血 ${pct([0.15, 0.25, 0.35])}`, { go: (g, k) => { g.buff('lifesteal', [0.15, 0.25, 0.35][k], 3); } }, 'fangs dripping green and red venom'),
       S('duze', '毒泽', 'summon', 6, `在脚下吐出毒泽，地面持续 ${L([3, 4, 5])} 轮。敌人走过后，接下来 2 回合的收入全归相柳，不掉血`, { go: (g, k) => g.summon('poison', [3, 4, 5][k]) }, 'a bubbling green poison swamp'),
-      S('tunshan', '九首吞山', 'passive', 0, '每次出手 70% 概率连打 9 段，每段攻击力 10%；不触发时正常打', { ult: true, pv: { nine: [1] } }, 'a nine-headed serpent devouring a mountain'),
+      S('tunshan', '九首吞山', 'buff', 12, '5 回合内每次出手 70% 概率连打 9 段，每段攻击力 10%；不触发时正常打', { ult: true, go: (g) => g.buff('nine', 1, 5) }, 'a nine-headed serpent devouring a mountain'),
     ],
     yayu: [
       S('fusheng', '死而复生', 'passive', 0, `自家建筑被拆时 ${pct([0.2, 0.3, 0.4])} 原地重生；打赢回 ${L([15, 25, 35])} 血`, { pr: [0.2, 0.3, 0.4], pv: { winHeal: [15, 25, 35] } }, 'a bone rising from red earth with a green sprout'),

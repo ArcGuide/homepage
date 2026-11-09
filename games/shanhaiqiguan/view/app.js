@@ -137,12 +137,14 @@
     const shuffle = ids.slice().sort(() => Math.random() - 0.5);
     const seats = [{ kind: 'human', hero: shuffle[0] }, { kind: 'ai', hero: null }, { kind: 'ai', hero: null }, { kind: 'off', hero: null }];
     const SCALES = [['small', '小型地图', '约 30–60 分钟一局'], ['medium', '中型地图', '约 1–1.5 小时一局'], ['large', '大型地图', '约 1–3 小时一局']];
-    let on = 0, mapId = (Object.values(SJ.MAPS).find((m) => m.scale === 'small') || Object.values(SJ.MAPS)[0]).id;
+    let step = 1, on = 0, mapId = (Object.values(SJ.MAPS).find((m) => m.scale === 'small') || Object.values(SJ.MAPS)[0]).id;
     const KIND = { human: '真人', ai: '电脑', off: '空位' };
     function draw() {
       const used = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
-      app.innerHTML = `<div class="setup"><h2>选择地图</h2>
+      // 第一步选英雄，第二步选地图
+      app.innerHTML = step === 2 ? `<div class="setup"><h2>选择地图</h2>
         ${SCALES.map(([sc, label, time]) => { const ms = Object.values(SJ.MAPS).filter((m) => (m.scale || 'large') === sc); return ms.length ? `<h3 class="scale-h">${label}<small>${time}</small></h3><div class="maps">${ms.map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>` : ''; }).join('')}
+        <div class="setup-foot"><button class="btn" id="back">上一步</button><button class="btn primary" id="go">开始</button></div></div>` : `<div class="setup">
         <div class="pick-head"><h2>选择英雄</h2><button class="btn" id="rand">随机英雄</button></div>
         <div class="seats">${seats.map((x, i) => `<div class="seat ${i === on ? 'on' : ''} ${x.kind === 'off' ? 'off' : ''}" data-i="${i}">
           ${x.kind === 'human' ? img('hero_' + x.hero) : `<div class="qmark">${x.kind === 'ai' ? '?' : ''}</div>`}<b>${x.kind === 'human' ? SJ.HEROES[x.hero].name : x.kind === 'ai' ? '等你选完' : '—'}</b><small>玩家 ${i + 1}</small>
@@ -150,8 +152,13 @@
         <div class="pick"><div class="pick-list">${Object.entries(SJ.RACES).map(([rid, r]) => `<div class="race-block"><h3 style="color:${shade(r.color, 0.72)}">${r.name}<small>${r.trait}</small></h3><div class="hero-grid">
           ${ids.filter((k) => SJ.HEROES[k].race === rid).map((k) => `<button class="hero-card ${seats[on].hero === k ? 'sel' : ''} ${used.includes(k) && seats[on].hero !== k ? 'taken' : ''}" data-h="${k}">${img('hero_' + k)}<b>${SJ.HEROES[k].name}</b></button>`).join('')}
         </div></div>`).join('')}</div>${heroInfo(seats[on].hero)}</div>
-        <div class="setup-foot"><button class="btn" id="back">返回</button><button class="btn primary" id="go">开始</button></div></div>`;
-      app.querySelectorAll('[data-m]').forEach((e) => { e.onclick = () => { mapId = e.dataset.m; sfx.click(); keep(); }; });
+        <div class="setup-foot"><button class="btn" id="back">返回</button><button class="btn primary" id="next">下一步：选地图</button></div></div>`;
+      if (step === 2) {
+        app.querySelectorAll('[data-m]').forEach((e) => { e.onclick = () => { mapId = e.dataset.m; sfx.click(); keep(); }; });
+        $('#back').onclick = () => { sfx.click(); step = 1; draw(); app.querySelector('.setup').scrollTop = 0; };
+        $('#go').onclick = go;
+        return;
+      }
       app.querySelectorAll('.seat').forEach((e) => { e.onclick = () => { const i = +e.dataset.i; if (seats[i].kind === 'human') { on = i; keep(); } }; });
       app.querySelectorAll('[data-k]').forEach((e) => { e.onclick = (ev) => {
         ev.stopPropagation(); const i = +e.dataset.k, order = ['ai', 'human', 'off'];
@@ -171,14 +178,15 @@
         seats[on].hero = left[Math.floor(Math.random() * left.length)]; sfx.click(); keep(); $('.hero-info').scrollIntoView({ block: 'nearest' });
       };
       $('#back').onclick = title;
-      $('#go').onclick = () => {
+      $('#next').onclick = () => { sfx.click(); step = 2; draw(); app.querySelector('.setup').scrollTop = 0; };
+    }
+    function go() {
         sfx.click();
         // 真人选完，电脑才从剩下的英雄里挑
         const taken = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
         const pool = ids.filter((k) => !taken.includes(k)).sort(() => Math.random() - 0.5);
         const players = seats.filter((x) => x.kind !== 'off').map((x) => ({ hero: x.kind === 'human' ? x.hero : pool.pop(), human: x.kind === 'human' }));
         count('start'); S = SJ.newGame({ players, map: mapId }); store.del(SAVE); spectate = false; speed = 1; startGame(); if (!store.get('sijing.seen2')) { store.set('sijing.seen2', '1'); help(); }
-      };
     }
     function keep() { const y = $('.setup')?.scrollTop || 0; draw(); $('.setup').scrollTop = y; }
     draw();

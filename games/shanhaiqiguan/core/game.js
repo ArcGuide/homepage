@@ -168,6 +168,7 @@
 
   function addStatus(s, p, k, n) {
     if (p.status.immune) return;
+    if (s && s.players[s.cur] === p) n += 1; // 自己回合里中的状态，回合末会先扣一次，所以多给 1
     p.status[k] = Math.max(p.status[k] || 0, n);
   }
   function heal(p, n) {
@@ -824,12 +825,11 @@
     const say = (text) => io.ev({ t: 'msg', text });
     switch (tile.terrain) {
       case 'petal': { const v = heal(p, 10); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }
-      case 'sand': if (rnd(s) < 0.25) { addStatus(s, p, 'skip', 1); await say(`${p.name} 陷进流沙`); } break;
       case 'jade': gain(s, p, 30); await io.ev({ t: 'gold', pid: p.id, n: 30, why: '玉田' }); break;
       case 'reef': { const v = 20 + ri(s, 41); gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '浅滩' }); break; }
       case 'bone':
         if (rnd(s) < 0.5) { const v = Math.min(40, p.gold); p.gold -= v; await say(`小鬼偷走 ${p.name} ${v} 金`); }
-        else { gain(s, p, 60); await io.ev({ t: 'gold', pid: p.id, n: 60, why: '小鬼送礼' }); }
+        else { gain(s, p, 60); await say(`小鬼送给 ${p.name} 60 金`); await io.ev({ t: 'gold', pid: p.id, n: 60 }); }
         break;
       case 'rock': if (rnd(s) < 0.2) { const v = 80 + ri(s, 121); gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '金矿' }); } break;
       case 'water': { const v = heal(p, 20); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }

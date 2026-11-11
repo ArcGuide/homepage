@@ -6,7 +6,7 @@
     grass: { name: '草原', build: true, desc: '普通地块' },
     forest: { name: '密林', build: true, desc: '建筑有 15% 闪避' },
     petal: { name: '桃林', build: true, desc: '停下回 10 血' },
-    sand: { name: '流沙', build: true, price: 0.7, desc: '地价便宜，停下有四分之一概率陷住一回合' },
+    sand: { name: '流沙', build: true, price: 0.7, desc: '地价便宜三成' },
     jade: { name: '玉田', build: true, price: 1.5, desc: '地价贵，城邑产金翻倍，停下捡 30 金' },
     reef: { name: '浅滩', build: true, desc: '停下捡到 20 到 60 金' },
     ash: { name: '灰原', build: true, desc: '这里的建筑攻击 +30%' },

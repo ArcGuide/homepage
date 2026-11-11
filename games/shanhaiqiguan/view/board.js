@@ -13,7 +13,7 @@
     water: [['reed', 0.04, 44]], sea: [['shell', 0.004, 40]], swamp: [['reed', 0.06, 46], ['mushroom', 0.05, 46], ['deadtree', 0.04, 66]], lava: [['fire', 0.1, 54], ['rock1', 0.05, 50]], cloud: [['cloudpuff', 0.05, 80]], ink: [['lantern', 0.012, 44]],
     study: [['books', 0.05, 46], ['lamppost', 0.025, 64], ['bamboo', 0.02, 66]], venture: [['lamppost', 0.04, 64], ['armillary', 0.02, 56]], star: [['starshard', 0.035, 40]],
   };
-  const LABEL = { event: ['吉', '#f2d27a', '#7d2519'], nest: ['兽', '#b08f7c', '#fff6e6'], post: ['驿', '#e7b24e', '#4a2a10'], shop: ['宝', '#8ec5b4', '#123c34'], portal: ['门', '#a593d8', '#fff6e6'] };
+  const LABEL = { event: ['？', '#f2d27a', '#7d2519'], nest: ['兽', '#b08f7c', '#fff6e6'], post: ['驿', '#e7b24e', '#4a2a10'], shop: ['宝', '#8ec5b4', '#123c34'], portal: ['门', '#a593d8', '#fff6e6'] };
 
   function rng(v) { return () => { v = (v + 0x6D2B79F5) | 0; let t = v; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 

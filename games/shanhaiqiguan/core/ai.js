@@ -39,7 +39,7 @@
           const id = p.cons[i];
           if (id === 'huichun' && p.hp < p.maxhp * 0.5) return { a: 'use', i };
           if (id === 'jiedu' && Object.keys(p.status).some((k) => k !== 'immune')) return { a: 'use', i };
-          if (id === 'shisha' && p.cd.filter((c, j) => c > 2 && p.sk[j]).length >= 2) return { a: 'use', i };
+          if (id === 'shisha' && p.cd.some((c, j) => c > 2 && p.sk[j] && !SJ.SKILLS[p.hero][j].ult)) return { a: 'use', i };
           if (id === 'shenxing' && roll() < 0.3) return { a: 'use', i };
           if (id === 'zhuanxiang' && roll() < 0.1) return { a: 'use', i };
           if (id === 'wangchuan' && p.cons.length >= 4) return { a: 'use', i }; // 电脑不洗点，栏满了就随手用掉

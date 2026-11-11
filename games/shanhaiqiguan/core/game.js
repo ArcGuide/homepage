@@ -659,6 +659,9 @@
   SJ.consOf = (id) => SJ.CONSUMABLES.find((x) => x.id === id);
   async function useCons(s, io, p, i) {
     const id = p.cons[i]; if (!id) return;
+    // 时砂：随机清一个在冷却中的非大招技能；一个都没有就不用掉
+    const sand = id === 'shisha' ? p.cd.map((c, j) => j).filter((j) => p.cd[j] > 0 && p.sk[j] && !SJ.SKILLS[p.hero][j].ult) : null;
+    if (sand && !sand.length) { await io.ev({ t: 'msg', text: '没有能清的冷却（大招不算），时砂先留着' }); return; }
     p.cons.splice(i, 1);
     const c = SJ.consOf(id);
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 用了${c.name}` });
@@ -666,7 +669,7 @@
       case 'huichun': { const v = heal(p, Math.round(p.maxhp * 0.15)); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }
       case 'zhuanxiang': turnAround(s, p); await io.ev({ t: 'jump', pid: p.id, pos: p.pos }); break;
       case 'shenxing': addBuff(p, 'steps', 3, 4); break;
-      case 'shisha': p.cd = p.cd.map(() => 0); break;
+      case 'shisha': { const j = sand[ri(s, sand.length)]; p.cd[j] = 0; await io.ev({ t: 'msg', text: `${SJ.SKILLS[p.hero][j].name} 冷却清零` }); break; }
       case 'wangchuan': { const n = p.sk.reduce((a, b) => a + b, 0); p.sk = [0, 0, 0, 0]; p.pts += n; break; }
       case 'jiedu': for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; break;
     }

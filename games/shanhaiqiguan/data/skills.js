@@ -130,7 +130,7 @@
     C('huichun', '回春丹', '回 15% 最大血', 'a small round red pill glowing softly on a jade dish'),
     C('zhuanxiang', '转向符', '马上掉头，往反方向走', 'a yellow paper talisman with a red curved arrow painted on it'),
     C('shenxing', '神行符', '3 回合内每次步数 +3', 'a yellow paper talisman with a running horse painted in red ink'),
-    C('shisha', '时砂', '所有技能冷却马上清零', 'a small bronze hourglass with glowing golden sand'),
+    C('shisha', '时砂', '随机一个正在冷却的技能马上清零（大招除外）', 'a small bronze hourglass with glowing golden sand'),
     C('wangchuan', '忘川水', '洗点：收回全部技能点，重新学', 'a small black clay bottle of misty river water'),
     C('jiedu', '解毒草', '清除所有负面状态', 'a sprig of green herb with white flowers'),
   ];

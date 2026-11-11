@@ -52,6 +52,7 @@
         for (const k in w) { x -= w[k]; if (x <= 0) return k; }
         return 'archer';
       }
+      case 'way': return c.options[Math.floor(roll() * c.options.length)];
       case 'upgrade': return p.gold - c.cost >= 30;
       case 'fork': return p.gold - c.cost >= 30 ? c.options[Math.floor(roll() * c.options.length)] : null;
       case 'tollOrFight': {

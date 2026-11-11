@@ -106,11 +106,11 @@
   function help() {
     const l = h(`<div class="layer dim"><div class="help">
       <h2>怎么玩</h2>
-      <p>这是一局大富翁。选一位上古英雄，在山海大地图上走，买地、盖建筑、收过路费。起点和朝向是随机的，到岔路随机选方向。英雄阵亡就出局，活到最后的人赢。</p>
+      <p>这是一局大富翁。选一位上古英雄，在山海大地图上走，买地、盖建筑、收过路费。起点和朝向是随机的，到岔路随机选方向（可以在「玩法设置」里改成自己选）。英雄阵亡就出局，活到最后的人赢。</p>
       <h3>踩到别人的地</h3>
-      <ul><li>交过路费，或者开打。</li><li>打塔双方各出手 3 下就收手，血量都记下来，下回接着打。打异兽要打到一方倒下，绕开也要挨它一下。</li></ul>
+      <ul><li>交过路费，或者开打。</li><li>所有战斗都是双方各出手 3 下就收手。打塔的血量都记下来，下回接着打；异兽没被打死就回满血，绕开也要挨它一下。</li></ul>
       <h3>碰到别的英雄</h3>
-      <ul><li>路过或停在别的英雄那一格，一定会比试一场。打到一方倒下，但打完谁都不掉血，也没有经验。</li><li>赢家拿走输家一部分金币，按等级差算：同级拿 50%，以下克上拿得多（低 9 级赢了拿 90%），以大欺小拿得少（高 9 级赢了只拿 10%）。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
+      <ul><li>路过或停在别的英雄那一格，一定会比试一场。各出手 3 下，没人倒下就按剩余血量比例分胜负。打完谁都不掉血，也没有经验。同一对英雄比完，3 轮内再碰上不比。</li><li>在「玩法设置」里关掉英雄比试，就变成真打：掉的血带回棋盘，打死就出局。</li><li>赢家拿走输家一部分金币，按等级差算：同级拿 50%，以下克上拿得多（低 9 级赢了拿 90%），以大欺小拿得少（高 9 级赢了只拿 10%）。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li></ul>
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，比试没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
@@ -131,20 +131,39 @@
       <p>${L.story}</p><p>如今，${H.name}来到战场，作为${L.role}，可以学习${SJ.SKILLS[k].map((x) => `「${x.name}」`).join('')}等技能。${L.goal}</p></div></aside>`;
   }
 
+  const OPTS = 'sijing.opts';
+  const loadOpts = () => { let o = {}; try { o = JSON.parse(store.get(OPTS)) || {}; } catch (e) { o = {}; } return { autoPath: o.autoPath !== false, spar: o.spar !== false }; };
+  function settings(onClose) {
+    const o = loadOpts();
+    const row = (k, title, on, off, tip) => `<label class="opt-row"><input type="checkbox" data-o="${k}" ${o[k] ? 'checked' : ''}><div><b>${title}</b><span>开：${on}</span><span>关：${off}</span><em>${tip}</em></div></label>`;
+    const l = h(`<div class="layer dim"><div class="help settings"><h2>玩法设置</h2>
+      ${row('autoPath', '自动选路', '到岔路随机选方向，一路走到底。', '每到岔路都停下来，由你点地图选方向。', '为了游戏流畅、好玩，建议开启。喜欢自己谋划路线、精打细算的玩家可以关掉。')}
+      ${row('spar', '英雄比试', '英雄相遇只是比试，打完血量不变，只按胜负拿钱。', '英雄相遇真刀真枪地打，掉的血带回棋盘，打死就出局。', '为了对局能持续下去、更有娱乐性，建议开启。关掉后，游戏可能在早期就结束。')}
+      <div class="btn-row" style="margin-top:12px"><button class="btn primary">好了</button></div></div></div>`);
+    $('button', l).onclick = () => {
+      const n = {}; l.querySelectorAll('[data-o]').forEach((e) => { n[e.dataset.o] = e.checked; });
+      store.set(OPTS, JSON.stringify(n)); sfx.click(); l.remove(); if (onClose) onClose();
+    };
+    document.body.append(l);
+  }
+
   function setup() {
     sfx.stopAmbient();
     const ids = Object.keys(SJ.HEROES);
     const shuffle = ids.slice().sort(() => Math.random() - 0.5);
     const seats = [{ kind: 'human', hero: shuffle[0] }, { kind: 'ai', hero: null }, { kind: 'ai', hero: null }, { kind: 'off', hero: null }];
     const SCALES = [['small', '小型地图', '约 30–60 分钟一局'], ['medium', '中型地图', '约 1–1.5 小时一局'], ['large', '大型地图', '约 1–3 小时一局']];
-    let step = 1, on = 0, mapId = (Object.values(SJ.MAPS).find((m) => m.scale === 'small') || Object.values(SJ.MAPS)[0]).id;
+    let picking = false, on = 0, mapId = 'random';
     const KIND = { human: '真人', ai: '电脑', off: '空位' };
+    const mapName = () => mapId === 'random' ? '随机' : SJ.MAPS[mapId].name;
+    const optNote = () => { const o = loadOpts(); return [o.autoPath ? '' : '手动选路', o.spar ? '' : '英雄真打'].filter(Boolean).join('、'); };
     function draw() {
       const used = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
-      // 第一步选英雄，第二步选地图
-      app.innerHTML = step === 2 ? `<div class="setup"><h2>选择地图</h2>
+      // 选英雄是主页面；地图可选，不选就随机
+      app.innerHTML = picking ? `<div class="setup"><h2>选择地图</h2>
+        <div class="maps"><button class="mapcard ${mapId === 'random' ? 'sel' : ''}" data-m="random"><div class="rand-map">?</div><b>随机地图</b><span>开局时从全部地图里随机抽一张。</span></button></div>
         ${SCALES.map(([sc, label, time]) => { const ms = Object.values(SJ.MAPS).filter((m) => (m.scale || 'large') === sc); return ms.length ? `<h3 class="scale-h">${label}<small>${time}</small></h3><div class="maps">${ms.map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>` : ''; }).join('')}
-        <div class="setup-foot"><button class="btn" id="back">上一步</button><button class="btn primary" id="go">开始</button></div></div>` : `<div class="setup">
+        <div class="setup-foot"><button class="btn primary" id="done">选好了</button></div></div>` : `<div class="setup">
         <div class="pick-head"><h2>选择英雄</h2><button class="btn" id="rand">随机英雄</button></div>
         <div class="seats">${seats.map((x, i) => `<div class="seat ${i === on ? 'on' : ''} ${x.kind === 'off' ? 'off' : ''}" data-i="${i}">
           ${x.kind === 'human' ? img('hero_' + x.hero) : `<div class="qmark">${x.kind === 'ai' ? '?' : ''}</div>`}<b>${x.kind === 'human' ? SJ.HEROES[x.hero].name : x.kind === 'ai' ? '等你选完' : '—'}</b><small>玩家 ${i + 1}</small>
@@ -152,11 +171,10 @@
         <div class="pick"><div class="pick-list">${Object.entries(SJ.RACES).map(([rid, r]) => `<div class="race-block"><h3 style="color:${shade(r.color, 0.72)}">${r.name}<small>${r.trait}</small></h3><div class="hero-grid">
           ${ids.filter((k) => SJ.HEROES[k].race === rid).map((k) => `<button class="hero-card ${seats[on].hero === k ? 'sel' : ''} ${used.includes(k) && seats[on].hero !== k ? 'taken' : ''}" data-h="${k}">${img('hero_' + k)}<b>${SJ.HEROES[k].name}</b></button>`).join('')}
         </div></div>`).join('')}</div>${heroInfo(seats[on].hero)}</div>
-        <div class="setup-foot"><button class="btn" id="back">返回</button><button class="btn primary" id="next">下一步：选地图</button></div></div>`;
-      if (step === 2) {
+        <div class="setup-foot"><button class="btn" id="back">返回</button><button class="btn" id="pickmap">地图：${mapName()}</button><button class="btn" id="opts">玩法设置${optNote() ? `<small>${optNote()}</small>` : ''}</button><button class="btn primary" id="go">开始</button></div></div>`;
+      if (picking) {
         app.querySelectorAll('[data-m]').forEach((e) => { e.onclick = () => { mapId = e.dataset.m; sfx.click(); keep(); }; });
-        $('#back').onclick = () => { sfx.click(); step = 1; draw(); app.querySelector('.setup').scrollTop = 0; };
-        $('#go').onclick = go;
+        $('#done').onclick = () => { sfx.click(); picking = false; draw(); };
         return;
       }
       app.querySelectorAll('.seat').forEach((e) => { e.onclick = () => { const i = +e.dataset.i; if (seats[i].kind === 'human') { on = i; keep(); } }; });
@@ -178,7 +196,9 @@
         seats[on].hero = left[Math.floor(Math.random() * left.length)]; sfx.click(); keep(); $('.hero-info').scrollIntoView({ block: 'nearest' });
       };
       $('#back').onclick = title;
-      $('#next').onclick = () => { sfx.click(); step = 2; draw(); app.querySelector('.setup').scrollTop = 0; };
+      $('#pickmap').onclick = () => { sfx.click(); picking = true; draw(); app.querySelector('.setup').scrollTop = 0; };
+      $('#opts').onclick = () => { sfx.click(); settings(keep); };
+      $('#go').onclick = go;
     }
     function go() {
         sfx.click();
@@ -186,7 +206,9 @@
         const taken = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
         const pool = ids.filter((k) => !taken.includes(k)).sort(() => Math.random() - 0.5);
         const players = seats.filter((x) => x.kind !== 'off').map((x) => ({ hero: x.kind === 'human' ? x.hero : pool.pop(), human: x.kind === 'human' }));
-        count('start'); S = SJ.newGame({ players, map: mapId }); store.del(SAVE); spectate = false; speed = 1; startGame(); if (!store.get('sijing.seen2')) { store.set('sijing.seen2', '1'); help(); }
+        const all = Object.keys(SJ.MAPS).filter((k) => SJ.MAPS[k].tiles && SJ.MAPS[k].name && k !== 'ring');
+        const map = mapId === 'random' ? all[Math.floor(Math.random() * all.length)] : mapId;
+        count('start'); S = SJ.newGame(Object.assign({ players, map }, loadOpts())); store.del(SAVE); spectate = false; speed = 1; startGame(); if (!store.get('sijing.seen2')) { store.set('sijing.seen2', '1'); help(); }
     }
     function keep() { const y = $('.setup')?.scrollTop || 0; draw(); $('.setup').scrollTop = y; }
     draw();
@@ -442,7 +464,20 @@
         const o = S.players[S.tiles[c.tile].owner], d = SJ.bdef(S.tiles[c.tile]);
         return choose(`<h4>${c.D.name}${d ? ` Lv${d.level}` : ''}（${o.name}）</h4><p>没拆掉就付半价过路费。</p><div class="btn-row"><button class="btn" ${V(false)}>交过路费 ${c.toll}</button><button class="btn primary" ${V(true)}>开打</button></div>`);
       }
-      case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>打到一方倒下，中途不能收手。打死得金币和经验，可能得到宝物。绕开也要挨它一下。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
+      case 'way': return new Promise((res) => {
+        // 岔路：底部给方向按钮，棋盘上也标出能走的格子，点哪个都行
+        const st = $('#stage'), here = iso(p.pos), marks = [];
+        const ARROW = (i) => { const q = iso(i), a = Math.atan2(q.y - here.y, q.x - here.x) * 180 / Math.PI; return ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'][((Math.round(a / 45) % 8) + 8) % 8]; };
+        const done = (i) => { sfx.click(); marks.forEach((e) => e.remove()); $('#dock').innerHTML = ''; res(i); };
+        B.cam.free = 0; B.look(here.x, here.y - 40, 260);
+        for (const i of c.options) {
+          const q = iso(i), e = h(`<button class="waymark" style="left:${q.x}px;top:${q.y}px">${ARROW(i)}</button>`);
+          e.onclick = (ev) => { ev.stopPropagation(); done(i); }; st.append(e); marks.push(e);
+        }
+        const pnl = panel(`<h4>岔路口</h4><p>还要走 ${c.left} 步，选一个方向（也可以直接点地图上闪光的格子）。</p><div class="btn-row">${c.options.map((i) => `<button class="btn" data-w="${i}">${ARROW(i)} ${SJ.BOARD[i].name}</button>`).join('')}</div>`);
+        pnl.querySelectorAll('[data-w]').forEach((b) => { b.onclick = () => done(+b.dataset.w); });
+      });
+      case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>双方各出手 3 下。打死得金币和经验，可能得到宝物；打不死，它会回满血。绕开也要挨它一下。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
       case 'kunlun': return choose(`<h4>昆仑</h4><p>选一种恩赐。</p><div class="btn-row"><button class="btn primary" ${V('heal')}>回 40 血</button><button class="btn" ${V('bless')}>下一战攻击 +50%</button></div>`);
       case 'shop': return choose(`<h4>${c.city ? `${c.city}的二阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
       case 'card': return new Promise((res) => {
@@ -700,7 +735,7 @@
   function playBattle(e) {
     return new Promise((res) => {
       const { a, d, res: R } = e;
-      const head = (e.kind === 'duel' ? '比试' : e.kind === 'nest' ? '打异兽' : e.forced ? '被迫开打！' : '开打') + (e.kind === 'nest' ? ' · 打到一方倒下' : e.kind === 'duel' ? ' · 点到为止，不掉血' : ' · 各出手 3 下');
+      const head = (e.kind === 'duel' ? '比试' : e.kind === 'nest' ? '打异兽' : e.forced ? '被迫开打！' : '开打') + (e.kind === 'duel' ? (e.real ? ' · 真打，掉血算数' : ' · 点到为止，不掉血') : ' · 各出手 3 下');
       const human = S.players[e.pid].human || (e.qid != null && S.players[e.qid].human);
       const b = h(`<div class="battle"><canvas class="fx"></canvas><div class="bt-head">${head}</div>
         <div class="bt-field">

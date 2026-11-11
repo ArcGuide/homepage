@@ -27,7 +27,7 @@
     const map = opts.map || 'kunlun';
     SJ.useMap(map);
     const s = {
-      v: 2, map, rng: { v: seed }, seed, round: 1, cur: 0, extra: 0, over: false, winner: null,
+      v: 2, map, opts: { autoPath: opts.autoPath !== false, spar: opts.spar !== false }, rng: { v: seed }, seed, round: 1, cur: 0, extra: 0, over: false, winner: null,
       peace: 0, harvest: 0, drought: 0, forced: [], stats: { fights: 0, turns: 0, fightsWon: 0, cards: 0, duels: 0, tolls: 0 },
       tiles: SJ.BOARD.map(() => ({ owner: null, b: null, stop: 0, hp: null, m: null, s: null, chest: 0 })),
       players: opts.players.map((o, id) => {
@@ -479,30 +479,45 @@
     }
   }
 
-  // 英雄比试：打到一方倒下，但血量不结算，不算战斗、没有经验。赢家拿走输家一部分金币，按等级差：
-  // 同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
+  // 英雄比试：各出手 3 下。没人倒下就按剩余血量比例分胜负。
+  // 比试模式（默认开）：打完血量不结算；关掉就是真打，血量带回棋盘，打死就出局。
+  // 不算战斗、没有经验。赢家拿走输家一部分金币，按等级差：同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
+  // 同一对英雄比完一场，3 轮内再碰上不比
   SJ.sparCut = (wLv, lLv) => Math.max(0.1, Math.min(0.9, 0.5 + (lLv - wLv) * 0.4 / 9));
-  const sparC = (s, p) => Object.assign(heroC(s, p), { lamp: null, xtRev: 0, absorb: false, toDeath: true });
+  SJ.SPAR_GAP = 3;
+  const sparKey = (p, q) => p.id < q.id ? `${p.id}-${q.id}` : `${q.id}-${p.id}`;
+  const canSpar = (s, p, q) => { const at = (s.sparAt || {})[sparKey(p, q)]; return at == null || s.round - at >= SJ.SPAR_GAP; };
+  const sparC = (s, p) => Object.assign(heroC(s, p), { lamp: null, xtRev: 0, absorb: false });
   async function spar(s, io, p, q) {
     s.stats.duels++; // 碰上就必须比，不再询问
-    await io.ev({ t: 'msg', text: `${p.name} 撞上 ${q.name}，比试一场` });
+    (s.sparAt = s.sparAt || {})[sparKey(p, q)] = s.round;
+    const real = s.opts && s.opts.spar === false;
+    await io.ev({ t: 'msg', text: `${p.name} 撞上 ${q.name}，${real ? '真刀真枪打一场' : '比试一场'}` });
     const A = sparC(s, p), D = sparC(s, q);
     const res = SJ.fight(A, D, s.rng);
-    await io.ev({ t: 'battle', kind: 'duel', a: A, d: D, res, pid: p.id, qid: q.id });
-    if (res.winner === 'draw') return;
-    const w = res.winner === 'a' ? p : q, l = res.winner === 'a' ? q : p;
+    await io.ev({ t: 'battle', kind: 'duel', real, a: A, d: D, res, pid: p.id, qid: q.id });
+    if (real) {
+      p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
+      if (q.hp <= 0) await eliminate(s, io, q, p, `被${p.name}打死`);
+      if (p.hp <= 0 && p.alive) await eliminate(s, io, p, q, `被${q.name}打死`);
+      if (!p.alive || !q.alive || s.over) return;
+    }
+    let win = res.winner;
+    if (win === 'draw') { const ra = res.aHp / A.maxhp, rd = res.dHp / D.maxhp; win = ra > rd ? 'a' : rd > ra ? 'd' : 'draw'; }
+    if (win === 'draw') return;
+    const w = win === 'a' ? p : q, l = win === 'a' ? q : p;
     const v = Math.floor(l.gold * SJ.sparCut(w.level, l.level));
     if (v > 0) { l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
   }
 
   async function nest(s, io, p) {
     const t = s.tiles[p.pos];
-    if (!t.m) { // 这窝没人打过，新刷一只；血量记在格子上，谁都能接着打
+    if (!t.m) { // 这窝没人打过，新刷一只；三轮打不死它就回满血
       const k = Math.min(3, Math.floor((p.level - 1) / 2 + rnd(s) * 2));
       t.m = { k, sc: 1 + s.round * 0.03, hp: null };
     }
     const m = SJ.MONSTERS[t.m.k], sc = t.m.sc, maxhp = m.hp * sc;
-    const foe = () => ({ kind: 'monster', name: m.name, id: m.id, hp: t.m.hp != null ? t.m.hp : maxhp, maxhp, atk: m.atk * sc, def: 0, fx: {}, toDeath: true });
+    const foe = () => ({ kind: 'monster', name: m.name, id: m.id, hp: t.m.hp != null ? t.m.hp : maxhp, maxhp, atk: m.atk * sc, def: 0, fx: {} });
     const go = await io.ask('nest', { p, m, scale: sc, foe: foe() });
     if (!go) { // 绕开也要挨一下
       const v = Math.max(1, Math.round(m.atk * sc * (1 - Math.min(0.8, SJ.heroStats(s, p).def || 0))));
@@ -525,7 +540,7 @@
       await io.ev({ t: 'gold', pid: p.id, n: m.gold });
       if (rnd(s) < 0.35 + t0k * 0.1) await giveTreasure(s, io, p, t0k >= 3 && rnd(s) < 0.35 ? 3 : t0k >= 2 ? 2 : 1);
       await winRewards(s, io, p, m.xp * 2 * SJ.TUNE.fightXp);
-    } else { t.m.hp = Math.max(1, Math.round(res.dHp)); if (gainXp(s, p, 2 * SJ.TUNE.fightXp)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); }
+    } else { t.m.hp = null; if (gainXp(s, p, 2 * SJ.TUNE.fightXp)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); }
   }
 
   // 付钱。付不起的部分按比例扣血，破产也能死人
@@ -754,7 +769,7 @@
     }
   }
 
-  // 沿路走。岔路随机选方向。c.n 记走了多少格
+  // 沿路走。自动选路（默认）时岔路随机选方向，关掉就问玩家。c.n 记走了多少格
   async function move(s, io, p, steps, back, fly, c) {
     fly = fly || hasBuff(p, 'fly') || hasBuff(p, 'soar');
     const dry = p._dash === 'benpao'; // 逐日只管跑：路上的宝箱、英雄、召唤物、驿站和地形都不生效
@@ -773,14 +788,19 @@
     while (left > 0 && p.alive && !s.over) {
       let opts = SJ.BOARD[p.pos].adj.filter((x) => x !== p.from);
       if (!opts.length) opts = [p.from]; // 死路掉头
-      const nx = opts[ri(s, opts.length)];
+      let nx = opts[ri(s, opts.length)];
+      if (opts.length > 1 && s.opts && s.opts.autoPath === false) {
+        await flush(false); if (!p.alive || s.over) return;
+        const pick = await io.ask('way', { p, options: opts, left });
+        if (opts.includes(pick)) nx = pick;
+      }
       p.from = p.pos; p.pos = nx; seg.push(nx);
       if (c) c.n++;
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
       const tt = s.tiles[nx];
       if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); await giveTreasure(s, io, p, rnd(s) < 0.6 ? 3 : 2); }
       if (left > 0 && !fly && !dry && s.peace <= 0 && SJ.BOARD[nx].type !== 'corner') { // 路过别的英雄也可以比试，一次移动里同一个人只比一次
-        const q = s.players.find((x) => x.alive && x !== p && x.pos === nx && !(p._met || []).includes(x.id));
+        const q = s.players.find((x) => x.alive && x !== p && x.pos === nx && !(p._met || []).includes(x.id) && canSpar(s, p, x));
         if (q) { await flush(false); if (!p.alive || s.over) return; (p._met = p._met || []).push(q.id); await spar(s, io, p, q); if (!p.alive || s.over) return; }
       }
       if (!tt.s || fly || dry) continue;
@@ -914,7 +934,7 @@
     await landOn(s, io, p, 0);
     if (!p.alive || s.over) return;
     const other = s.players.find((q) => q.alive && q !== p && q.pos === p.pos);
-    if (other && s.peace <= 0 && SJ.BOARD[p.pos].type !== 'corner' && !hasBuff(p, 'soar') && !(p._met || []).includes(other.id)) {
+    if (other && s.peace <= 0 && SJ.BOARD[p.pos].type !== 'corner' && !hasBuff(p, 'soar') && !(p._met || []).includes(other.id) && canSpar(s, p, other)) {
       await spar(s, io, p, other);
       if (!p.alive || s.over) return;
     }

@@ -344,7 +344,7 @@
       claimLand: async (n) => { // 九尾天狐：随机拿 n 块无主领地，各自动建一座 1 级建筑；没有无主地了就升级自家建筑
         const c = s.tiles.map((t, i) => i).filter((i) => SJ.BOARD[i].type === 'land' && s.tiles[i].owner == null);
         for (let k = 0; k < n; k++) {
-          if (c.length) { const i = c.splice(ri(s, c.length), 1)[0]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i }); await autoBuild(s, io, p, i); } else await freeUpgrade(s, io, p);
+          if (c.length) { const i = c.splice(ri(s, c.length), 1)[0]; s.tiles[i].owner = p.id; await io.ev({ t: 'tile', tile: i, look: 'good' }); await autoBuild(s, io, p, i); } else await freeUpgrade(s, io, p, 'good');
         }
       },
       goodCards: async (n) => { for (let c = 0; c < n && p.alive && !s.over; c++) await playCard(s, io, p, drawCard(s, 'good')); },
@@ -686,10 +686,12 @@
     await io.ev({ t: 'jump', pid: p.id, pos: i });
   }
 
-  async function freeUpgrade(s, io, p) {
+  async function freeUpgrade(s, io, p, look) {
     const c = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].owner === p.id && s.tiles[i].b && SJ.tileLevel(s.tiles[i]) < 3);
     if (!c.length) return;
-    await upgradeTile(s, io, p, c[ri(s, c.length)]);
+    const i = c[ri(s, c.length)];
+    if (look) await io.ev({ t: 'tile', tile: i, look }); // 镜头先跟过去
+    await upgradeTile(s, io, p, i);
   }
 
   const lv3 = (b) => ['a', 'b', 'c'].map((x) => `${b.race}_${b.branch}_3${x}`).filter((id) => SJ.BUILDINGS[id]);

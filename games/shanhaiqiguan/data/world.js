@@ -10,31 +10,34 @@
   };
 
   SJ.HEROES = {
-    huangdi: { race: 'xuanyuan', name: '黄帝', type: '均衡', hp: 80, atk: 8, def: 0,
+    huangdi: { race: 'xuanyuan', name: '黄帝', type: '均衡', hp: 85, atk: 9, def: 0, hpUp: 10, atkUp: 1,
       art: 'an ancient Chinese emperor in earth-yellow and gold robes and tall crown, holding a bronze sword' },
-    yinglong: { race: 'xuanyuan', name: '应龙', type: '输出', hp: 86, atk: 9, def: 0,
+    yinglong: { race: 'xuanyuan', name: '应龙', type: '输出', hp: 115, atk: 12, def: 0, hpUp: 10, atkUp: 1.0,
       art: 'a winged golden dragon with large feathered wings, long body, standing proudly' },
-    nuba: { race: 'xuanyuan', name: '女魃', type: '经济', hp: 105, atk: 11, def: 0,
+    nuba: { race: 'xuanyuan', name: '女魃', type: '经济', hp: 100, atk: 12, def: 0, hpUp: 10, atkUp: 1.0,
       art: 'a fierce drought goddess in a dark blue robe with long wild hair, heat waves and small flames around her hands' },
-    chiyou: { race: 'jiuli', name: '蚩尤', type: '战士', hp: 80, atk: 10, def: 0,
+    chiyou: { race: 'jiuli', name: '蚩尤', type: '战士', hp: 135, atk: 14, def: 0, hpUp: 8, atkUp: 0.8,
       art: 'a huge war chief with bronze head and iron forehead, bull horns, six arms holding bronze weapons' },
-    xingtian: { race: 'jiuli', name: '刑天', type: '不死', hp: 140, atk: 14, def: 0,
+    xingtian: { race: 'jiuli', name: '刑天', type: '不死', hp: 165, atk: 15, def: 0, hpUp: 12, atkUp: 1.5,
       art: 'a decapitated giant warrior with no head and no neck, his shoulders end in a flat stump, a huge angry face is on his torso with two large eyes on the chest and a wide roaring mouth on the belly, holding a battle axe and a round shield' },
-    kuafu: { race: 'jiuli', name: '夸父', type: '机动', hp: 104, atk: 11, def: 0,
+    kuafu: { race: 'jiuli', name: '夸父', type: '机动', hp: 135, atk: 11, def: 0, hpUp: 10, atkUp: 0.9,
       art: 'a towering giant running with huge strides, holding a wooden staff, snakes in his ears, red setting sun behind him' },
-    tubo: { race: 'youdu', name: '土伯', type: '坦克', hp: 140, atk: 8, def: 0,
+    tubo: { race: 'youdu', name: '土伯', type: '坦克', hp: 140, atk: 9, def: 0, hpUp: 9, atkUp: 0.8,
       art: 'a massive underworld guardian with a tiger head, three eyes, bull horns, thick dark armor, heavy body' },
-    xiangliu: { race: 'youdu', name: '相柳', type: '毒', hp: 105, atk: 10, def: 0,
+    xiangliu: { race: 'youdu', name: '相柳', type: '毒', hp: 115, atk: 11, def: 0, hpUp: 10, atkUp: 1.0,
       art: 'a dark teal snake body that splits into nine long necks, each neck ends in a human head with a human face and long black hair' },
-    yayu: { race: 'youdu', name: '窫窳', type: '重生', hp: 135, atk: 14, def: 0,
+    yayu: { race: 'youdu', name: '窫窳', type: '重生', hp: 120, atk: 12, def: 0, hpUp: 10, atkUp: 1.0,
       art: 'a monstrous beast with an ox body, red fur, human face and horse legs, undead bone-white markings' },
-    jiuweihu: { race: 'qingqiu', name: '九尾狐', type: '运气', hp: 100, atk: 10, def: 0,
+    jiuweihu: { race: 'qingqiu', name: '九尾狐', type: '运气', hp: 90, atk: 10, def: 0, hpUp: 12, atkUp: 1.2,
       art: 'a nine-tailed fox spirit, white and pale green fur, nine large distinct tails fanned out' },
-    jingwei: { race: 'qingqiu', name: '精卫', type: '破坏', hp: 126, atk: 13, def: 0,
+    jingwei: { race: 'qingqiu', name: '精卫', type: '破坏', hp: 75, atk: 9, def: 0, hpUp: 18, atkUp: 1.6,
       art: 'a small fierce bird with a patterned head, white beak and red feet, carrying a pebble in its beak over waves' },
-    zhulong: { race: 'qingqiu', name: '烛龙', type: '爆发', hp: 102, atk: 10, def: 0,
+    zhulong: { race: 'qingqiu', name: '烛龙', type: '爆发', hp: 115, atk: 11, def: 0, hpUp: 11, atkUp: 1.1,
       art: 'a very long red snake with the head of a bearded old man, a human face on a snake body, no horns, no dragon snout' },
   };
+
+  // 土伯大招放出的玄虎：中立，每轮走一格，停在建筑上就打 3 下，打到死为止
+  SJ.TIGER = { name: '玄虎', hp: 150, atk: 75 };
 
   SJ.MONSTERS = [
     { id: 'tiangou', name: '天狗', hp: 40, atk: 3, gold: 60, xp: 2, art: 'a white-headed wild cat-like hound, snarling, four legs' },
@@ -66,6 +69,17 @@
     { id: 'zhu', name: '鴸', kind: 'bad', desc: '被放逐到归墟，停一回合', art: 'a bird with human hands instead of feet, hooting mournfully' },
     { id: 'qizhong', name: '跂踵', kind: 'bad', desc: '大疫，所有人掉 15 血', art: 'a one-legged owl with a pig tail, sickly fog' },
     { id: 'mingshe', name: '鸣蛇', kind: 'bad', desc: '中毒 3 回合', art: 'a four-winged snake hissing with green venom' },
+    // 天气、风景、路上的小故事
+    { id: 'qinglang', name: '天朗气清', kind: 'good', desc: '风和日丽，远处一群文鳐鱼跃出水面。所有人回 20 血', art: 'a bright clear sky over calm blue sea with a school of flying fish leaping in the distance, landscape' },
+    { id: 'caihong', name: '雨后彩虹', kind: 'good', desc: '彩虹落在你的一座建筑上，它被修满，你回 30 血', art: 'a rainbow arching down onto a small ancient chinese pavilion after rain, wet hills, landscape' },
+    { id: 'qiushou', name: '秋收', kind: 'good', desc: '你的城邑马上再产一次金', art: 'golden millet fields at harvest with sheaves stacked under a warm autumn sun, landscape' },
+    { id: 'xiangyun', name: '祥云', kind: 'good', desc: '一朵祥云托着你，3 回合内每次多走 3 步', art: 'a single large auspicious swirling cloud glowing gold and pink in a blue sky' },
+    { id: 'shangren', name: '神秘商人', kind: 'good', desc: '路边的老人送你两个消耗品，笑着走远了', art: 'an old hermit merchant with a bamboo backpack full of small bottles walking along a mountain path' },
+    { id: 'yuyue', name: '鲤跃龙门', kind: 'good', desc: '看见鲤鱼跃过龙门，你若有所悟，经验 +150', art: 'a golden carp leaping high over a stone dragon gate above a waterfall' },
+    { id: 'baoyu2', name: '暴雨', kind: 'bad', desc: '连下三天暴雨，你的建筑各掉 20% 血', art: 'heavy dark rain pouring over tiled rooftops, dark storm clouds, landscape' },
+    { id: 'dizhen', name: '地动', kind: 'bad', desc: '山摇地动，全场随机 3 座建筑各掉 30% 血', art: 'cracked earth splitting under ancient buildings with dust rising, earthquake, landscape' },
+    { id: 'huangsha', name: '黄沙蔽日', kind: 'bad', desc: '一阵沙暴把你卷到地图随机一处', art: 'a huge yellow sandstorm swallowing the sun over a desert road, landscape' },
+    { id: 'dawu', name: '大雾', kind: 'bad', desc: '大雾弥漫，所有人下回合步数 -2', art: 'thick white fog over a mountain valley, only treetops and a pagoda roof visible, landscape' },
   ];
 
   SJ.CORNERS = {

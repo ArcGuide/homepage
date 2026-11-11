@@ -17,6 +17,8 @@
     const r = () => SJ.rand(st);
     const a = Object.assign({}, A), d = Object.assign({}, D);
     for (const c of [a, d]) { c.stun = 0; c.dot = 0; c.fx = c.fx || {}; c.saved = false; }
+    // 断首再战：对手因无首的恐惧，攻击和防御下降
+    for (const [c, foe] of [[a, d], [d, a]]) if (c.fear) { foe.atk *= 1 - c.fear; foe.def = (foe.def || 0) * (1 - c.fear); }
     const log = [];
     const snap = (e) => { e.aHp = Math.max(0, Math.round(a.hp)); e.dHp = Math.max(0, Math.round(d.hp)); log.push(e); };
     const side = (c) => (c === a ? 'a' : 'd');
@@ -34,9 +36,6 @@
     const hurt = (c, dmg, foe) => { // 处理吸收和保命
       if (c.absorb) { c.absorbed = (c.absorbed || 0) + dmg; return; }
       c.hp -= dmg;
-      if (c.hp <= 0 && c.xtRev && !c.saved && !(foe.fx.seal || c.sealed)) { // 断首再战：冷却好了才触发
-        c.hp = c.maxhp * c.xtRev; c.saved = true; snap({ t: 'skill', who: side(c), name: '断首再战' });
-      }
       if (c.hp <= 0 && c.undying) { c.hp = 1; snap({ t: 'skill', who: side(c), name: '打不死' }); }
       if (c.hp <= 0 && c.lamp != null && !c.lampUsed) {
         c.hp = c.maxhp * 0.3; c.lampUsed = true; snap({ t: 'skill', who: side(c), name: '魂灯' });
@@ -51,18 +50,20 @@
       }
       let dmg = curAtk(x) * mul * (0.85 + r() * 0.3);
       let crit = false, big = false;
-      if (r() < (x.crit || 0)) { dmg *= 2; crit = true; }
+      const lostX = 1 - Math.max(0, x.hp) / x.maxhp;
+      if (r() < (x.crit || 0) + (x.critLow || 0) * lostX) { dmg *= 2; crit = true; }
+      if (x.bloodEdge && x.hp > 1) { // 饮血兵锋：献出当前血量一成，加到这一下
+        const cost = x.hp * 0.1; if (!x.avatar) x.hp -= cost;
+        dmg += cost * x.bloodEdge;
+      }
       if (x.fx.bigHit && r() < x.fx.bigHit) { dmg *= 8; big = true; }
       dmg *= 1 - Math.min(0.8, y.def || 0);
       if (x.stack) { x.hits = (x.hits || 0) + 1; dmg += x.stack * x.hits * (x.hits + 1) / 2; } // 第 N 下额外 stack×(1+…+N)
       hurt(y, dmg, x);
       snap({ t: 'hit', who: side(x), dmg: Math.max(1, Math.round(dmg)), crit: crit || big, label });
-      if (y.fx.thorns) { hurt(x, dmg * y.fx.thorns, y); snap({ t: 'thorn', who: side(y), dmg: Math.round(dmg * y.fx.thorns) }); }
+      const th = (y.fx.thorns || 0) + (y.thornLow ? y.thornLow * (1 - Math.max(0, y.hp) / y.maxhp) : 0); // 干戚舞：血越少反弹越多
+      if (th > 0) { hurt(x, dmg * th, y); snap({ t: 'thorn', who: side(y), dmg: Math.round(dmg * th) }); }
       if (x.heroId === 'huangdi' && !dead(y) && r() < procOf(x, y)) { const v = y.hp * 0.5; hurt(y, v, x); snap({ t: 'skill', who: side(x), name: '指南车', dmg: Math.round(v) }); }
-      if (x.heroId === 'tubo' && !dead(y) && r() < procOf(x, y)) {
-        const cost = Math.min(x.hp - 1, x.maxhp * 0.05);
-        if (cost > 0) { x.hp -= cost; const v = cost * x.hitBack; hurt(y, v, x); snap({ t: 'skill', who: side(x), name: '地府反震', dmg: Math.round(v) }); }
-      }
       if (x.pctHit && !dead(y) && r() < procOf(x, y)) { const v = y.maxhp * x.pctHit; hurt(y, v, x); snap({ t: 'skill', who: side(x), name: '衔石', dmg: Math.round(v) }); }
       if (x.fx.lifesteal) { x.hp = Math.min(x.maxhp, x.hp + dmg * x.fx.lifesteal); snap({ t: 'heal', who: side(x), amt: Math.round(dmg * x.fx.lifesteal) }); }
       if (x.poisonHit) y.dot += 0.8;
@@ -85,9 +86,10 @@
       if (x.fx.stunEvery && round % x.fx.stunEvery === 0) { y.stun = 1; snap({ t: 'skill', who: side(x), name: '震晕' }); }
       const nine = !!x.nine; // 九首吞山：加持期间每下都打 9 段
       if (nine) snap({ t: 'skill', who: side(x), name: '九首吞山' });
-      const twin = x.twin && r() < 0.4; // 浸血兵器
-      const n = nine ? 9 : twin ? 2 : x.fx.multi || 1;
-      const mul = nine ? 0.1 : twin ? 1 : n > 1 ? 0.75 : 1;
+      let rage = 0; // 血祭：20% 概率献 5% 最大血，连打几下
+      if (!nine && x.rage && r() < 0.2) { const cost = x.avatar ? 0 : Math.min(x.hp - 1, x.maxhp * 0.05); if (cost >= 0) { x.hp -= cost; rage = x.rage; snap({ t: 'skill', who: side(x), name: '血祭' }); } }
+      const n = nine ? 9 : rage || x.fx.multi || 1;
+      const mul = nine ? 0.12 : rage ? 1 : n > 1 ? 0.75 : 1;
       for (let i = 0; i < n && !dead(y) && !dead(x); i++) {
         strike(x, y, mul);
         if (x.fx.double && !dead(y) && !dead(x) && r() < x.fx.double) strike(x, y, 1, '连射');

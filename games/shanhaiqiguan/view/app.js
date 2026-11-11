@@ -116,9 +116,9 @@
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，比试没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
       <p>买下的地免费建一座 Lv1 建筑，分支自己选；打下来、抽卡得到的地免费随机建一座。停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
       <h3>英雄成长</h3>
-      <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>最多装备 4 件宝物。1 阶在宝铺买或打异兽，2 阶在自家满级城邑买，3 阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出 1 阶，60 轮后才有 3 阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li></ul>
+      <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>消耗品：路过宝铺送 1 个，停下送 2 个，最多带 4 个，满了再拿到就没了。掷骰前点一下马上用掉。</li><li>最多装备 4 件宝物。二阶打异兽得，三阶在自家满级城邑买，四阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出二阶，60 轮后才有四阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li><li>神器只在大型地图后期的宝箱里出现，每个英雄一局最多拿到一次。</li></ul>
       <h3>地形和地标</h3>
-      <ul><li>山地不能造房，走得慢，还可能挖到金矿；灵河一路回血；毒沼路过中毒；云海把你吹飞；大海把你卷走；黑水和别人换位。停在抽卡、异兽、驿站这些功能格上，只结算功能，地形不起作用。</li><li>驿站发钱，宝铺卖宝物，门是传送门，兽窝的异兽血量也会记住。</li><li>每个地标都有夸张效果。点地图上任意一格可以看详情，拖动看地图，滚轮或双指缩放。</li></ul>
+      <ul><li>山地不能造房，走得慢，还可能挖到金矿；灵河一路回血；毒沼停下会中毒，但能摸到消耗品；云海把你吹飞；大海把你卷走；黑水和别人换位。难走的地形里常有驿站和宝铺。停在抽卡、异兽、驿站这些功能格上，只结算功能，地形不起作用。</li><li>驿站发钱，宝铺送消耗品，门是传送门。</li><li>每个地标都有夸张效果。点地图上任意一格可以看详情，拖动看地图，滚轮或双指缩放。</li></ul>
       <div class="btn-row" style="margin-top:12px"><button class="btn primary">知道了</button></div></div></div>`);
     $('button', l).onclick = () => l.remove();
     document.body.append(l);
@@ -219,7 +219,7 @@
     app.innerHTML = `<div class="top" id="top"></div><div class="boardwrap" id="wrap"><div class="world" id="stage"><canvas id="ground"></canvas></div>
       <div class="hud" id="hud"><div class="round" id="round"></div><div class="dice" id="dice"></div><div class="dice-note" id="dnote"></div><div class="log" id="log"></div></div>
       <canvas class="minimap" id="mini"></canvas><button class="iconbtn mapbtn" id="b-all">全图</button><div class="loading" id="loading">正在铺开山海…</div><div class="dock" id="dock"></div></div>`;
-    pieces = {}; sprites = {}; tileKey = {};
+    pieces = {}; sprites = {}; tileKey = {}; beastEls = [];
     B.setup(SJ.MAP);
     const st = $('#stage');
     st.style.width = `${B.W}px`; st.style.height = `${B.H}px`;
@@ -229,7 +229,7 @@
     await B.bake($('#ground'));
     if (S !== me) return;
     $('#loading')?.remove();
-    buildBoard(); renderPlayers();
+    buildBoard(); renderPlayers(); renderBeasts();
     let all = false;
     $('#b-all').onclick = () => { all = !all; if (all) B.fitAll(); else { B.zoomDefault(); B.cam.free = 0; focusCur(0); } };
     $('#mini').onclick = (e) => { const r = e.target.getBoundingClientRect(); B.cam.x = (e.clientX - r.left) / r.width * B.W; B.cam.y = (e.clientY - r.top) / r.height * B.H; B.cam.free = Date.now() + 3000; B.apply(200); };
@@ -252,6 +252,22 @@
     });
     placePieces();
     st.addEventListener('click', (ev) => { if (B.wasDrag()) return; const t = ev.target.closest('[data-t]'); if (t) showInfo(+t.dataset.t); else closeInfo(); });
+  }
+
+  // 玄虎和九尾狐虚影：不是玩家，单独画
+  let beastEls = [];
+  function renderBeasts() {
+    const st = $('#stage'); if (!st) return;
+    const want = [...(S.beasts || []).map((b, k) => ['tiger' + k, b.pos, 'tiger']), ...(S.phantoms || []).map((ph, k) => ['ph' + ph.o, ph.pos, 'phantom', ph.o])];
+    beastEls = beastEls.filter((e) => { if (want.some((w) => w[0] === e.dataset.k)) return true; e.remove(); return false; });
+    for (const [k, pos, kind, o] of want) {
+      let e = beastEls.find((x) => x.dataset.k === k);
+      if (!e) {
+        e = kind === 'tiger' ? h(`<div class="beast tiger" data-k="${k}">${img('monster_xuanhu', '玄虎')}</div>`) : h(`<div class="beast phantom" data-k="${k}"><div class="px" style="background-image:url(assets/px_${S.players[o].hero}.png)"></div></div>`);
+        st.append(e); beastEls.push(e);
+      }
+      const { x, y } = iso(pos); e.style.left = `${x}px`; e.style.top = `${y + 6}px`; e.style.zIndex = Math.round(y) + 18;
+    }
   }
 
   function renderTile(i, pop) {
@@ -282,12 +298,12 @@
   }
 
   // 精卫展翅的造型：放技能时状态还没加上，所以掷骰、走路时也要再刷一次
-  // 加持期间人物换造型：翼覆千里金翼流苏，兵主降世血焰，形夭战魂，与日逐走背日
+  // 加持期间人物换造型：翼覆千里金龙之气，兵主降世血焰，形夭战魂，与日逐走背日
   const has = (p, k) => p.buffs.some((b) => b.k === k);
   const FORMS = {
     soar: (p) => has(p, 'soar'),
     yifu: (p) => has(p, 'fly'),
-    berserk: (p) => p.hero === 'chiyou' && has(p, 'crit'),
+    berserk: (p) => has(p, 'avatar'),
     spirit: (p) => has(p, 'pool'),
     sunrun: (p) => p.bonusTurns > 0,
     hydra: (p) => has(p, 'nine'),
@@ -348,7 +364,7 @@
     else if (b.type === 'event') { name = '吉凶'; txt = '抽一张吉凶卡，立刻生效。'; }
     else if (b.type === 'nest') { name = '异兽巢穴'; txt = '可以打异兽，赢了得金币、经验，可能得宝物。'; if (t.m) { const m = SJ.MONSTERS[t.m.k]; pic = 'monster_' + m.id; txt += `<br>${m.name} 还在，血 ${Math.round(t.m.hp != null ? t.m.hp : m.hp * t.m.sc)}。`; } }
     else if (b.type === 'post') { name = '驿站'; txt = `路过得 ${SJ.TUNE.salary} 金，停下再回 15 血。`; pic = 'lm_post'; }
-    else if (b.type === 'shop') { name = '宝铺'; txt = `停下可以花 ${SJ.TUNE.shopPrice} 金买一件宝物。`; pic = 'lm_shop'; }
+    else if (b.type === 'shop') { name = '宝铺'; txt = '路过送 1 个消耗品，停下送 2 个。消耗品最多带 4 个。'; pic = 'lm_shop'; }
     else if (b.type === 'portal') { name = '传送门'; txt = '停下传到另一扇门。'; pic = 'lm_portal'; }
     else if (b.type === 'wild') { name = T.name; txt = T.desc; }
     else {
@@ -360,13 +376,15 @@
     }
     if (t.s) { const sm = SJ.SUMMONS[t.s.k]; txt += `<br>${S.players[t.s.o].name} 的${sm.name}，${t.s.perm ? '一直都在' : `还有 ${t.s.n} 轮`}。`; }
     if (t.chest) txt += '<br>这里有天降宝箱，走过就能捡。';
+    for (const bt of S.beasts || []) if (bt.pos === i) { pic = 'monster_xuanhu'; txt += `<br>玄虎在这里，血 ${Math.round(bt.hp)} / ${bt.maxhp}，攻击 ${bt.atk}。每轮走一格，停在建筑上就打。`; }
+    for (const ph of S.phantoms || []) if (ph.pos === i) txt += `<br>${S.players[ph.o].name}的虚影在这里，身上还有 ${ph.gold} 金。`;
     $('#wrap').append(h(`<div class="info">${pic ? img(pic) : ''}<div><b>${name}</b><p>${txt}</p></div></div>`));
   }
 
   function showPlayer(i) { sfx.click(); heroPanel(S.players[i]); }
 
-  const BUFF = { atkPct: '攻击', def: '防御', dodge: '闪避', crit: '暴击', thorn: '反伤', lifesteal: '吸血', tollCut: '过路费减免', buildCut: '建造减免', fly: '飞行', stepMul: '步数翻倍', towerAtk: '塔攻击', undying: '打不死', revive: '还魂', twin: '连打两下', absorb: '吸收伤害', pool: '形夭', scorch: '焚身', trail: '赤地', autoUp: '路过升级', regen: '每回合回血', venom: '攻击带毒', soar: '展翅', vault: '蓄水' };
-  const TIER = ['', '一阶', '二阶', '三阶'];
+  const BUFF = { atkPct: '攻击', def: '防御', dodge: '闪避', crit: '暴击', thorn: '反伤', lifesteal: '吸血', tollCut: '过路费减免', buildCut: '建造减免', fly: '飞行', stepMul: '步数翻倍', towerAtk: '塔攻击', undying: '打不死', revive: '还魂', twin: '连打两下', absorb: '吸收伤害', pool: '形夭', scorch: '焚身', trail: '赤足', autoUp: '路过升级', regen: '每回合回血', venom: '攻击带毒', soar: '展翅', vault: '蓄水', avatar: '兵主降世', fear: '无首之惧', qianli: '赤地千里', deathRite: '向死而生', holdUp: '守城升级', steps: '步数' };
+  const TIER = ['', '消耗品', '二阶', '三阶', '四阶', '神器'];
 
   // 英雄面板。act 存在时是自己回合，可以操作；否则只看
   function heroPanel(p, act) {
@@ -375,7 +393,7 @@
     const need = SJ.xpNeed(p.level), maxed = p.level >= SJ.TUNE.maxLevel;
     const dots = (k, l) => (k.ult ? `<i class="on-${l > 0}"></i>` : [1, 2, 3].map((n) => `<i class="on-${l >= n}"></i>`).join(''));
     const skill = (k, i) => {
-      const l = p.sk[i], learn = act && SJ.canLearn(p, i), cast = act && SJ.canCast(p, i), cd = p.cd[i];
+      const l = p.sk[i], learn = act && SJ.canLearn(p, i), cast = act && SJ.canCast(p, i, S), cd = p.cd[i];
       const gate = !act || l >= (k.ult ? 1 : 3) ? '' : k.ult ? (p.level < 6 ? '6 级可学' : '') : (p.level < l * 2 + 1 ? `${l * 2 + 1} 级可升` : '');
       return `<div class="sk ${l ? '' : 'dim'}">${img('sk_' + k.id)}<div class="sk-b"><b>${k.name}</b> <em>${k.ult ? '大招 · ' : ''}${SJ.SKILL_KIND[k.kind]}${k.cd ? ` · 冷却 ${[].concat(k.cd).join('/')}` : ''}</em><span class="dots">${dots(k, l)}</span><p>${k.desc}</p></div>
         <div class="sk-a">${learn ? `<button class="btn small" data-a='{"a":"learn","i":${i}}'>${l ? '升级' : '学习'}</button>` : ''}${cast ? `<button class="btn small primary" data-a='{"a":"cast","i":${i}}'>释放</button>` : ''}${l && cd > 0 ? `<small>冷却 ${cd}</small>` : ''}${gate ? `<small>${gate}</small>` : ''}</div></div>`;
@@ -389,6 +407,8 @@
         ${p.buffs.length ? `<p>加持：${p.buffs.map((b) => `${BUFF[b.k] || b.k} ${b.n - 1 > 0 ? `${b.n - 1} 回合` : '本回合'}`).join('、')}</p>` : ''}
         ${Object.keys(p.status).length ? `<p>状态：${Object.entries(p.status).map(([k, n]) => `${SJ.STATUS[k]?.[0] || k} ${n}`).join('、')}</p>` : ''}</div></div>
       <h4>技能</h4><div class="sks">${list.map(skill).join('')}</div>
+      <h4>消耗品 <small>最多 4 个${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[0, 1, 2, 3].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); return c ? `<button class="slot t1" ${act ? `data-a='{"a":"use","i":${i}}'` : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
+      ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : ''}</small></div></div>`; })() : ''}
       <h4>宝物 <small>最多装备 4 件${act ? '，点一下卸下' : ''}</small></h4><div class="slots">${p.items.map((id, i) => item(id, `{"a":"unequip","i":${i}}`)).join('')}</div>
       ${p.bag.length ? `<h4>包袱 <small>${act ? '点一下装备' : ''}</small></h4><div class="slots">${p.bag.map((id, i) => item(id, p.items.includes(null) ? `{"a":"equip","i":${i}}` : `{"a":"sell","i":${i}}`)).join('')}</div>${act && !p.items.includes(null) ? '<p class="note">宝物栏满了：先卸下一件，或者点包袱里的宝物卖掉。</p>' : ''}` : ''}
       <div class="btn-row"><button class="btn primary" id="hp-close">${act ? '返回' : '关闭'}</button></div></div></div>`);
@@ -449,15 +469,17 @@
       case 'roll': return new Promise((res) => {
         soarSync(); // 刚放完的飞行技能，回到掷骰时就该看到造型
         const can = SJ.SKILLS[p.hero].some((_, i) => SJ.canLearn(p, i));
-        const ready = SJ.SKILLS[p.hero].filter((_, i) => SJ.canCast(p, i)).length;
-        const pnl = panel(`<div class="btn-row"><button class="btn primary bigbtn herobtn ${can ? 'hot' : ''}" id="b-hero">英雄${can ? `<i class="badge">${p.pts}</i>` : ready ? `<i class="badge g">${ready}</i>` : ''}</button><button class="btn primary bigbtn" id="b-roll">掷骰</button></div>`);
-        const act = (a) => { const again = a.a !== 'cast'; reopen = again; $('#dock').innerHTML = ''; res(a); };
+        const ready = SJ.SKILLS[p.hero].filter((_, i) => SJ.canCast(p, i, S)).length;
+        const cons = (p.cons || []).map((id, i) => { const c = SJ.consOf(id); return `<button class="consbtn" data-u="${i}" title="${c.name}：${c.desc}">${img('it_' + id)}<small>${c.name}</small></button>`; }).join('');
+        const pnl = panel(`${cons ? `<div class="consbar">${cons}</div>` : ''}<div class="btn-row"><button class="btn primary bigbtn herobtn ${can ? 'hot' : ''}" id="b-hero">英雄${can ? `<i class="badge">${p.pts}</i>` : ready ? `<i class="badge g">${ready}</i>` : ''}</button><button class="btn primary bigbtn" id="b-roll">掷骰</button></div>`);
+        const act = (a) => { const again = a.a !== 'cast' && a.a !== 'use'; reopen = again; $('#dock').innerHTML = ''; res(a); };
+        pnl.querySelectorAll('[data-u]').forEach((b) => { b.onclick = () => { sfx.click(); act({ a: 'use', i: +b.dataset.u }); }; });
         $('#b-roll', pnl).onclick = () => { sfx.click(); $('#dock').innerHTML = ''; res(true); };
         $('#b-hero', pnl).onclick = () => { sfx.click(); heroPanel(p, act); };
         if (reopen) { reopen = false; heroPanel(p, act); }
       });
       case 'buy': return choose(`<h4>${SJ.BOARD[c.tile].name}</h4><p>无主领地，价格 ${c.price} 金，买下后免费建一座 1 级建筑，分支自己选。你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
-      case 'build': return choose(`<h4>在这里建什么</h4><p>买下的地免费建一座 1 级建筑，选一个分支。</p><div class="opts">${Object.keys(SJ.BRANCHES).map((k) => { const id = `${p.race}_${k}_1`, d = SJ.BUILDINGS[id], B = SJ.BRANCHES[k]; return `<button class="opt" ${V(k)}>${img('b_' + id)}<div><b>${d.name}</b><span>${B.name}：${B.hint}</span><span>${d.desc}</span></div></button>`; }).join('')}</div>`);
+      case 'build': return choose(`<h4>在这里建什么</h4><p>买下的地免费建一座 1 级建筑，选一个分支。</p><div class="opts">${SJ.BUILD_BRANCHES.map((k) => { const id = `${p.race}_${k}_1`, d = SJ.BUILDINGS[id], B = SJ.BRANCHES[k]; return `<button class="opt" ${V(k)}>${img('b_' + id)}<div><b>${d.name}</b><span>${B.name}：${B.hint}</span><span>${d.desc}</span></div></button>`; }).join('')}</div>`);
       case 'upgrade': return choose(`<h4>升级建筑</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${bOpt(c.options[0], true)}</div><div class="btn-row"><button class="btn" ${V(false)}>不升级</button></div>`);
       case 'fork': return choose(`<h4>升到 Lv3，二选一</h4><p>花费 ${c.cost} 金，你有 ${p.gold} 金。</p><div class="opts">${c.options.map((id) => bOpt(id, id)).join('')}</div><div class="btn-row"><button class="btn" ${V(null)}>先不升</button></div>`);
       case 'tollOrFight': {
@@ -479,7 +501,7 @@
       });
       case 'nest': return choose(`<h4>${c.m.name} Lv${c.m.xp - 1}</h4><p>双方各出手 3 下。打死得金币和经验，可能得到宝物；打不死，它会回满血。绕开也要挨它一下。</p><div class="btn-row"><button class="btn primary" ${V(true)}>开打</button><button class="btn" ${V(false)}>绕开</button></div>`);
       case 'kunlun': return choose(`<h4>昆仑</h4><p>选一种恩赐。</p><div class="btn-row"><button class="btn primary" ${V('heal')}>回 40 血</button><button class="btn" ${V('bless')}>下一战攻击 +50%</button></div>`);
-      case 'shop': return choose(`<h4>${c.city ? `${c.city}的二阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
+      case 'shop': return choose(`<h4>${c.city ? `${c.city}的三阶宝物` : '宝铺'}</h4><div class="opt" style="margin-bottom:8px">${img('it_' + c.item.id)}<div><b>${c.item.name}</b><span>${TIER[c.item.tier]} · ${c.item.desc}</span></div></div><p>价格 ${c.price} 金，你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);
       case 'card': return new Promise((res) => {
         const pnl = panel(`<h4>两张吉凶卡，选一张</h4><div class="opts">${c.cards.map((k, i) => `<button class="opt" data-c="${i}">${img('card_' + k.id)}<div><b>${k.name}（${k.kind === 'good' ? '吉' : '凶'}）</b><span>${k.desc}</span></div></button>`).join('')}</div>`);
         pnl.querySelectorAll('[data-c]').forEach((b) => { b.onclick = () => { sfx.click(); $('#dock').innerHTML = ''; res(c.cards[+b.dataset.c]); }; });
@@ -538,6 +560,9 @@
         if (u.board) await mapReveal(u.board(S.players[e.pid]).filter((i) => i >= 0), u.bad ? 'bad' : 'good', u.c1);
         break;
       }
+      case 'cons': { const c = SJ.consOf(e.id); toast(`${S.players[e.pid].name} 得到消耗品 ${c.name}：${c.desc}`); if (S.players[e.pid].human) sfx.coin(); renderPlayers(); await wait(500); break; }
+      case 'artifact': { const a = SJ.artOf(e.id); toast(`${S.players[e.pid].name} 得到神器 ${a.name}：${a.desc}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1400); break; }
+      case 'beasts': renderBeasts(); if (e.move) { sfx.step('grass'); await wait(360); } break;
       case 'treasure': { const t = SJ.TREASURES.find((x) => x.id === e.id); toast(`${S.players[e.pid].name} 得到${TIER[t.tier]}宝物 ${t.name}：${t.desc}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1000); break; }
       case 'death': { const p = S.players[e.pid]; logLine(`${p.name} 阵亡`); toast(`${p.name} 阵亡了（${e.why || ''}）`, 'skill'); sfx.death(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers(); placePieces(); await wait(1100); break; }
     }
@@ -595,12 +620,12 @@
   const ULT = {
     zhuolu: { fx: 'drum', c1: '#ffd35a', tint: '#ffcf7a', parts: 'spark', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
     yifu: { fx: 'wings', c1: '#ffe08a', tint: '#ffe2a0', parts: 'feather', form: true },
-    qianli: { fx: 'drought', c1: '#ff8a3a', tint: '#ff7a3a', parts: 'ember', board: (p) => S.tiles.map((t, i) => (t.owner != null && t.owner !== p.id && t.b && SJ.BUILDINGS[t.b].branch === 'city' ? i : -1)), bad: true },
+    qianli: { fx: 'drought', c1: '#ff8a3a', tint: '#ff7a3a', parts: 'ember', board: (p) => S.tiles.map((t, i) => (t.owner != null && t.owner !== p.id && t.b ? i : -1)), bad: true },
     bingzhu: { fx: 'wargod', c1: '#ff4a3a', tint: '#c8503c', parts: 'ember', form: true },
     xingyao: { fx: 'spirit', c1: '#ffa040', tint: '#c87a4a', parts: 'ember', form: true },
     yuri: { fx: 'sunrise', c1: '#ffd25a', tint: '#ffc070', parts: 'mote', form: true },
-    chiling: { fx: 'ghost', c1: '#b48cff', tint: '#6a5a9a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
-    busi: { fx: 'jade', c1: '#8af0b0', tint: '#a8e8c0', parts: 'mote', board: () => S.tiles.map((t, i) => (t.b ? i : -1)) },
+    chiling: { fx: 'ghost', c1: '#3ad0c0', tint: '#2a5a5a', parts: 'mote' },
+    busi: { fx: 'spirit', c1: '#8af0b0', tint: '#5a8a6a', parts: 'mote', board: (p) => S.tiles.map((t, i) => (t.owner === p.id && t.b ? i : -1)) },
     tunshan: { fx: 'hydra', c1: '#5af0b0', tint: '#3a8a6a', parts: 'mote', form: true },
     tianhu: { fx: 'tails', c1: '#ff9ad2', tint: '#e8a0c8', parts: 'mote' },
     zhuyin: { fx: 'eye', c1: '#ffb04a', tint: '#8a5a3a', parts: 'none', board: (p) => S.tiles.map((t, i) => (t.s && t.s.k === 'candle' && t.s.o === p.id ? i : -1)) },
@@ -735,8 +760,8 @@
   function playBattle(e) {
     return new Promise((res) => {
       const { a, d, res: R } = e;
-      const head = (e.kind === 'duel' ? '比试' : e.kind === 'nest' ? '打异兽' : e.forced ? '被迫开打！' : '开打') + (e.kind === 'duel' ? (e.real ? ' · 真打，掉血算数' : ' · 点到为止，不掉血') : ' · 各出手 3 下');
-      const human = S.players[e.pid].human || (e.qid != null && S.players[e.qid].human);
+      const head = (e.kind === 'duel' ? '比试' : e.kind === 'nest' ? '打异兽' : e.kind === 'beast' ? '玄虎来袭' : e.forced ? '被迫开打！' : '开打') + (e.kind === 'duel' ? (e.real ? ' · 真打，掉血算数' : ' · 点到为止，不掉血') : ' · 各出手 3 下');
+      const human = (e.pid != null && S.players[e.pid].human) || (e.qid != null && S.players[e.qid].human);
       const b = h(`<div class="battle"><canvas class="fx"></canvas><div class="bt-head">${head}</div>
         <div class="bt-field">
           <div class="fighter" id="fa"><div class="pic">${img(fighterImg(a), a.name)}</div><h3>${a.name}</h3><div class="bigbar"><i id="ha"></i></div><small id="na"></small></div>
@@ -758,10 +783,10 @@
       const finish = async () => {
         if (finished) return; finished = true;
         setHp(R.aHp, R.dHp);
-        const win = R.winner === 'a', draw = R.winner === 'draw';
-        if (!draw) (win ? fd : fa).classList.add('down');
-        const mine = draw || (e.kind === 'duel' ? (S.players[e.pid].human ? win : !win) : win);
-        const txt = R.charmed ? '归降' : draw ? '收手' : e.kind === 'duel' ? `${(win ? a : d).name} 胜` : e.kind === 'nest' && win ? '打死' : win ? '拆掉' : '败';
+        const v = e.verdict || R.winner, win = v === 'a', draw = v === 'draw', ko = R.winner !== 'draw';
+        if (ko) (win ? fd : fa).classList.add('down');
+        const mine = draw || (e.kind === 'duel' ? (S.players[e.pid].human ? win : !win) : e.kind === 'beast' ? !win : win);
+        const txt = R.charmed ? '归降' : draw ? '收手' : e.kind === 'duel' ? `${(win ? a : d).name} 胜${ko ? '' : '（剩血多）'}` : e.kind === 'beast' ? (win ? '拆掉' : '守住') : e.kind === 'nest' && win ? '打死' : win ? '拆掉' : '败';
         b.append(h(`<div class="bt-result" style="color:${mine ? '#ffdf8a' : '#e38a7a'}">${txt}</div>`));
         if (!draw) (mine ? sfx.win : sfx.lose)();
         await new Promise((r) => setTimeout(r, skip ? 480 : 820 / speed));

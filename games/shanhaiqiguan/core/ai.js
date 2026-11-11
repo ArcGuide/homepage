@@ -14,6 +14,8 @@
     return { win: win / n, die: die / n, left: left / n };
   }
   SJ.estimate = estimate;
+  // 电脑学技能的顺序：大招优先，再按各英雄的核心技能
+  const AI_ORDER = { yayu: [3, 1, 0, 2], tubo: [3, 1, 2, 0], jiuweihu: [3, 0, 2, 1] };
 
   SJ.aiDecide = function (s, kind, c) {
     const p = c.p;
@@ -22,7 +24,7 @@
       case 'roll': {
         // 学技能：大招优先，其余优先核心被动，再平均
         if (p.pts > 0) {
-          const order = [3, 0, 2, 1].filter((i) => SJ.canLearn(p, i));
+          const order = (AI_ORDER[p.hero] || [3, 0, 2, 1]).filter((i) => SJ.canLearn(p, i));
           if (order.length) return { a: 'learn', i: order[0] };
         }
         if (p.bag.length) {
@@ -32,12 +34,24 @@
           const best = p.bag.reduce((m, id, i) => (tier(id) > tier(p.bag[m]) ? i : m), 0);
           if (tier(p.bag[best]) > tier(p.items[worst])) { if (p.bag.length < SJ.TUNE.bagSize) return { a: 'unequip', i: worst }; return { a: 'sell', i: 0 }; }
         }
+        // 消耗品：看情况用
+        for (let i = 0; i < (p.cons || []).length; i++) {
+          const id = p.cons[i];
+          if (id === 'huichun' && p.hp < p.maxhp * 0.5) return { a: 'use', i };
+          if (id === 'jiedu' && Object.keys(p.status).some((k) => k !== 'immune')) return { a: 'use', i };
+          if (id === 'shisha' && p.cd.filter((c, j) => c > 2 && p.sk[j]).length >= 2) return { a: 'use', i };
+          if (id === 'shenxing' && roll() < 0.3) return { a: 'use', i };
+          if (id === 'zhuanxiang' && roll() < 0.1) return { a: 'use', i };
+          if (id === 'wangchuan' && p.cons.length >= 4) return { a: 'use', i }; // 电脑不洗点，栏满了就随手用掉
+        }
         for (let i = 3; i >= 0; i--) {
-          if (!SJ.canCast(p, i)) continue;
+          if (!SJ.canCast(p, i, s)) continue;
           const k = SJ.SKILLS[p.hero][i];
           if (k.kind === 'heal' && p.hp > p.maxhp * 0.6) continue;
-          if ((k.id === 'xingyao' || k.id === 'jizou' || k.id === 'bingqi' || k.id === 'xueji' || k.id === 'bingzhu') && p.hp < p.maxhp * 0.6) continue; // 献血的技能血少时不放
-          if (k.kind === 'summon' && s.tiles[p.pos].s) continue;
+          if ((k.id === 'xingyao' || k.id === 'jizou') && p.hp < p.maxhp * 0.6) continue; // 献血的技能血少时不放
+          if (k.id === 'busi' && (p.hp < p.maxhp * 0.7 || s.tiles.filter((t) => t.owner === p.id && t.b).length < 4)) continue;
+          if (k.id === 'tufu') return { a: 'cast', i }; // 能改建就改
+          if (k.kind === 'summon' && ['zhenmu', 'chezhen', 'denglin'].includes(k.id) && s.tiles[p.pos].s) continue;
           if (k.id === 'xushui' && p.gold < 300) continue;
           if (roll() < 0.6) return { a: 'cast', i };
         }

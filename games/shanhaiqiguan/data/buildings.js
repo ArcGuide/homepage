@@ -8,7 +8,9 @@
     magic: { name: '巫术', hint: '挂 debuff，带回棋盘', hp: 70, atk: 2 },
     city: { name: '城邑', hint: '每回合产金，容易被拆', hp: 60, atk: 0.5 },
     academy: { name: '学宫', hint: '强化英雄，被拆失效', hp: 60, atk: 0.5 },
+    tufu: { name: '土府', hint: '土伯的技能改建，产金又强化英雄', hp: 80, atk: 0.9, special: true },
   };
+  SJ.BUILD_BRANCHES = Object.keys(SJ.BRANCHES).filter((k) => !SJ.BRANCHES[k].special); // 能正常建的五种
   SJ.LEVEL_MUL = [0, 1, 1.6, 2.5];
   SJ.BUILD_COST = [0, 0, 120, 200]; // 1 级拿到地就免费随机建
   SJ.CITY_INCOME = [0, 30, 60, 100];
@@ -140,4 +142,11 @@
       if (branch === 'academy') add(`${race}_academy_3c`, 3, '星弧学院', '英雄攻防提高，所有经验 +50%', { heroAtk: 0.12, heroDef: 0.06, xpMul: 0.5 }, 'a grand academy hall with the STARC logo');
     }
   }
+  // 土府：只能由土伯的技能改建。像城邑一样产金，像学宫一样强化英雄
+  const TF = [
+    ['youdu_tufu_1', 1, '土府', { heroAtk: 0.02, heroDef: 0.01, regen: 2, incomeMul: 0.6 }, 'a squat dark stone underground mansion gate half sunk into the earth, teal lanterns, gold coins at the door'],
+    ['youdu_tufu_2', 2, '幽府', { heroAtk: 0.03, heroDef: 0.02, regen: 3, incomeMul: 0.6 }, 'a larger dark stone underworld mansion with a tiered roof of black tiles, teal ghost lanterns and a bronze tiger-head door knocker'],
+    ['youdu_tufu_3a', 3, '玄都府', { heroAtk: 0.05, heroDef: 0.03, regen: 4, incomeMul: 0.6 }, 'a grand dark underworld palace of black stone with towering gates, a three-eyed tiger head carving above the door, teal flames and piles of gold'],
+  ];
+  for (const [id, level, name, fx, art] of TF) SJ.BUILDINGS[id] = { id, race: 'youdu', branch: 'tufu', level, name, desc: '土伯改建：像城邑一样产金（六成），像学宫一样强化英雄', fx, art };
 })(typeof window !== 'undefined' ? window : globalThis);

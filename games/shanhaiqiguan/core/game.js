@@ -29,10 +29,10 @@
     const s = {
       v: 2, map, opts: { autoPath: opts.autoPath !== false, spar: opts.spar !== false }, rng: { v: seed }, seed, round: 1, cur: 0, extra: 0, over: false, winner: null,
       peace: 0, harvest: 0, drought: 0, forced: [], stats: { fights: 0, turns: 0, fightsWon: 0, cards: 0, duels: 0, tolls: 0 },
-      tiles: SJ.BOARD.map(() => ({ owner: null, b: null, stop: 0, hp: null, m: null, s: null, chest: 0 })),
+      tiles: SJ.BOARD.map(() => ({ owner: null, b: null, stop: 0, hp: null, m: null, s: null, chest: 0 })), beasts: [], phantoms: [],
       players: opts.players.map((o, id) => {
         const h = SJ.HEROES[o.hero];
-        return { id, hero: o.hero, race: h.race, human: !!o.human, name: o.name || h.name, pos: 0, from: 0, atkBonus: 0, hp: h.hp, maxhp: h.hp, gold: SJ.TUNE.startGold, level: 1, xp: 0, items: [null, null, null, null], bag: [], sk: [0, 0, 0, 0], pts: 1, cd: [0, 0, 0, 0], buffs: [], status: {}, alive: true, bless: 0, rank: 0 };
+        return { id, hero: o.hero, race: h.race, human: !!o.human, name: o.name || h.name, pos: 0, from: 0, atkBonus: 0, hp: h.hp, maxhp: h.hp, gold: SJ.TUNE.startGold, level: 1, xp: 0, items: [null, null, null, null], bag: [], cons: [], art: null, hadArt: false, sk: [0, 0, 0, 0], pts: 1, cd: [0, 0, 0, 0], buffs: [], status: {}, alive: true, bless: 0, rank: 0 };
       }),
     };
     // 随机起点和朝向，彼此隔开
@@ -47,10 +47,11 @@
       }
       used.push(best); p.pos = best; p.from = SJ.BOARD[best].adj[ri(s, 2)];
     }
+    SJ._s = s;
     return s;
   };
 
-  SJ.TUNE = { startGold: 500, salary: 100, baseIncome: 40, maxLevel: 10, walkXpLevel: 5, walkXp: 10, fightXp: 50, shop2Price: 480, chestEvery: 7, bagSize: 6, repair: 0.1, shopPrice: 180, towerHp: 1.8, towerAtk: 1.8, towerGrow: 0.2, debtHp: 0.25, poison: 4, burn: 6, curse: 3, tollGrow: 0.15, procPerLevel: 0.015 };
+  SJ.TUNE = { startGold: 500, salary: 100, baseIncome: 40, maxLevel: 10, walkXpLevel: 5, walkXp: 10, fightXp: 50, shop2Price: 480, chestEvery: 7, bagSize: 6, repair: 0.1, shopPrice: 180, towerHp: 1.8, towerAtk: 1.8, towerGrow: 0.2, debtHp: 0.25, poison: 4, burn: 6, curse: 3, tollGrow: 0.15, procPerLevel: 0.015, revFirst: 3, revAtk: 2 };
 
   const rnd = (s) => SJ.rand(s.rng);
   const ri = (s, n) => Math.floor(rnd(s) * n);
@@ -80,10 +81,10 @@
   const stat = (p, key) => pv(p, key) + treasure(p, key);
   const hasBuff = (p, k) => p.buffs.some((b) => b.k === k);
 
-  // 这一格前后 5 格内有没有这位玩家的【烛】
+  // 这一格前后 2 格内有没有这位玩家的【烛】
   function nearCandle(s, i, o) {
     const seen = new Set([i]); let q = [i];
-    for (let d = 0; d <= 5 && q.length; d++) {
+    for (let d = 0; d <= 2 && q.length; d++) {
       const nx = [];
       for (const k of q) {
         const m = s.tiles[k].s; if (m && m.k === 'candle' && m.o === o) return true;
@@ -98,11 +99,11 @@
 
   SJ.heroStats = function (s, p) {
     const h = SJ.HEROES[p.hero];
-    let atk = h.atk + (p.level - 1) * 1 + treasure(p, 'atk') + (p.atkBonus || 0);
+    let atk = h.atk + (p.level - 1) * (h.atkUp || 1) + treasure(p, 'atk') + (p.atkBonus || 0);
     atk *= 1 + ownFx(s, p, 'heroAtk');
-    const lit = pv(p, 'candleNear') && nearCandle(s, p.pos, p.id);
-    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + (lit ? 0.08 : 0);
-    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + (lit ? 0.08 : 0);
+    const lit = pv(p, 'candleNear') && nearCandle(s, p.pos, p.id) ? pv(p, 'candleNear') : 0;
+    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + lit + pv(p, 'avatar');
+    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + lit;
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
     const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge');
@@ -115,8 +116,9 @@
     const st = SJ.heroStats(s, p);
     const lampTile = s.tiles.findIndex((t) => t.owner === p.id && t.b && SJ.BUILDINGS[t.b].fx.soulLamp);
     return {
-      kind: 'hero', pid: p.id, heroId: p.hero, name: SJ.HEROES[p.hero].name, hp: p.hp, maxhp: p.maxhp, atk: st.atk, def: st.def, dodge: st.dodge, proc: st.proc, crit: 0.1 + stat(p, 'crit'),
-      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), hitBack: pv(p, 'hitBack'), nine: hasBuff(p, 'nine'), pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0, xtRev: p.hero === 'xingtian' && p.sk[0] && p.cd[0] <= 0 ? 0.05 : 0,
+      kind: 'hero', pid: p.id, heroId: p.hero, name: SJ.HEROES[p.hero].name, hp: p.hp, maxhp: p.maxhp, atk: st.atk, def: st.def, dodge: st.dodge, proc: st.proc, crit: 0.1 + stat(p, 'crit') + pv(p, 'avatar'),
+      bloodEdge: pv(p, 'bloodEdge'), rage: pv(p, 'rage'), avatar: hasBuff(p, 'avatar'), fear: pv(p, 'fear'), thornLow: pv(p, 'thornLow'), critLow: pv(p, 'critLow'),
+      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), nine: hasBuff(p, 'nine'), pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0,
       blind: p.status.blind ? 0.25 : 0, sealed: !!p.status.seal, lowHpAtk: ownFx(s, p, 'lowHpAtk'), lamp: lampTile >= 0 ? lampTile : null,
     };
   }
@@ -157,7 +159,7 @@
 
   SJ.cityIncome = function (s, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
-    if (!b || b.branch !== 'city' || t.stop > 0) return 0;
+    if (!b || (b.branch !== 'city' && b.branch !== 'tufu') || t.stop > 0) return 0;
     let v = SJ.CITY_INCOME[b.level];
     if (b.fx.adjIncome) v += b.fx.adjIncome * SJ.adjacent(i).filter((j) => s.tiles[j].owner === t.owner && s.tiles[j].b).length;
     if (b.fx.incomeMul) v *= b.fx.incomeMul;
@@ -167,7 +169,7 @@
   };
 
   function addStatus(s, p, k, n) {
-    if (p.status.immune) return;
+    if (p.status.immune || p.buffs.some((b) => b.k === 'avatar')) return; // 兵主降世期间免疫负面
     if (s && s.players[s.cur] === p) n += 1; // 自己回合里中的状态，回合末会先扣一次，所以多给 1
     p.status[k] = Math.max(p.status[k] || 0, n);
   }
@@ -185,7 +187,7 @@
     if (p.level >= SJ.TUNE.maxLevel) return false;
     p.xp += n * (1 + treasure(p, 'xpMul') + ownFx(s, p, 'xpMul'));
     let up = false;
-    while (p.level < SJ.TUNE.maxLevel && p.xp >= SJ.xpNeed(p.level)) { p.xp -= SJ.xpNeed(p.level); p.level++; p.pts++; p.maxhp += 10; p.hp += 10; up = true; }
+    while (p.level < SJ.TUNE.maxLevel && p.xp >= SJ.xpNeed(p.level)) { p.xp -= SJ.xpNeed(p.level); p.level++; p.pts++; const hu = SJ.HEROES[p.hero].hpUp || 10; p.maxhp += hu; p.hp += hu; up = true; }
     if (p.level >= SJ.TUNE.maxLevel) p.xp = 0;
     return up;
   }
@@ -196,7 +198,9 @@
     if (i === 3) return p.sk[3] === 0 && p.level >= 6;
     return p.sk[i] < 3 && p.level >= p.sk[i] * 2 + 1;
   };
-  SJ.canCast = (p, i) => { const k = SJ.SKILLS[p.hero][i]; return k.kind !== 'passive' && p.sk[i] > 0 && p.cd[i] <= 0 && (!k.can || k.can(p)); };
+  SJ.canCast = (p, i, s) => { const k = SJ.SKILLS[p.hero][i]; return !!k.go && p.sk[i] > 0 && p.cd[i] <= 0 && (!k.can || k.can(p, s || SJ._s)); };
+  // 土府：站在自家建筑上，而且这座还不是土府
+  SJ.canTufu = (s, p) => { const t = s.tiles[p.pos]; return t.owner === p.id && !!t.b && SJ.BUILDINGS[t.b].branch !== 'tufu'; };
 
   function addBuff(p, k, v, n) { p.buffs = p.buffs.filter((b) => b.k !== k); p.buffs.push({ k, v, n }); }
 
@@ -221,7 +225,7 @@
   }
 
   async function cast(s, io, p, i) {
-    if (!SJ.canCast(p, i)) return;
+    if (!SJ.canCast(p, i, s)) return;
     const k = SJ.SKILLS[p.hero][i], lv = p.sk[i] - 1;
     p.cd[i] = Array.isArray(k.cd) ? k.cd[lv] : k.cd;
     await io.ev({ t: 'cast', pid: p.id, sk: k.id, name: k.name });
@@ -259,11 +263,11 @@
         s.tiles[p.pos].s = { k: kind, o: p.id, n, v: v || 0, perm: !!o.perm };
         await io.ev({ t: 'tile', tile: p.pos });
       },
-      behind: async (kind, n, turns) => { // 沿来路往回数 n 格，已有东西的格子不覆盖
-        const perm = p.sk[3] > 0;
+      lv: (i) => p.sk[i],
+      behind: async (kind, n, turns, v) => { // 沿来路往回数 n 格，已有东西的格子不覆盖
         let prev = p.pos, cur = p.from;
         for (let c = 0; c < n; c++) {
-          if (!s.tiles[cur].s) { s.tiles[cur].s = { k: kind, o: p.id, n: turns, v: 0, perm }; await io.ev({ t: 'tile', tile: cur }); }
+          if (!s.tiles[cur].s) { s.tiles[cur].s = { k: kind, o: p.id, n: turns, v: v || 0, perm: false }; await io.ev({ t: 'tile', tile: cur }); }
           const nx = SJ.BOARD[cur].adj.filter((x) => x !== prev);
           if (!nx.length) break;
           prev = cur; cur = nx[ri(s, nx.length)];
@@ -277,20 +281,49 @@
         const atk = Math.round(n * 2) / 10; p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
         await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}${atk ? `，攻击 +${atk}` : ''}` });
       },
-      elixir: async () => { // 不死药：花一半钱自己回血，别人付同样的钱给窫窳才能回血，付得起就必须付
-        const fee = Math.floor(p.gold * 0.5); p.gold -= fee;
-        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 花 ${fee} 金炼成不死药` });
-        const cure = async (q) => {
-          const v = heal(q, Math.round(q.maxhp * 0.5)); if (v) await io.ev({ t: 'heal', pid: q.id, n: v });
-          for (let j = 0; j < s.tiles.length; j++) { const t = s.tiles[j]; if (t.owner !== q.id || t.hp == null) continue; const m = SJ.tileMaxHp(t); t.hp += m * 0.5; if (t.hp >= m) t.hp = null; await io.ev({ t: 'tile', tile: j }); }
-        };
-        await cure(p);
-        for (const q of alive(s)) { // 付不起的交出自己一半的钱，但不回血
+      elixir: async (cost, f) => { // 不死灵药：花一成金币回血；别人付同样的钱给窫窳，回窫窳回血量的一半；付不起的交出全部金币，不回血
+        const fee = Math.floor(p.gold * cost); p.gold -= fee;
+        const amt = Math.round(p.maxhp * f);
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 花 ${fee} 金炼成不死灵药` });
+        { const v = heal(p, amt); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); }
+        for (const q of alive(s)) {
           if (q === p) continue;
-          const can = q.gold >= fee, v = can ? fee : Math.floor(q.gold * 0.5);
+          const can = q.gold >= fee, v = can ? fee : q.gold;
           q.gold -= v; gain(s, p, v); if (v) await io.ev({ t: 'toll', pid: q.id, to: p.id, n: v });
-          if (can) await cure(q);
+          if (can) { const h = heal(q, Math.round(amt / 2)); if (h) await io.ev({ t: 'heal', pid: q.id, n: h }); }
         }
+      },
+      ghosts: async (n, turns) => { // 幽魂劫财：随机散在空格子上
+        const c = s.tiles.map((x, j) => j).filter((j) => !s.tiles[j].s && SJ.BOARD[j].type !== 'corner');
+        for (let m = 0; m < n && c.length; m++) { const j = c.splice(ri(s, c.length), 1)[0]; s.tiles[j].s = { k: 'ghost', o: p.id, n: turns, v: 0, perm: false }; await io.ev({ t: 'tile', tile: j }); }
+        await io.ev({ t: 'msg', kind: 'skill', text: `${n} 个幽魂从地府飘了出来` });
+      },
+      tufu: async () => {
+        const t = s.tiles[p.pos], b = SJ.bdef(t); if (!b || t.owner !== p.id || b.branch === 'tufu') return;
+        t.b = `${p.race}_tufu_${b.level === 3 ? '3a' : b.level}`; t.hp = null;
+        await io.ev({ t: 'tile', tile: p.pos, built: true, pid: p.id });
+      },
+      tiger: async () => { // 玄虎出柙：在身后放出，中立
+        const at = p.from != null ? p.from : p.pos;
+        s.beasts.push({ pos: at, from: p.pos, hp: SJ.TIGER.hp, maxhp: SJ.TIGER.hp, atk: SJ.TIGER.atk });
+        await io.ev({ t: 'beasts' });
+        await io.ev({ t: 'msg', kind: 'skill', text: '幽都之门打开，一头玄虎跳了出来' });
+      },
+      spread: async (kind, n) => { // 脚下和前后各一格
+        const front = SJ.BOARD[p.pos].adj.filter((x) => x !== p.from);
+        for (const j of [p.pos, p.from, front.length ? front[ri(s, front.length)] : null]) {
+          if (j == null || s.tiles[j].s || SJ.BOARD[j].type === 'corner') continue;
+          s.tiles[j].s = { k: kind, o: p.id, n, v: 0, perm: false }; await io.ev({ t: 'tile', tile: j });
+        }
+      },
+      phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，同时只有一个
+        s.phantoms = s.phantoms.filter((x) => x.o !== p.id);
+        const c = s.tiles.map((x, j) => j).filter((j) => SJ.BOARD[j].adj.length >= 2 && SJ.BOARD[j].type !== 'corner' && j !== p.pos);
+        const at = c[ri(s, c.length)];
+        const gold = Math.round(Math.max(p.gold, 50) * mul);
+        s.phantoms.push({ o: p.id, pos: at, from: SJ.BOARD[at].adj[0], gold });
+        await io.ev({ t: 'beasts' });
+        await io.ev({ t: 'msg', kind: 'skill', text: `九尾狐的虚影出现了，身上带着 ${gold} 金` });
       },
       healAll: async (f, own) => {
         for (const q of alive(s)) { const v = heal(q, Math.round(q.maxhp * (q === p ? own : f))); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); }
@@ -318,7 +351,7 @@
     };
     // 效果按写的顺序一个个跑完
     const queue = [];
-    for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'elixir', 'repairAll', 'goodCards', 'claimLand']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
+    for (const name of ['heal', 'gold', 'dash', 'summon', 'behind', 'candle', 'reclaim', 'healAll', 'elixir', 'repairAll', 'goodCards', 'claimLand', 'ghosts', 'tufu', 'tiger', 'spread', 'phantom']) { const f = g[name]; g[name] = (...x) => { queue.push(() => f(...x)); }; }
     k.go(g, lv);
     for (const f of queue) { if (p.alive && !s.over) await f(); }
     if (p.alive && !s.over) await io.ev({ t: 'casted', pid: p.id, sk: k.id }); // 效果已经生效，画面可以换造型了
@@ -330,29 +363,36 @@
     else if (a.a === 'cast') await cast(s, io, p, a.i);
     else if (a.a === 'equip') equip(p, a.i);
     else if (a.a === 'unequip') unequip(p, a.i);
-    else if (a.a === 'sell') { const id = p.bag.splice(a.i, 1)[0]; if (id) gain(s, p, [0, 60, 150, 300][itemOf(id).tier]); }
+    else if (a.a === 'sell') { const id = p.bag.splice(a.i, 1)[0]; if (id) gain(s, p, SJ.SELL[itemOf(id).tier]); }
+    else if (a.a === 'use') await useCons(s, io, p, a.i);
   }
 
   async function eliminate(s, io, p, killer, why) {
     if (!p.alive) return;
+    if (p.art && p.art.id === 'busishu') { // 不死树果：满血加 1000 金复活
+      p.art = null; p.hp = p.maxhp; gain(s, p, 1000);
+      await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 吃下不死树果，满血复活，还得到 1000 金` });
+      return;
+    }
     if (hasBuff(p, 'revive')) {
       const rv = p.buffs.find((b) => b.k === 'revive'); p.buffs = p.buffs.filter((b) => b !== rv); p.hp = Math.max(1, Math.round(p.maxhp * rv.v));
       await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了` });
       return;
     }
-    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳还魂：第一次拿 1 座自家建筑换命，之后每复活一次永久多 5/4/3 座，不够数就死；被毁的建筑还能死而复生
+    if (p.hero === 'yayu' && p.sk[1]) { // 窫窳死而复生：第一次拿 1 座自家建筑换命，之后每复活一次永久多 5/4/3 座，不够数就死；毁掉的建筑可能向死而生
       const own = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].owner === p.id && s.tiles[i].b);
-      const n = p.revCost || 1;
+      const n = p.revCost || SJ.TUNE.revFirst;
       if (own.length >= n) {
-        const proc = SJ.heroStats(s, p).proc;
         let lost = 0, back = 0;
         for (let k = 0; k < n; k++) {
-          const i = own.splice(ri(s, own.length), 1)[0], t = s.tiles[i];
-          if (p.sk[0] && rnd(s) < proc) { t.hp = null; back++; } else { Object.assign(t, { owner: null, b: null, hp: null, stop: 0 }); lost++; }
+          const i = own.splice(ri(s, own.length), 1)[0], t = s.tiles[i], b = SJ.bdef(t);
+          if (p.sk[3] && rnd(s) < SJ.rebornChance(p)) { // 保留原等级再升一级
+            t.b = b.level === 1 ? `${b.race}_${b.branch}_2` : b.level === 2 ? (lv3(b)[ri(s, lv3(b).length)]) : t.b; t.hp = null; back++;
+          } else { Object.assign(t, { owner: null, b: null, hp: null, stop: 0 }); lost++; }
           await io.ev({ t: 'tile', tile: i, fire: true });
         }
-        p.hp = Math.max(1, Math.round(p.maxhp * 0.25)); p.atkBonus = (p.atkBonus || 0) + 5; p.revCost = n + SJ.SKILLS.yayu[1].sacUp[p.sk[1] - 1];
-        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 还魂了，攻击永久 +5，毁掉 ${lost} 座自家建筑${back ? `，${back} 座死而复生` : ''}；下次要 ${p.revCost} 座` });
+        p.hp = Math.max(1, Math.round(p.maxhp * 0.25)); p.atkBonus = (p.atkBonus || 0) + SJ.TUNE.revAtk; p.revCost = n + SJ.SKILLS.yayu[1].sacUp[p.sk[1] - 1];
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 死而复生，攻击永久 +${SJ.TUNE.revAtk}，毁掉 ${lost} 座自家建筑${back ? `，${back} 座向死而生、还升了一级` : ''}；下次要 ${p.revCost} 座` });
         return;
       }
     }
@@ -366,6 +406,9 @@
     const left = alive(s);
     if (left.length <= 1) { s.over = true; s.winner = left.length ? left[0].id : null; if (left[0]) left[0].rank = 1; }
   }
+
+  // 向死而生的重生概率：平时 30%，献祭期间每回合 +10%
+  SJ.rebornChance = (p) => { if (!p.sk[3]) return 0; const b = p.buffs.find((x) => x.k === 'deathRite'); return 0.3 + (b ? b.v : 0); };
 
   SJ._eliminate = eliminate; SJ._playCard = playCard; // 测试用
 
@@ -381,10 +424,10 @@
     const t = s.tiles[i], b = SJ.bdef(t), owner = s.players[t.owner];
     if (!b) return false;
     for (const q of alive(s)) { const v = ownFx(s, q, 'deathGold'); if (v) gain(s, q, v); }
-    if (owner.race === 'youdu') { addStatus(s, by, 'curse', 2); await io.ev({ t: 'msg', text: `${by.name} 被幽都诅咒了` }); }
-    if (owner.alive && owner.hero === 'yayu' && owner.sk[0] && rnd(s) < SJ.heroStats(s, owner).proc) {
-      t.hp = null;
-      await io.ev({ t: 'msg', kind: 'skill', text: `窫窳：${b.name} 死而复生！` });
+    if (owner.race === 'youdu' && by) { addStatus(s, by, 'curse', 2); await io.ev({ t: 'msg', text: `${by.name} 被幽都诅咒了` }); }
+    if (owner.alive && owner.hero === 'yayu' && owner.sk[3] && rnd(s) < SJ.rebornChance(owner)) { // 向死而生：重生成 1 级
+      t.b = `${b.race}_${b.branch}_1`; t.hp = null;
+      await io.ev({ t: 'msg', kind: 'skill', text: `窫窳：${b.name} 向死而生，重生成 1 级` });
       return true;
     }
     if (b.fx.respawn) {
@@ -430,12 +473,43 @@
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 的魂灯灭了` });
   }
 
-  // 刑天断首再战复活后进冷却，冷却每用一次永久加长
-  function headCd(p, saved) {
-    if (!saved || p.hero !== 'xingtian') return;
-    const k = SJ.SKILLS.xingtian[0], len = p.xtCd || k.cd;
-    p.cd[0] = len; p.xtCd = len + k.cdUp[p.sk[0] - 1];
+  function headCd() { /* 断首再战不再复活 */ }
+
+  // 吞天噬地：打死对手后回复对手最大血的一部分
+  async function devour(s, io, p, foeMax) {
+    const f = pv(p, 'devour'); if (!f || !p.alive) return;
+    const v = heal(p, Math.round(foeMax * f)); if (v) { await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 吞下了对手` }); await io.ev({ t: 'heal', pid: p.id, n: v }); }
   }
+
+  // 筑城令：自家建筑守住一次进攻后，有概率升一级
+  async function holdUp(s, io, owner, i) {
+    const f = pv(owner, 'holdUp'), t = s.tiles[i];
+    if (!f || !owner.alive || t.owner !== owner.id || !t.b || SJ.tileLevel(t) >= 3 || rnd(s) >= f) return;
+    await upgradeTile(s, io, owner, i);
+    await io.ev({ t: 'msg', kind: 'skill', text: `筑城令：${SJ.BUILDINGS[t.b].name} 守住了，升了一级` });
+  }
+
+  // 付钱时看附近有没有土伯的幽魂：有就被劫走，交给土伯，幽魂消失。返回钱最终给了谁
+  async function ghostRob(s, io, p, i, n) {
+    if (!n || i == null) return null;
+    const seen = new Set([i]); let q = [i];
+    for (let d = 0; d <= 2 && q.length; d++) {
+      const nx = [];
+      for (const k of q) {
+        const m = s.tiles[k].s;
+        if (m && m.k === 'ghost' && m.o !== p.id && s.players[m.o].alive) {
+          const o = s.players[m.o]; s.tiles[k].s = null;
+          await io.ev({ t: 'tile', tile: k });
+          await io.ev({ t: 'msg', kind: 'skill', text: `幽魂劫走了 ${p.name} 付的 ${n} 金，交给${o.name}` });
+          return o;
+        }
+        for (const j of SJ.BOARD[k].adj) if (!seen.has(j)) { seen.add(j); nx.push(j); }
+      }
+      q = nx;
+    }
+    return null;
+  }
+  SJ._ghostRob = ghostRob;
 
   async function attackTile(s, io, p, i, toll, forced) {
     const t = s.tiles[i], owner = s.players[t.owner], lv = Math.max(1, SJ.tileLevel(t));
@@ -451,7 +525,7 @@
     headCd(p, res.aSaved);
     // 塔主人也拿经验，后期靠收租的英雄才升得动级：守住 2×，被拆 1×（按塔等级），打死来犯的英雄 6×（按对方等级）
     const guard = async (n) => { if (owner.alive && gainXp(s, owner, n)) await io.ev({ t: 'levelup', pid: owner.id, level: owner.level }); };
-    if (p.hp <= 0) { await guard(6 * SJ.TUNE.fightXp * p.level); await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) return; }
+    if (p.hp <= 0) { await guard(6 * SJ.TUNE.fightXp * p.level); await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) { t.hp = Math.max(1, Math.round(res.dHp)); await holdUp(s, io, owner, i); return; } }
     t.hp = Math.max(0, Math.round(res.dHp));
     await guard((res.winner === 'a' ? 1 : 2) * SJ.TUNE.fightXp * lv);
     if (res.winner === 'a') {
@@ -466,13 +540,15 @@
       }
       await io.ev({ t: 'tile', tile: i });
       await autoBuild(s, io, p, i);
+      if (!res.charmed) await devour(s, io, p, D.maxhp);
       await winRewards(s, io, p, 5 * SJ.TUNE.fightXp * lv);
     } else {
       // 三下打完没拆掉：双方血量留着，半价过路
       if (gainXp(s, p, 2 * SJ.TUNE.fightXp * lv)) await io.ev({ t: 'levelup', pid: p.id, level: p.level });
       const fx = D.fx;
       await io.ev({ t: 'tile', tile: i });
-      await payOrBleed(s, io, p, owner, Math.round(toll * 0.5 * (fx.loseMul || 1)), true);
+      await holdUp(s, io, owner, i);
+      await payOrBleed(s, io, p, owner, Math.round(toll * 0.5 * (fx.loseMul || 1)), true, i);
       if (!p.alive) return;
       if (fx.failSkip) { addStatus(s, p, 'skip', fx.failSkip); }
       if (fx.loseTeleport) { await teleport(s, io, p, ri(s, N())); }
@@ -495,15 +571,15 @@
     await io.ev({ t: 'msg', text: `${p.name} 撞上 ${q.name}，${real ? '真刀真枪打一场' : '比试一场'}` });
     const A = sparC(s, p), D = sparC(s, q);
     const res = SJ.fight(A, D, s.rng);
-    await io.ev({ t: 'battle', kind: 'duel', real, a: A, d: D, res, pid: p.id, qid: q.id });
-    if (real) {
-      p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
-      if (q.hp <= 0) await eliminate(s, io, q, p, `被${p.name}打死`);
-      if (p.hp <= 0 && p.alive) await eliminate(s, io, p, q, `被${q.name}打死`);
-      if (!p.alive || !q.alive || s.over) return;
-    }
     let win = res.winner;
     if (win === 'draw') { const ra = res.aHp / A.maxhp, rd = res.dHp / D.maxhp; win = ra > rd ? 'a' : rd > ra ? 'd' : 'draw'; }
+    await io.ev({ t: 'battle', kind: 'duel', real, a: A, d: D, res, verdict: win, pid: p.id, qid: q.id });
+    if (real) {
+      p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
+      if (q.hp <= 0) { await eliminate(s, io, q, p, `被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
+      if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
+      if (!p.alive || !q.alive || s.over) return;
+    }
     if (win === 'draw') return;
     const w = win === 'a' ? p : q, l = win === 'a' ? q : p;
     const v = Math.floor(l.gold * SJ.sparCut(w.level, l.level));
@@ -536,16 +612,18 @@
     if (p.hp <= 0) { await eliminate(s, io, p, null, `被${m.name}吃了`); if (!p.alive) return; }
     if (res.winner === 'a') {
       const t0k = t.m.k; t.m = null;
+      await devour(s, io, p, maxhp);
       gain(s, p, m.gold);
       await io.ev({ t: 'gold', pid: p.id, n: m.gold });
-      if (rnd(s) < 0.35 + t0k * 0.1) await giveTreasure(s, io, p, t0k >= 3 && rnd(s) < 0.35 ? 3 : t0k >= 2 ? 2 : 1);
+      if (rnd(s) < 0.35 + t0k * 0.1) await giveTreasure(s, io, p, t0k >= 3 && rnd(s) < 0.35 ? 4 : t0k >= 2 ? 3 : 2);
       await winRewards(s, io, p, m.xp * 2 * SJ.TUNE.fightXp);
     } else { t.m.hp = null; if (gainXp(s, p, 2 * SJ.TUNE.fightXp)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); }
   }
 
   // 付钱。付不起的部分按比例扣血，破产也能死人
-  async function payOrBleed(s, io, p, to, n, lost) {
+  async function payOrBleed(s, io, p, to, n, lost, tile) {
     const pay = Math.min(p.gold, n), debt = n - pay;
+    to = (await ghostRob(s, io, p, tile, pay)) || to;
     p.gold -= pay; gain(s, to, pay);
     await io.ev({ t: 'toll', pid: p.id, to: to.id, n: pay, lost });
     if (debt > 0) await hurtPlain(s, io, p, Math.max(1, Math.round(debt * SJ.TUNE.debtHp)), '欠债被追杀');
@@ -553,19 +631,55 @@
 
   // 得到一件指定阶的宝物。有空栏直接装上，否则进包袱，包袱满了换成钱
   // 宝物按轮数解锁：大图 30 轮前只出 1 阶，60 轮前最多 2 阶；中小图按地图的 tierAt 提前
-  SJ.maxTier = (s) => { const at = SJ.MAP.tierAt || [30, 60]; return s.round < at[0] ? 1 : s.round < at[1] ? 2 : 3; };
+  SJ.maxTier = (s) => { const at = SJ.MAP.tierAt || [30, 60]; return s.round < at[0] ? 2 : s.round < at[1] ? 3 : 4; };
+  SJ.SELL = [0, 0, 60, 150, 300, 600]; // 各阶宝物换钱的价格
+  SJ.bigMap = () => (SJ.MAP.scale || 'large') === 'large';
   async function giveTreasure(s, io, p, tier, id) {
     if (!id) tier = Math.min(tier, SJ.maxTier(s));
     const own = (x) => p.items.includes(x.id) || p.bag.includes(x.id);
     const pool = SJ.TREASURES.filter((x) => x.tier === tier && !own(x));
-    if (!pool.length && !id) { gain(s, p, [0, 60, 150, 300][tier]); await io.ev({ t: 'gold', pid: p.id, n: [0, 60, 150, 300][tier], why: '宝物换钱' }); return false; }
+    if (!pool.length && !id) { gain(s, p, SJ.SELL[tier]); await io.ev({ t: 'gold', pid: p.id, n: SJ.SELL[tier], why: '宝物换钱' }); return false; }
     const tr = id ? itemOf(id) : pool[ri(s, pool.length)];
-    if (p.bag.length >= SJ.TUNE.bagSize && !p.items.includes(null)) { gain(s, p, [0, 60, 150, 300][tr.tier]); await io.ev({ t: 'gold', pid: p.id, n: [0, 60, 150, 300][tr.tier], why: '包袱满了' }); return false; }
+    if (p.bag.length >= SJ.TUNE.bagSize && !p.items.includes(null)) { gain(s, p, SJ.SELL[tr.tier]); await io.ev({ t: 'gold', pid: p.id, n: SJ.SELL[tr.tier], why: '包袱满了' }); return false; }
     p.bag.push(tr.id);
     if (p.items.includes(null)) equip(p, p.bag.length - 1);
     await io.ev({ t: 'treasure', pid: p.id, id: tr.id });
     return true;
   }
+
+  // 消耗品：最多 4 个，满了再拿到就没了
+  async function giveCons(s, io, p, n) {
+    for (let k = 0; k < n; k++) {
+      const c = SJ.CONSUMABLES[ri(s, SJ.CONSUMABLES.length)];
+      if (p.cons.length >= 4) { await io.ev({ t: 'msg', text: `${p.name} 的消耗品栏满了，${c.name}没拿上` }); continue; }
+      p.cons.push(c.id);
+      await io.ev({ t: 'cons', pid: p.id, id: c.id });
+    }
+  }
+  SJ.consOf = (id) => SJ.CONSUMABLES.find((x) => x.id === id);
+  async function useCons(s, io, p, i) {
+    const id = p.cons[i]; if (!id) return;
+    p.cons.splice(i, 1);
+    const c = SJ.consOf(id);
+    await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 用了${c.name}` });
+    switch (id) {
+      case 'huichun': { const v = heal(p, Math.round(p.maxhp * 0.15)); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }
+      case 'zhuanxiang': turnAround(s, p); await io.ev({ t: 'jump', pid: p.id, pos: p.pos }); break;
+      case 'shenxing': addBuff(p, 'steps', 3, 4); break;
+      case 'shisha': p.cd = p.cd.map(() => 0); break;
+      case 'wangchuan': { const n = p.sk.reduce((a, b) => a + b, 0); p.sk = [0, 0, 0, 0]; p.pts += n; break; }
+      case 'jiedu': for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; break;
+    }
+  }
+  // 神器：大型地图后期的宝箱里才有，一局一人最多一次
+  SJ.artOf = (id) => SJ.ARTIFACTS.find((x) => x.id === id);
+  const hasArt = (p, id) => p.art && p.art.id === id;
+  async function giveArtifact(s, io, p) {
+    const a = SJ.ARTIFACTS[ri(s, SJ.ARTIFACTS.length)];
+    p.art = { id: a.id, n: a.n }; p.hadArt = true;
+    await io.ev({ t: 'artifact', pid: p.id, id: a.id });
+  }
+  const artChance = (s, p) => SJ.bigMap() && !p.hadArt && s.round >= (SJ.MAP.tierAt || [30, 60])[1];
 
   async function teleport(s, io, p, i) {
     p.pos = i; p.from = SJ.BOARD[i].adj[ri(s, SJ.BOARD[i].adj.length)];
@@ -586,6 +700,12 @@
     s.tiles[i].b = b.level === 1 ? `${b.race}_${b.branch}_2` : ids[ri(s, ids.length)];
     s.tiles[i].hp = null;
     await io.ev({ t: 'tile', tile: i, built: true, pid: p.id });
+  }
+
+  // 建筑掉一定比例的血，不会掉到 0
+  async function hurtTile(s, i, f) {
+    const t = s.tiles[i]; if (!t.b) return;
+    const m = SJ.tileMaxHp(t); t.hp = Math.max(1, Math.round((t.hp != null ? t.hp : m) - m * f));
   }
 
   async function downgrade(s, i) {
@@ -617,21 +737,40 @@
         break;
       }
       case 'qinggeng': p.status.immune = 3; break;
-      case 'bifang': {
+      case 'bifang': { // 大火：随机两座建筑降一级（1 级不降），再烧掉一半血
         const c = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].b);
-        for (let k = 0; k < 2 && c.length; k++) { const i = c.splice(ri(s, c.length), 1)[0]; Object.assign(s.tiles[i], { owner: null, b: null, hp: null, stop: 0 }); await io.ev({ t: 'tile', tile: i, fire: true }); }
+        for (let k = 0; k < 2 && c.length; k++) {
+          const i = c.splice(ri(s, c.length), 1)[0], t = s.tiles[i];
+          if (SJ.tileLevel(t) > 1) await downgrade(s, i);
+          await hurtTile(s, i, 0.5); await io.ev({ t: 'tile', tile: i, fire: true });
+        }
         break;
       }
       case 'feiyi': s.drought = A.length; break;
       case 'zhuyan': s.forced = A.map((q) => q.id); break;
       case 'taotie': p.gold = Math.floor(p.gold / 2); break;
       case 'kui': await hurtPlain(s, io, p, 20, '被雷劈死'); break;
-      case 'huashe': {
+      case 'huashe': { // 大水：一个区域的建筑各掉 40% 血
         const r = ri(s, SJ.REGIONS.length);
-        for (let i = 0; i < N(); i++) if (SJ.BOARD[i].region === r && s.tiles[i].b) { await downgrade(s, i); await io.ev({ t: 'tile', tile: i }); }
+        for (let i = 0; i < N(); i++) if (SJ.BOARD[i].region === r && s.tiles[i].b) { await hurtTile(s, i, 0.4); await io.ev({ t: 'tile', tile: i }); }
         await io.ev({ t: 'msg', text: `大水淹了${SJ.REGIONS[r].name}` });
         break;
       }
+      case 'qinglang': for (const q of A) { const v = heal(q, 20); if (v) await io.ev({ t: 'heal', pid: q.id, n: v }); } break;
+      case 'caihong': {
+        const c = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].owner === p.id && s.tiles[i].b);
+        if (c.length) { const i = c[ri(s, c.length)]; s.tiles[i].hp = null; await io.ev({ t: 'tile', tile: i }); }
+        { const v = heal(p, 30); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); }
+        break;
+      }
+      case 'qiushou': { let v = 0; s.tiles.forEach((t, i) => { if (t.owner === p.id) v += SJ.cityIncome(s, i); }); if (v) { gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '秋收' }); } break; }
+      case 'xiangyun': addBuff(p, 'steps', 3, s.players[s.cur] === p ? 4 : 3); break;
+      case 'shangren': await giveCons(s, io, p, 2); break;
+      case 'yuyue': if (gainXp(s, p, 150)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); break;
+      case 'baoyu2': for (let i = 0; i < N(); i++) if (s.tiles[i].owner === p.id && s.tiles[i].b) { await hurtTile(s, i, 0.2); await io.ev({ t: 'tile', tile: i }); } break;
+      case 'dizhen': { const c = s.tiles.map((t, i) => i).filter((i) => s.tiles[i].b); for (let k = 0; k < 3 && c.length; k++) { const i = c.splice(ri(s, c.length), 1)[0]; await hurtTile(s, i, 0.3); await io.ev({ t: 'tile', tile: i }); } break; }
+      case 'huangsha': await teleport(s, io, p, ri(s, N())); break;
+      case 'dawu': A.forEach((q) => addStatus(s, q, 'slow', 1)); break;
       case 'qiongqi': {
         const v = Math.min(100, p.gold); p.gold -= v;
         const rich = A.filter((q) => q !== p).sort((x, y) => y.gold - x.gold)[0];
@@ -660,14 +799,7 @@
     if (tile.type === 'wild') return;
     if (tile.type === 'post') { gain(s, p, SJ.TUNE.salary); heal(p, 15); await io.ev({ t: 'gold', pid: p.id, n: SJ.TUNE.salary, why: '驿站' }); return; }
     if (tile.type === 'portal') { await io.ev({ t: 'msg', text: `${p.name} 钻进了传送门` }); await teleport(s, io, p, tile.to); return; }
-    if (tile.type === 'shop') {
-      if (p.gold < SJ.TUNE.shopPrice) return;
-      const pool = SJ.TREASURES.filter((x) => x.tier === 1 && !p.items.includes(x.id) && !p.bag.includes(x.id));
-      if (!pool.length) return;
-      const item = pool[ri(s, pool.length)];
-      if (await io.ask('shop', { p, item, price: SJ.TUNE.shopPrice })) { p.gold -= SJ.TUNE.shopPrice; await giveTreasure(s, io, p, 1, item.id); }
-      return;
-    }
+    if (tile.type === 'shop') { await giveCons(s, io, p, 2); return; } // 宝铺：停下送 2 个消耗品
     if (tile.type === 'event') {
       const n = ownFx(s, p, 'cardPeek') ? 2 : 1;
       let card = drawCard(s);
@@ -681,6 +813,7 @@
       const price = SJ.price(i);
       if (p.gold >= price && await io.ask('buy', { p, tile: i, price })) {
         p.gold -= price; t.owner = p.id;
+        { const o = await ghostRob(s, io, p, i, price); if (o) { gain(s, o, price); await io.ev({ t: 'toll', pid: p.id, to: o.id, n: price }); } }
         await io.ev({ t: 'tile', tile: i, buy: true, pid: p.id });
         await autoBuild(s, io, p, i, true);
       }
@@ -690,9 +823,9 @@
       if (t.hp != null) { t.hp = null; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: `${p.name} 修好了这里的建筑` }); }
       await buildHere(s, io, p, i);
       const bd = SJ.bdef(t);
-      if (bd && bd.level === 3 && bd.branch === 'city' && p.gold >= SJ.TUNE.shop2Price && SJ.maxTier(s) >= 2) {
-        const pool = SJ.TREASURES.filter((x) => x.tier === 2 && !p.items.includes(x.id) && !p.bag.includes(x.id));
-        if (pool.length) { const item = pool[ri(s, pool.length)]; if (await io.ask('shop', { p, item, price: SJ.TUNE.shop2Price, city: bd.name })) { p.gold -= SJ.TUNE.shop2Price; await giveTreasure(s, io, p, 2, item.id); } }
+      if (bd && bd.level === 3 && bd.branch === 'city' && p.gold >= SJ.TUNE.shop2Price && SJ.maxTier(s) >= 3) {
+        const pool = SJ.TREASURES.filter((x) => x.tier === 3 && !p.items.includes(x.id) && !p.bag.includes(x.id));
+        if (pool.length) { const item = pool[ri(s, pool.length)]; if (await io.ask('shop', { p, item, price: SJ.TUNE.shop2Price, city: bd.name })) { p.gold -= SJ.TUNE.shop2Price; await giveTreasure(s, io, p, 3, item.id); } }
       }
       return;
     }
@@ -700,7 +833,7 @@
     const lit = pv(p, 'candleToll') && nearCandle(s, i, p.id) ? pv(p, 'candleToll') : 0;
     const toll = Math.round(SJ.toll(s, i) * Math.max(0, 1 - pv(p, 'tollCut') - lit));
     if (s.peace > 0) {
-      await payOrBleed(s, io, p, owner, toll);
+      await payOrBleed(s, io, p, owner, toll, false, i);
       return;
     }
     const mustFight = p.gold < toll || s.forced.includes(p.id);
@@ -708,7 +841,7 @@
     let fight = mustFight;
     if (!mustFight) fight = await io.ask('tollOrFight', { p, tile: i, toll, A: heroC(s, p), D: buildingC(s, i, null) });
     if (fight) await attackTile(s, io, p, i, toll, mustFight);
-    else { p.gold -= toll; gain(s, owner, toll); s.stats.tolls++; await io.ev({ t: 'toll', pid: p.id, to: owner.id, n: toll }); }
+    else { const to = (await ghostRob(s, io, p, i, toll)) || owner; p.gold -= toll; gain(s, to, toll); s.stats.tolls++; await io.ev({ t: 'toll', pid: p.id, to: to.id, n: toll }); }
   }
 
   const useBuild = (p) => { p.buffs = p.buffs.filter((b) => b.k !== 'buildCut'); };
@@ -717,7 +850,7 @@
   // 买下的地自己挑分支，打下来、抽卡得到、地基重建的随机
   async function autoBuild(s, io, p, i, pick) {
     const t = s.tiles[i]; if (t.b || t.owner !== p.id) return;
-    const br = Object.keys(SJ.BRANCHES);
+    const br = SJ.BUILD_BRANCHES;
     let k = pick ? await io.ask('build', { p, tile: i, cost: 0 }) : null;
     if (!br.includes(k)) k = br[ri(s, br.length)];
     t.b = `${p.race}_${k}_1`; t.hp = null;
@@ -727,52 +860,53 @@
 
   async function buildHere(s, io, p, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
+    const robBank = async (n) => { const o = await ghostRob(s, io, p, i, n); if (o) { gain(s, o, n); await io.ev({ t: 'toll', pid: p.id, to: o.id, n }); } };
     if (!b) { await autoBuild(s, io, p, i); return; }
     if (b.level === 1) {
       const cost = SJ.buildCost(p, 2);
       if (p.gold < cost) return;
       const id = `${b.race}_${b.branch}_2`;
       if (!await io.ask('upgrade', { p, tile: i, cost, options: [id] })) return;
-      p.gold -= cost; t.b = id; t.hp = null; useBuild(p);
+      p.gold -= cost; t.b = id; t.hp = null; useBuild(p); await robBank(cost);
     } else if (b.level === 2) {
       const cost = SJ.buildCost(p, 3);
       if (p.gold < cost) return;
       const ids = lv3(b);
       const id = await io.ask('fork', { p, tile: i, cost, options: ids });
       if (!id) return;
-      p.gold -= cost; t.b = id; t.hp = null; useBuild(p);
+      p.gold -= cost; t.b = id; t.hp = null; useBuild(p); await robBank(cost);
     } else return;
     await io.ev({ t: 'tile', tile: i, built: true, pid: p.id });
   }
 
   // 路过的效果。last 为 true 时最后一格算停下，不算路过
   async function passOver(s, io, p, path) {
-    let hp = 0, dmg = 0, money = 0, poison = false;
+    let hp = 0, dmg = 0, money = 0;
     for (const i of path) {
       const t = SJ.BOARD[i];
       if (t.type === 'post') money += SJ.TUNE.salary;
       if (t.terrain === 'water') hp += 4;
-      if (t.terrain === 'swamp') poison = true;
       if (t.terrain === 'lava') dmg += 1;
       if (t.terrain === 'ink') { money += 15; dmg += 2; }
     }
     if (money) { gain(s, p, money); await io.ev({ t: 'gold', pid: p.id, n: money, why: '路上' }); }
     if (hp) { const v = heal(p, hp); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); }
-    if (poison) addStatus(s, p, 'poison', 2);
     if (dmg) await hurtPlain(s, io, p, dmg, '死在半路');
+    const shops = path.filter((i) => SJ.BOARD[i].type === 'shop').length;
+    if (shops && p.alive) await giveCons(s, io, p, shops); // 路过宝铺送 1 个消耗品
     const scorch = pv(p, 'scorch');
     for (const i of path) {
       if (!p.alive || s.over) break;
       const t = s.tiles[i];
       if (scorch && t.owner != null && t.owner !== p.id && t.b) { const m = SJ.tileMaxHp(t); t.hp = Math.max(1, (t.hp != null ? t.hp : m) - scorch); await io.ev({ t: 'tile', tile: i }); }
-      if (hasBuff(p, 'autoUp') && t.owner === p.id && t.b && SJ.tileLevel(t) === 1) await upgradeTile(s, io, p, i);
+      if ((hasBuff(p, 'autoUp') || hasArt(p, 'xinghuzhui')) && t.owner === p.id && t.b && SJ.tileLevel(t) === 1) await upgradeTile(s, io, p, i);
     }
   }
 
   // 沿路走。自动选路（默认）时岔路随机选方向，关掉就问玩家。c.n 记走了多少格
   async function move(s, io, p, steps, back, fly, c) {
     fly = fly || hasBuff(p, 'fly') || hasBuff(p, 'soar');
-    const dry = p._dash === 'benpao'; // 逐日只管跑：路上的宝箱、英雄、召唤物、驿站和地形都不生效
+    const dry = false; // 逐日也照常结算路上的东西
     delete p._met;
     if (back) turnAround(s, p);
     let left = steps, seg = [];
@@ -798,12 +932,14 @@
       if (c) c.n++;
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
       const tt = s.tiles[nx];
-      if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); await giveTreasure(s, io, p, rnd(s) < 0.6 ? 3 : 2); }
+      if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); if (artChance(s, p) && rnd(s) < 0.3) await giveArtifact(s, io, p); else await giveTreasure(s, io, p, rnd(s) < 0.6 ? 4 : 3); }
       if (left > 0 && !fly && !dry && s.peace <= 0 && SJ.BOARD[nx].type !== 'corner') { // 路过别的英雄也可以比试，一次移动里同一个人只比一次
         const q = s.players.find((x) => x.alive && x !== p && x.pos === nx && !(p._met || []).includes(x.id) && canSpar(s, p, x));
         if (q) { await flush(false); if (!p.alive || s.over) return; (p._met = p._met || []).push(q.id); await spar(s, io, p, q); if (!p.alive || s.over) return; }
       }
+      for (const ph of s.phantoms || []) if (ph.o === p.id && ph.pos === nx) await meetPhantom(s, io, ph);
       if (!tt.s || fly || dry) continue;
+      if (hasBuff(p, 'avatar') && tt.s.o !== p.id) continue; // 兵主降世：不会被别人的东西拦下
       const sm = SJ.SUMMONS[tt.s.k], mine = tt.s.o === p.id;
       if (mine) { if (sm.grove) { const v = heal(p, 30); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } continue; }
       if (sm.trail) p._burn = (p._burn || 0) + tt.s.v;
@@ -821,6 +957,18 @@
         await io.ev({ t: 'msg', text: `${p.name} 被【烛】传走了` });
         await teleport(s, io, p, j);
         const hv = pv(ow, 'candleHurt'); if (hv) await hurtPlain(s, io, p, hv, '烛火');
+        return;
+      }
+      if (sm.stone) { // 填海石：停在上面才算
+        if (left > 0) continue;
+        await flush(true);
+        if (!p.alive || s.over) return;
+        const own = s.players[tt.s.o], f = tt.s.v || 0.03;
+        tt.s = null; await io.ev({ t: 'tile', tile: nx });
+        const v = Math.min(p.gold, Math.round(p.gold * f)); p.gold -= v; if (own.alive) gain(s, own, v);
+        await io.ev({ t: 'msg', text: `${p.name} 踩碎了填海石${v ? `，交给${own.name} ${v} 金` : ''}` });
+        if (v) await io.ev({ t: 'toll', pid: p.id, to: own.id, n: v });
+        await hurtPlain(s, io, p, Math.max(1, Math.round(p.maxhp * f)), '被填海石砸死');
         return;
       }
       if (sm.stop) {
@@ -853,7 +1001,7 @@
         break;
       case 'rock': if (rnd(s) < 0.2) { const v = 80 + ri(s, 121); gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '金矿' }); } break;
       case 'water': { const v = heal(p, 20); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); break; }
-      case 'swamp': addStatus(s, p, 'poison', 3); break;
+      case 'swamp': addStatus(s, p, 'poison', 3); await say(`${p.name} 陷进毒沼，在泥里摸到一样东西`); await giveCons(s, io, p, 1); break;
       case 'study': if (gainXp(s, p, 50)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); await say(`${p.name} 在书斋读书，经验 +50`); break;
       case 'venture':
         if (rnd(s) < 0.5) { gain(s, p, 80); await say(`${p.name} 路演成功，融到 80 金`); await io.ev({ t: 'gold', pid: p.id, n: 80, why: '路演融资' }); }
@@ -897,7 +1045,7 @@
       case 'taishan': if (gainXp(s, p, SJ.xpNeed(p.level))) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); break;
       case 'huashan': {
         const d = 2 + ri(s, 6) + ri(s, 6);
-        if (d >= 11) { await say(`太华论剑掷出 ${d}，山顶得到神兵`); await giveTreasure(s, io, p, 3); }
+        if (d >= 11) { await say(`太华论剑掷出 ${d}，山顶得到神兵`); await giveTreasure(s, io, p, 4); }
         else if (d >= 7) { p.atkBonus = (p.atkBonus || 0) + 3; await say(`太华论剑掷出 ${d}，${p.name} 攻击永久 +3`); }
         else { await say(`太华论剑掷出 ${d}，${p.name} 摔下山崖`); await hurtPlain(s, io, p, 25, '摔死在太华山'); }
         break;
@@ -905,27 +1053,82 @@
       case 'heyuan': heal(p, p.maxhp); await say(`${p.name} 饮河源之水，回满血`); break;
       case 'ruoshui': p.gold = Math.floor(p.gold * 0.7); for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; await say(`${p.name} 渡弱水，金币沉了三成，负面全消`); break;
       case 'fusang': others.forEach((q) => addStatus(s, q, 'burn', 2)); gain(s, p, 200); await io.ev({ t: 'gold', pid: p.id, n: 200, why: '十日并出' }); await say('十日并出，其他人全部灼烧'); break;
-      case 'penglai': p.maxhp += 20; heal(p, 20); await say(`${p.name} 服下不死药，血量上限 +20`); if (rnd(s) < 0.15) await giveTreasure(s, io, p, 3); break;
+      case 'penglai': p.maxhp += 20; heal(p, 20); await say(`${p.name} 服下不死药，血量上限 +20`); if (rnd(s) < 0.15) await giveTreasure(s, io, p, 4); break;
       case 'fangzhang': await freeUpgrade(s, io, p); await say('方丈仙人替你修了建筑'); break;
       case 'yingzhou': {
         const c2 = SJ.BOARD.map((t, i) => i).filter((i) => SJ.BOARD[i].type === 'corner' && i !== p.pos && SJ.BOARD[i].corner !== 'guixu');
         await say(`巨龟驮着 ${p.name} 出海`); await teleport(s, io, p, c2[ri(s, c2.length)]);
         break;
       }
-      case 'longgong': await giveTreasure(s, io, p, rnd(s) < 0.4 ? 3 : 2); break;
+      case 'longgong': await giveTreasure(s, io, p, rnd(s) < 0.4 ? 4 : 3); break;
       case 'guimen': if (others.length) { await say(`${p.name} 穿过鬼门`); await teleport(s, io, p, others[ri(s, others.length)].pos); } break;
       case 'dushuo': for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; heal(p, 30); await say('神荼郁垒替你驱鬼'); break;
       case 'youdu': gain(s, p, 300); addStatus(s, p, 'curse', 3); await io.ev({ t: 'gold', pid: p.id, n: 300, why: '土伯借贷' }); break;
       case 'xinghu': if (gainXp(s, p, SJ.xpNeed(p.level))) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); await say(`${p.name} 进了星弧，英雄升一级`); break;
       case 'dabian': {
         const d = 2 + ri(s, 6) + ri(s, 6);
-        if (d >= 7) { await say(`答辩掷出 ${d}，${p.name} 通过了，经验 +200`); if (gainXp(s, p, 200)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); if (d >= 11) await giveTreasure(s, io, p, 2); }
+        if (d >= 7) { await say(`答辩掷出 ${d}，${p.name} 通过了，经验 +200`); if (gainXp(s, p, 200)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); if (d >= 11) await giveTreasure(s, io, p, 3); }
         else { await say(`答辩掷出 ${d}，${p.name} 被问倒了`); await hurtPlain(s, io, p, 25, '倒在答辩厅'); }
         break;
       }
       case 'luyan': { const d = 2 + ri(s, 6) + ri(s, 6), v = d * 30; gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: `路演掷出 ${d}` }); break; }
-      case 'tushuguan': await say(`${p.name} 在图书馆借到一件宝物`); await giveTreasure(s, io, p, rnd(s) < 0.3 ? 3 : 2); break;
+      case 'tushuguan': await say(`${p.name} 在图书馆借到一件宝物`); await giveTreasure(s, io, p, rnd(s) < 0.3 ? 4 : 3); break;
       case 'zhongshan': others.forEach((q) => addStatus(s, q, 'slow', 2)); await say('烛龙闭眼，天下昏暗，其他人减速'); break;
+    }
+  }
+
+  // 填海石自然消失：无主领地归精卫，自家建筑升一级，敌人建筑掉 25% 血
+  async function stoneSettle(s, io, p, i) {
+    const t = s.tiles[i];
+    if (SJ.BOARD[i].type !== 'land') return;
+    if (t.owner == null) { t.owner = p.id; await io.ev({ t: 'tile', tile: i }); await autoBuild(s, io, p, i); await io.ev({ t: 'msg', kind: 'skill', text: `填海成陆，${p.name} 得到一块地` }); }
+    else if (t.owner === p.id) { if (t.b && SJ.tileLevel(t) < 3) await upgradeTile(s, io, p, i); }
+    else if (t.b) { const m = SJ.tileMaxHp(t); t.hp = Math.max(1, Math.round((t.hp != null ? t.hp : m) - m * 0.25)); await io.ev({ t: 'tile', tile: i }); }
+  }
+
+  async function meetPhantom(s, io, ph) {
+    const p = s.players[ph.o];
+    s.phantoms = s.phantoms.filter((x) => x !== ph);
+    await io.ev({ t: 'beasts' });
+    if (!p.alive) return;
+    gain(s, p, ph.gold);
+    await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 收回虚影，拿到 ${ph.gold} 金` });
+    await io.ev({ t: 'gold', pid: p.id, n: ph.gold });
+  }
+
+  // 每轮开始：玄虎走一格，停在建筑上就打 3 下；虚影掷骰走路，路过敌方建筑交过路费
+  const step1 = (s, x) => { let o = SJ.BOARD[x.pos].adj.filter((j) => j !== x.from); if (!o.length) o = [x.from]; const nx = o[ri(s, o.length)]; x.from = x.pos; x.pos = nx; return nx; };
+  async function tickBeasts(s, io) {
+    s.beasts = s.beasts || []; s.phantoms = s.phantoms || [];
+    for (const b of s.beasts.slice()) {
+      const i = step1(s, b);
+      await io.ev({ t: 'beasts', move: true });
+      const t = s.tiles[i];
+      if (!t.b || t.owner == null) continue;
+      const A = { kind: 'monster', name: SJ.TIGER.name, id: 'xuanhu', hp: b.hp, maxhp: b.maxhp, atk: b.atk, def: 0, fx: {} };
+      const D = buildingC(s, i, A);
+      const res = SJ.fight(A, D, s.rng);
+      await io.ev({ t: 'battle', kind: 'beast', a: A, d: D, res, tile: i, pid: null });
+      b.hp = Math.round(res.aHp);
+      t.hp = Math.max(0, Math.round(res.dHp));
+      if (res.winner === 'a') {
+        const stay = await onDestroyed(s, io, i, null);
+        if (!stay) { Object.assign(t, { owner: null, b: null, stop: 0, hp: null }); await io.ev({ t: 'msg', text: `玄虎拆掉了 ${D.name}，这里变回无主之地` }); }
+      } else if (t.hp >= SJ.tileMaxHp(t)) t.hp = null;
+      await io.ev({ t: 'tile', tile: i });
+      if (b.hp <= 0) { s.beasts = s.beasts.filter((x) => x !== b); await io.ev({ t: 'beasts' }); await io.ev({ t: 'msg', text: '玄虎倒下了' }); }
+    }
+    for (const ph of s.phantoms.slice()) {
+      const p = s.players[ph.o];
+      if (!p || !p.alive) { s.phantoms = s.phantoms.filter((x) => x !== ph); continue; }
+      const n = 2 + ri(s, 6) + ri(s, 6), path = [];
+      for (let k = 0; k < n && s.phantoms.includes(ph); k++) {
+        const i = step1(s, ph); path.push(i);
+        if (p.pos === i) { await io.ev({ t: 'beasts', move: true }); await meetPhantom(s, io, ph); break; }
+        const t = s.tiles[i];
+        if (t.b && t.owner != null && t.owner !== ph.o) { ph.gold -= Math.min(ph.gold, SJ.toll(s, i)); if (ph.gold <= 0) { s.phantoms = s.phantoms.filter((x) => x !== ph); await io.ev({ t: 'beasts' }); await io.ev({ t: 'msg', text: '九尾狐的虚影钱花光，消散了' }); } }
+      }
+      if (s.phantoms.includes(ph)) await io.ev({ t: 'beasts', move: true });
     }
   }
 
@@ -966,11 +1169,14 @@
   }
 
   SJ.takeTurn = async function (s, io) {
+    SJ._s = s;
+    if (s.beastRound !== s.round) { s.beastRound = s.round; await tickBeasts(s, io); if (s.over) return; }
     const p = s.players[s.cur];
+    if (!p.cons) p.cons = []; // 旧存档
     s.stats.turns++;
     if (p.alive) {
       await io.ev({ t: 'turn', pid: p.id });
-      p.cd = p.cd.map((c) => Math.max(0, c - 1 - treasure(p, 'cdFast')));
+      p.cd = p.cd.map((c) => Math.max(0, c - 1 - treasure(p, 'cdFast') - (hasArt(p, 'xinghupan') ? 2 : 0)));
       { const rg = stat(p, 'regen'); if (rg) { const v = heal(p, rg); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } }
       // 收入
       let inc = 0, taken = 0, taken2 = null;
@@ -993,13 +1199,21 @@
         if (t.stop > 0 && --t.stop === 0) t.stopTo = null;
         if (t.hp != null) { const m = SJ.tileMaxHp(t); t.hp += m * (SJ.TUNE.repair + treasure(p, 'repair')); if (t.hp >= m) t.hp = null; }
       });
-      for (let i = 0; i < s.tiles.length; i++) { const t = s.tiles[i]; if (t.s && t.s.o === p.id && !t.s.perm && --t.s.n <= 0) { t.s = null; await io.ev({ t: 'tile', tile: i }); } }
+      for (let i = 0; i < s.tiles.length; i++) { const t = s.tiles[i]; if (t.s && t.s.o === p.id && !t.s.perm && --t.s.n <= 0) { const k = t.s.k; t.s = null; await io.ev({ t: 'tile', tile: i }); if (k === 'stones') await stoneSettle(s, io, p, i); } }
+      if (hasBuff(p, 'deathRite')) { // 向死而生：每回合献出一成血和钱，重生概率 +10%
+        const b = p.buffs.find((x) => x.k === 'deathRite'); b.v = Math.round((b.v + 0.1) * 10) / 10;
+        const hv = Math.min(p.hp - 1, Math.round(p.maxhp * 0.1)), gv = Math.floor(p.gold * 0.1);
+        if (hv > 0) { p.hp -= hv; await io.ev({ t: 'hurt', pid: p.id, n: hv, why: '向死而生' }); }
+        p.gold -= gv;
+        await io.ev({ t: 'msg', kind: 'skill', text: `向死而生：献出 ${hv} 血、${gv} 金，建筑重生概率 ${Math.round(SJ.rebornChance(p) * 100)}%` });
+      }
       if (p.id === 0 && s.round % SJ.TUNE.chestEvery === 0) { // 天降宝箱
         const c = SJ.BOARD.map((b, i) => i).filter((i) => ['land', 'wild'].includes(SJ.BOARD[i].type) && !s.tiles[i].b && !s.players.some((q) => q.pos === i));
         const i = c[ri(s, c.length)]; if (i != null) { s.tiles[i].chest = 1; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: '远方有宝光落下，看看小地图' }); }
       }
       if (taken) await io.ev({ t: 'toll', pid: p.id, to: taken2.id, n: Math.round(taken) });
-      const thief = p.status.leech ? s.players[p.leechBy] : null;
+      const nb = alive(s).find((q) => q !== p && hasBuff(q, 'qianli')); // 赤地千里：收入全归女魃
+      const thief = nb || (p.status.leech ? s.players[p.leechBy] : null);
       if (thief && thief.alive) { gain(s, thief, inc); if (inc) await io.ev({ t: 'toll', pid: p.id, to: thief.id, n: Math.round(inc) }); }
       else { gain(s, p, inc); if (inc) await io.ev({ t: 'gold', pid: p.id, n: Math.round(inc), why: '收入' }); }
       // 状态结算
@@ -1041,6 +1255,7 @@
       }
       // 状态递减
       for (const k of Object.keys(st)) { st[k]--; if (st[k] <= 0) delete st[k]; }
+      if (p.art && p.art.n != null && --p.art.n <= 0) { const a = SJ.artOf(p.art.id); p.art = null; await io.ev({ t: 'msg', text: `${a.name}的光芒散去了` }); }
       const ended = p.buffs.filter((b) => b.n <= 1);
       p.buffs = p.buffs.filter((b) => --b.n > 0);
       for (const b of ended) {

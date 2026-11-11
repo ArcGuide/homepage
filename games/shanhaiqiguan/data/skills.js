@@ -65,7 +65,7 @@
     xiangliu: [
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([0.2, 0.4, 0.6])} 伤害，第 2 下 +${L([0.6, 1.2, 1.8])}，第 3 下 +${L([1.2, 2.4, 3.6])}，依次累加`, { pv: { stackHit: [0.2, 0.4, 0.6] } }, 'nine snake heads striking together'),
       S('duxue', '噬血', 'buff', 5, `3 回合内吸血 ${pct([0.2, 0.3, 0.4])}`, { go: (g, k) => { g.buff('lifesteal', [0.2, 0.3, 0.4][k], 3); } }, 'fangs dripping green and red venom'),
-      S('duze', '毒泽', 'summon', 6, `在脚下和前后各一格吐出毒泽，共 3 格，持续 ${L([3, 4, 5])} 轮。敌人走过后，接下来 2 回合的收入全归相柳，不掉血`, { go: (g, k) => g.spread('poison', [3, 4, 5][k]) }, 'a bubbling green poison swamp'),
+      S('duze', '毒泽', 'summon', 6, `在脚下和前后各一格吐出毒泽，共 3 格，持续 ${L([3, 4, 5])} 轮。敌人走过后，接下来 3 回合的收入全归相柳，不掉血`, { go: (g, k) => g.spread('poison', [3, 4, 5][k]) }, 'a bubbling green poison swamp'),
       S('tunshan', '九首吞山', 'buff', 12, '4 回合内每次出手都连打 9 段，每段攻击力 12%', { ult: true, go: (g) => g.buff('nine', 1, 4) }, 'a nine-headed serpent devouring a mountain'),
     ],
     yayu: [

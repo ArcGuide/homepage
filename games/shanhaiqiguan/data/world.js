@@ -37,7 +37,7 @@
   };
 
   // 土伯大招放出的玄虎：中立，每轮走一格，停在建筑上就打 3 下，打到死为止
-  SJ.TIGER = { name: '玄虎', hp: 150, atk: 75 };
+  SJ.TIGER = { name: '玄虎', hp: 400, atk: 120 };
 
   SJ.MONSTERS = [
     { id: 'tiangou', name: '天狗', hp: 40, atk: 3, gold: 60, xp: 2, art: 'a white-headed wild cat-like hound, snarling, four legs' },

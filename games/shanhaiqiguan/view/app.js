@@ -118,7 +118,7 @@
       <h3>英雄成长</h3>
       <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>消耗品：路过宝铺送 1 个，停下送 2 个，最多带 4 个，满了再拿到就没了。掷骰前点一下马上用掉。</li><li>最多装备 4 件宝物。二阶打异兽得，三阶在自家满级城邑买，四阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出二阶，60 轮后才有四阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li><li>神器只在大型地图后期的宝箱里出现，每个英雄一局最多拿到一次。</li></ul>
       <h3>地形和地标</h3>
-      <ul><li>山地不能造房，走得慢，还可能挖到金矿；灵河一路回血；毒沼停下会中毒，但能摸到消耗品；云海把你吹飞；大海把你卷走；黑水和别人换位。难走的地形里常有驿站和宝铺。停在抽卡、异兽、驿站这些功能格上，只结算功能，地形不起作用。</li><li>驿站发钱，宝铺送消耗品，门是传送门。</li><li>每个地标都有夸张效果。点地图上任意一格可以看详情，拖动看地图，滚轮或双指缩放。</li></ul>
+      <ul><li>山地、灵河、毒沼、云海、大海、黑水……每种地形都有自己的脾气，有的难走，有的危险，也藏着好处。难走的地方常有驿站和宝铺。停在抽卡、异兽、驿站这些功能格上，只结算功能，地形不起作用。</li><li>驿站发钱，宝铺送消耗品，门是传送门。</li><li>每个地标都有夸张的效果，停上去才知道是什么。点地图上任意一格能看到一点提示，拖动看地图，滚轮或双指缩放。</li></ul>
       <div class="btn-row" style="margin-top:12px"><button class="btn primary">知道了</button></div></div></div>`);
     $('button', l).onclick = () => l.remove();
     document.body.append(l);
@@ -162,7 +162,7 @@
       // 选英雄是主页面；地图可选，不选就随机
       app.innerHTML = picking ? `<div class="setup"><h2>选择地图</h2>
         <div class="maps"><button class="mapcard ${mapId === 'random' ? 'sel' : ''}" data-m="random"><div class="rand-map">?</div><b>随机地图</b><span>开局时从全部地图里随机抽一张。</span></button></div>
-        ${SCALES.map(([sc, label, time]) => { const ms = Object.values(SJ.MAPS).filter((m) => (m.scale || 'large') === sc); return ms.length ? `<h3 class="scale-h">${label}<small>${time}</small></h3><div class="maps">${ms.map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${m.desc}</span></button>`).join('')}</div>` : ''; }).join('')}
+        ${SCALES.map(([sc, label, time]) => { const ms = Object.values(SJ.MAPS).filter((m) => (m.scale || 'large') === sc); return ms.length ? `<h3 class="scale-h">${label}<small>${time}</small></h3><div class="maps">${ms.map((m) => `<button class="mapcard ${m.id === mapId ? 'sel' : ''}" data-m="${m.id}"><img src="assets/map_${m.id}.webp" alt="" onerror="this.remove()"><b>${m.name}</b><span>${m.tiles.length} 格 · ${(SJ.MAP_SAY || {})[m.id] || m.desc}</span></button>`).join('')}</div>` : ''; }).join('')}
         <div class="setup-foot"><button class="btn primary" id="done">选好了</button></div></div>` : `<div class="setup">
         <div class="pick-head"><h2>选择英雄</h2><button class="btn" id="rand">随机英雄</button></div>
         <div class="seats">${seats.map((x, i) => `<div class="seat ${i === on ? 'on' : ''} ${x.kind === 'off' ? 'off' : ''}" data-i="${i}">
@@ -360,7 +360,7 @@
     const b = SJ.BOARD[i], t = S.tiles[i];
     let pic = '', name = '', txt = '';
     const T = SJ.TERRAIN[b.terrain];
-    if (b.type === 'corner') { const c = SJ.LANDMARKS[b.corner]; pic = c.art; name = c.name; txt = c.desc; }
+    if (b.type === 'corner') { const c = SJ.LANDMARKS[b.corner]; pic = c.art; name = c.name; txt = c.say || c.desc; }
     else if (b.type === 'event') { name = '吉凶'; txt = '抽一张吉凶卡，立刻生效。'; }
     else if (b.type === 'nest') { name = '异兽巢穴'; txt = '可以打异兽，赢了得金币、经验，可能得宝物。'; if (t.m) { const m = SJ.MONSTERS[t.m.k]; pic = 'monster_' + m.id; txt += `<br>${m.name} 还在，血 ${Math.round(t.m.hp != null ? t.m.hp : m.hp * t.m.sc)}。`; } }
     else if (b.type === 'post') { name = '驿站'; txt = `路过得 ${SJ.TUNE.salary} 金，停下再回 15 血。`; pic = 'lm_post'; }
@@ -389,13 +389,14 @@
   // 英雄面板。act 存在时是自己回合，可以操作；否则只看
   function heroPanel(p, act) {
     document.querySelector('.hero-layer')?.remove();
+    if (!p.human && !act) return foePanel(p);
     const H = SJ.HEROES[p.hero], st = SJ.heroStats(S, p), race = SJ.RACES[p.race], list = SJ.SKILLS[p.hero];
     const need = SJ.xpNeed(p.level), maxed = p.level >= SJ.TUNE.maxLevel;
     const dots = (k, l) => (k.ult ? `<i class="on-${l > 0}"></i>` : [1, 2, 3].map((n) => `<i class="on-${l >= n}"></i>`).join(''));
     const skill = (k, i) => {
       const l = p.sk[i], learn = act && SJ.canLearn(p, i), cast = act && SJ.canCast(p, i, S), cd = p.cd[i];
       const gate = !act || l >= (k.ult ? 1 : 3) ? '' : k.ult ? (p.level < 6 ? '6 级可学' : '') : (p.level < l * 2 + 1 ? `${l * 2 + 1} 级可升` : '');
-      return `<div class="sk ${l ? '' : 'dim'}">${img('sk_' + k.id)}<div class="sk-b"><b>${k.name}</b> <em>${k.ult ? '大招 · ' : ''}${SJ.SKILL_KIND[k.kind]}${k.cd ? ` · 冷却 ${[].concat(k.cd).join('/')}` : ''}</em><span class="dots">${dots(k, l)}</span><p>${k.desc}</p></div>
+      return `<div class="sk ${l ? '' : 'dim'}">${img('sk_' + k.id)}<div class="sk-b"><b>${k.name}</b> <em>${k.ult ? '大招 · ' : ''}${SJ.SKILL_KIND[k.kind]}${k.cd ? ` · 冷却 ${[].concat(k.cd).join('/')}` : ''}</em><span class="dots">${dots(k, l)}</span><p>${k.say || k.desc}</p></div>
         <div class="sk-a">${learn ? `<button class="btn small" data-a='{"a":"learn","i":${i}}'>${l ? '升级' : '学习'}</button>` : ''}${cast ? `<button class="btn small primary" data-a='{"a":"cast","i":${i}}'>释放</button>` : ''}${l && cd > 0 ? `<small>冷却 ${cd}</small>` : ''}${gate ? `<small>${gate}</small>` : ''}</div></div>`;
     };
     const item = (id, v) => (id ? `<button class="slot t${SJ.itemOf(id).tier}" ${act ? `data-a='${v}'` : ''} title="${SJ.itemOf(id).name}">${img('it_' + id)}<b>${SJ.itemOf(id).name}</b><small>${TIER[SJ.itemOf(id).tier]} · ${SJ.itemOf(id).desc}</small></button>` : '<div class="slot empty">空</div>');
@@ -414,6 +415,21 @@
       <div class="btn-row"><button class="btn primary" id="hp-close">${act ? '返回' : '关闭'}</button></div></div></div>`);
     $('#hp-close', l).onclick = () => { sfx.click(); l.remove(); };
     l.querySelectorAll('[data-a]').forEach((b) => { b.onclick = () => { sfx.click(); const a = JSON.parse(b.dataset.a); l.remove(); act(a); }; });
+    document.body.append(l);
+  }
+
+  // 别人的英雄只看得到基础信息：血、钱、装备的宝物名字。技能和宝物效果要自己摸索
+  function foePanel(p) {
+    const H = SJ.HEROES[p.hero], race = SJ.RACES[p.race];
+    const items = p.items.filter(Boolean);
+    const l = h(`<div class="layer dim hero-layer"><div class="hp">
+      <div class="hp-top">${img('hero_' + p.hero)}<div><h3>${H.name} <small>Lv${p.level}</small></h3>
+        <p>血 ${p.hp} / ${p.maxhp} · 金币 ${p.gold} · 领地 ${SJ.lands(S, p)}</p>
+        <p class="race" style="color:${shade(race.color, 0.72)}">${race.name}</p></div></div>
+      <h4>装备的宝物</h4><div class="slots">${items.length ? items.map((id) => `<div class="slot t${SJ.itemOf(id).tier}">${img('it_' + id)}<b>${SJ.itemOf(id).name}</b></div>`).join('') : '<div class="slot empty">没有</div>'}</div>
+      <p class="note">别人的技能和宝物效果看不到，得在交手里自己摸清。</p>
+      <div class="btn-row"><button class="btn primary" id="hp-close">关闭</button></div></div></div>`);
+    $('#hp-close', l).onclick = () => { sfx.click(); l.remove(); };
     document.body.append(l);
   }
 
@@ -560,10 +576,10 @@
         if (u.board) await mapReveal(u.board(S.players[e.pid]).filter((i) => i >= 0), u.bad ? 'bad' : 'good', u.c1);
         break;
       }
-      case 'cons': { const c = SJ.consOf(e.id); toast(`${S.players[e.pid].name} 得到消耗品 ${c.name}：${c.desc}`); if (S.players[e.pid].human) sfx.coin(); renderPlayers(); await wait(500); break; }
-      case 'artifact': { const a = SJ.artOf(e.id); toast(`${S.players[e.pid].name} 得到神器 ${a.name}：${a.desc}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1400); break; }
+      case 'cons': { const c = SJ.consOf(e.id); toast(`${S.players[e.pid].name} 得到消耗品 ${c.name}`); if (S.players[e.pid].human) sfx.coin(); renderPlayers(); await wait(500); break; }
+      case 'artifact': { const a = SJ.artOf(e.id); toast(`${S.players[e.pid].name} 得到神器 ${a.name}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1400); break; }
       case 'beasts': renderBeasts(); if (e.move) { sfx.step('grass'); await wait(360); } break;
-      case 'treasure': { const t = SJ.TREASURES.find((x) => x.id === e.id); toast(`${S.players[e.pid].name} 得到${TIER[t.tier]}宝物 ${t.name}：${t.desc}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1000); break; }
+      case 'treasure': { const t = SJ.TREASURES.find((x) => x.id === e.id); toast(`${S.players[e.pid].name} 得到${TIER[t.tier]}宝物 ${t.name}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1000); break; }
       case 'death': { const p = S.players[e.pid]; logLine(`${p.name} 阵亡`); toast(`${p.name} 阵亡了（${e.why || ''}）`, 'skill'); sfx.death(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers(); placePieces(); await wait(1100); break; }
     }
   }

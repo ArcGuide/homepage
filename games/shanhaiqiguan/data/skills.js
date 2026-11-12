@@ -60,7 +60,7 @@
       S('fanzhen', '幽魂劫财', 'summon', 8, `从地府放出 ${L([3, 5, 7])} 个幽魂，散在地图各处，留 7 轮。幽魂前后 2 格内，其他玩家付钱（过路费、买地、升级）时，这笔钱被幽魂劫给土伯，幽魂随后消失`, { go: (g, k) => g.ghosts([3, 5, 7][k], 7) }, 'a pale teal ghost clutching an old copper coin'),
       S('tufu', '土府', 'summon', [7, 5, 3], '只能站在自家建筑上用：把它改建成同等级的【土府】。土府是驻军、射手、城邑的结合：防御比驻军弱、比射手和城邑强，攻击比射手弱、比驻军和城邑强，还能产城邑一半的金', { can: (p, s) => s && SJ.canTufu(s, p), go: (g) => g.tufu() }, 'a dark stone underground gate'),
       S('zhenmu', '镇墓兽', 'summon', 6, `在脚下放镇墓兽，拦下敌人并吸走 ${L([20, 30, 40])} 血给自己。持续 9 轮，被碰到就消失`, { go: (g, k) => g.summon('beast', 9, [20, 30, 40][k]) }, 'an antlered tomb guardian beast'),
-      S('chiling', '打开幽都之门', 'summon', 12, `在身后放出一头三头生翼的玄虎：${SJ.TIGER.hp} 血、${SJ.TIGER.atk} 攻击，每轮只走一格。停在任何人的建筑上（包括土伯自己的）就和它打 3 下，拆掉的地变回无主。玄虎不归土伯管，一直走到死为止`, { ult: true, go: (g) => g.tiger() }, 'a huge black tiger with glowing teal eyes leaping out of a dark stone underworld gate'),
+      S('chiling', '打开幽都之门', 'summon', 12, `在身后放出一头双头生翼的玄虎：${SJ.TIGER.hp} 血、${SJ.TIGER.atk} 攻击，每轮只走一格。停在任何人的建筑上（包括土伯自己的）就和它打 3 下，拆掉的地变回无主。玄虎不归土伯管，一直走到死为止`, { ult: true, go: (g) => g.tiger() }, 'a huge black tiger with glowing teal eyes leaping out of a dark stone underworld gate'),
     ],
     xiangliu: [
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([0.2, 0.4, 0.6])} 伤害，第 2 下 +${L([0.6, 1.2, 1.8])}，第 3 下 +${L([1.2, 2.4, 3.6])}，依次累加`, { pv: { stackHit: [0.2, 0.4, 0.6] } }, 'nine snake heads striking together'),

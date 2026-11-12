@@ -23,13 +23,13 @@
     huangdi: [
       S('zhinan', '指南车', 'passive', 0, `每次打中时 ${pct([0.25, 0.5, 0.75])} 再削掉对手当前血量的 50%`, { pr: [0.25, 0.5, 0.75] }, 'a bronze south-pointing chariot figurine'),
       S('zhucheng', '筑城令', 'passive', 0, `自家建筑守住一次进攻后，有 ${pct([0.1, 0.15, 0.2])} 概率升一级`, { pv: { holdUp: [0.1, 0.15, 0.2] } }, 'a bamboo decree scroll with a red seal over a rammed earth wall'),
-      S('chezhen', '车阵', 'summon', 6, `在脚下摆车阵，持续 ${L([5, 9, 13])} 轮。敌人走到这里被拦下，结算完这一格后传送到随机位置`, { go: (g, k) => g.summon('chariot', [5, 9, 13][k]) }, 'a circle of bronze war chariots'),
+      S('chezhen', '车阵', 'summon', 6, `在脚下摆车阵，持续 ${L([5, 7, 9])} 轮。敌人走到这里被拦下，结算完这一格后传送到随机位置`, { go: (g, k) => g.summon('chariot', [5, 7, 9][k]) }, 'a circle of bronze war chariots'),
       S('zhuolu', '涿鹿号令', 'buff', 12, '5 回合内全部自家建筑攻击 +100%，守住后升级的概率再 +20%', { ult: true, go: (g) => { g.buff('towerAtk', 1, 5); g.buff('holdUp', 0.2, 5); } }, 'a great war drum and golden imperial banner'),
     ],
     yinglong: [
       S('baoyu', '暴雨', 'passive', 0, `每下 ${pct([0.15, 0.22, 0.3])} 让对手停手两拍并受伤`, { pr: [0.15, 0.22, 0.3] }, 'a grey storm cloud with many bright blue rain streaks and a lightning bolt'),
       S('xushui', '蓄水', 'econ', 5, `存起全部金币，3 回合后取出，并多得 ${pct([0.15, 0.3, 0.45])}`, { go: (g, k) => g.vault([0.15, 0.3, 0.45][k], 3) }, 'a swirling orb of gathered water held by a dragon claw'),
-      S('zhenyi', '振翼', 'move', 5, `向前飞 ${L([6, 9, 12])} 格，无视地形和路障；每飞一格，落地这一格的结算中攻击 +5%`, { go: (g, k) => g.dash([6, 9, 12][k], true, { atk: 0.05 }) }, 'a golden feathered wing beating'),
+      S('zhenyi', '振翼', 'move', 5, `向前飞 ${L([6, 9, 12])} 格，无视地形和路障；每飞一格，接下来 3 回合攻击 +2%（飞 ${L([6, 9, 12])} 格就是 +${pct([0.12, 0.18, 0.24])}）`, { go: (g, k) => g.dash([6, 9, 12][k], true, { atk: 0.02 }) }, 'a golden feathered wing beating'),
       S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家 1 级建筑免费升到 2 级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
     ],
     nuba: [
@@ -39,7 +39,7 @@
       S('qianli', '赤地千里', 'econ', 12, '3 轮内，其他所有玩家每回合的收入全归你', { ult: true, go: (g) => g.buff('qianli', 1, 3) }, 'a parched red landscape with withered crops under a huge sun'),
     ],
     chiyou: [
-      S('bingqi', '饮血兵锋', 'passive', 0, `每次出手献出当前血量的 10%，对敌人多造成献血量 ${pct([0.5, 1, 1.5])} 的伤害`, { pv: { bloodEdge: [0.5, 1, 1.5] } }, 'a whirlwind of bronze weapons'),
+      S('bingqi', '饮血兵锋', 'passive', 0, `每次出手献出当前血量的 10%，对敌人多造成献血量 ${pct([0.5, 1, 1.5])} 的伤害`, { pv: { bloodEdge: [1.25, 1.5, 1.75] } }, 'a whirlwind of bronze weapons'),
       S('xueji', '血祭', 'passive', 0, `每次出手有 20% 概率献出 5% 最大血，连打 ${L([2, 3, 4])} 下`, { pv: { rage: [2, 3, 4] } }, 'a blood-filled bronze ritual cauldron'),
       S('tietou', '吞天噬地', 'passive', 0, `打死对手后把它吞下，回复对手最大血 ${pct([0.1, 0.2, 0.3])} 的血`, { pv: { devour: [0.1, 0.2, 0.3] } }, 'a huge horned bronze demon mouth swallowing a mountain'),
       S('bingzhu', '兵主降世', 'buff', 12, '6 回合内攻击 +25%、暴击 +25%；这期间免疫一切负面状态，自己的技能也不再伤到自己，走路不会被别人的技能和物品拦下', { ult: true, go: (g) => { g.cleanse(); g.buff('avatar', 0.25, 6); } }, 'a giant demon war god silhouette with many weapons, red glow'),
@@ -53,14 +53,14 @@
     kuafu: [
       S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}`, { pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
       S('denglin', '弃杖成林', 'summon', 8, `在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
-      S('benpao', '逐日', 'move', 10, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身。路上碰到的宝箱、英雄、召唤物、驿站和地形照常生效`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
+      S('benpao', '逐日', 'move', 8, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身。路上碰到的宝箱、英雄、召唤物、驿站和地形照常生效`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
     tubo: [
       S('fanzhen', '幽魂劫财', 'summon', 8, `从地府放出 ${L([3, 5, 7])} 个幽魂，散在地图各处，留 7 轮。幽魂前后 2 格内，其他玩家付钱（过路费、买地、升级）时，这笔钱被幽魂劫给土伯，幽魂随后消失`, { go: (g, k) => g.ghosts([3, 5, 7][k], 7) }, 'a pale teal ghost clutching an old copper coin'),
-      S('tufu', '土府', 'summon', [7, 5, 3], '只能站在自家建筑上用：把它改建成同等级的【土府】。土府战斗力略逊于驻军，强过城邑和学宫，同时能像城邑一样产金、像学宫一样强化英雄', { can: (p, s) => s && SJ.canTufu(s, p), go: (g) => g.tufu() }, 'a dark stone underground gate'),
+      S('tufu', '土府', 'summon', [7, 5, 3], '只能站在自家建筑上用：把它改建成同等级的【土府】。土府是驻军、射手、城邑的结合：防御比驻军弱、比射手和城邑强，攻击比射手弱、比驻军和城邑强，还能产城邑一半的金', { can: (p, s) => s && SJ.canTufu(s, p), go: (g) => g.tufu() }, 'a dark stone underground gate'),
       S('zhenmu', '镇墓兽', 'summon', 6, `在脚下放镇墓兽，拦下敌人并吸走 ${L([20, 30, 40])} 血给自己。持续 9 轮，被碰到就消失`, { go: (g, k) => g.summon('beast', 9, [20, 30, 40][k]) }, 'an antlered tomb guardian beast'),
-      S('chiling', '玄虎出柙', 'summon', 12, `打开幽都之门，在身后放出一头玄虎：${SJ.TIGER.hp} 血、${SJ.TIGER.atk} 攻击，每轮只走一格。停在任何人的建筑上（包括土伯自己的）就和它打 3 下，拆掉的地变回无主。玄虎不归土伯管，一直走到死为止`, { ult: true, go: (g) => g.tiger() }, 'a huge black tiger with glowing teal eyes leaping out of a dark stone underworld gate'),
+      S('chiling', '打开幽都之门', 'summon', 12, `在身后放出一头三头生翼的玄虎：${SJ.TIGER.hp} 血、${SJ.TIGER.atk} 攻击，每轮只走一格。停在任何人的建筑上（包括土伯自己的）就和它打 3 下，拆掉的地变回无主。玄虎不归土伯管，一直走到死为止`, { ult: true, go: (g) => g.tiger() }, 'a huge black tiger with glowing teal eyes leaping out of a dark stone underworld gate'),
     ],
     xiangliu: [
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([0.2, 0.4, 0.6])} 伤害，第 2 下 +${L([0.6, 1.2, 1.8])}，第 3 下 +${L([1.2, 2.4, 3.6])}，依次累加`, { pv: { stackHit: [0.2, 0.4, 0.6] } }, 'nine snake heads striking together'),
@@ -130,7 +130,7 @@
     C('huichun', '回春丹', '回 15% 最大血', 'a small round red pill glowing softly on a jade dish'),
     C('zhuanxiang', '转向符', '马上掉头，往反方向走', 'a yellow paper talisman with a red curved arrow painted on it'),
     C('shenxing', '神行符', '3 回合内每次步数 +3', 'a yellow paper talisman with a running horse painted in red ink'),
-    C('shisha', '时砂', '随机一个正在冷却的技能马上清零（大招除外）', 'a small bronze hourglass with glowing golden sand'),
+    C('shisha', '时砂', '随机一个正在冷却的技能马上清零（大招除外）；没有能清的就散掉', 'a small bronze hourglass with glowing golden sand'),
     C('wangchuan', '忘川水', '洗点：收回全部技能点，重新学', 'a small black clay bottle of misty river water'),
     C('jiedu', '解毒草', '清除所有负面状态', 'a sprig of green herb with white flowers'),
   ];

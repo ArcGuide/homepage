@@ -102,7 +102,7 @@
     let atk = h.atk + (p.level - 1) * (h.atkUp || 1) + treasure(p, 'atk') + (p.atkBonus || 0);
     atk *= 1 + ownFx(s, p, 'heroAtk');
     const lit = pv(p, 'candleNear') && nearCandle(s, p.pos, p.id) ? pv(p, 'candleNear') : 0;
-    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + (p.dashAtk || 0) + lit + pv(p, 'avatar');
+    atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + pv(p, 'wingAtk') + lit + pv(p, 'avatar');
     const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + lit;
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
@@ -253,9 +253,8 @@
         }
         if (o.turn) turnAround(s, p);
         if (o.candle) await placeCandle(s, io, p);
-        if (o.atk) p.dashAtk = o.atk * c.n;
+        if (o.atk && c.n) addBuff(p, 'wingAtk', Math.round(o.atk * c.n * 100) / 100, 3 + 1); // 振翼：飞多远加多少攻击，3 回合
         await arrive(s, io, p); // 主动位移落地后和掷骰走到一样结算
-        delete p.dashAtk;
       },
       summon: async (kind, n, v, o) => {
         o = o || {};
@@ -661,7 +660,7 @@
     const id = p.cons[i]; if (!id) return;
     // 时砂：随机清一个在冷却中的非大招技能；一个都没有就不用掉
     const sand = id === 'shisha' ? p.cd.map((c, j) => j).filter((j) => p.cd[j] > 0 && p.sk[j] && !SJ.SKILLS[p.hero][j].ult) : null;
-    if (sand && !sand.length) { await io.ev({ t: 'msg', text: '没有能清的冷却（大招不算），时砂先留着' }); return; }
+    if (sand && !sand.length) { p.cons.splice(i, 1); await io.ev({ t: 'msg', text: '没有能清的冷却（大招不算），时砂散了' }); return; }
     p.cons.splice(i, 1);
     const c = SJ.consOf(id);
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 用了${c.name}` });

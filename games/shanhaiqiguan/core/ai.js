@@ -40,6 +40,7 @@
           if (id === 'huichun' && p.hp < p.maxhp * 0.5) return { a: 'use', i };
           if (id === 'jiedu' && Object.keys(p.status).some((k) => k !== 'immune')) return { a: 'use', i };
           if (id === 'shisha' && p.cd.some((c, j) => c > 2 && p.sk[j] && !SJ.SKILLS[p.hero][j].ult)) return { a: 'use', i };
+          if (id === 'shisha' && !SJ.SKILLS[p.hero].some((k) => !k.ult && k.kind !== 'passive')) return { a: 'use', i }; // 没有主动技能的英雄，时砂直接丢
           if (id === 'shenxing' && roll() < 0.3) return { a: 'use', i };
           if (id === 'zhuanxiang' && roll() < 0.1) return { a: 'use', i };
           if (id === 'wangchuan' && p.cons.length >= 4) return { a: 'use', i }; // 电脑不洗点，栏满了就随手用掉

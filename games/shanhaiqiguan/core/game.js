@@ -947,14 +947,14 @@
       const sm = SJ.SUMMONS[tt.s.k], mine = tt.s.o === p.id;
       if (mine) { if (sm.grove) { const v = heal(p, 30); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } continue; }
       if (sm.trail) p._burn = (p._burn || 0) + tt.s.v;
-      if (sm.status) {
+      if (sm.status && left <= 0) { // 毒泽：停在上面才算，路过不算
         const had = p.status[sm.status];
         addStatus(s, p, sm.status, sm.turns || 2);
         if (sm.status === 'leech') p.leechBy = tt.s.o;
         if (sm.status === 'leech' && p.status.leech && !had) { // 踩进毒泽要看得见
           const o = s.players[tt.s.o];
           await flush(false); if (!p.alive || s.over) return;
-          await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 踩进${o.name}的毒泽，接下来 ${sm.turns} 回合的收入都归${o.name}` });
+          await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 停在${o.name}的毒泽里，接下来 ${sm.turns} 回合的收入都归${o.name}` });
         }
       }
       if (sm.candle) {

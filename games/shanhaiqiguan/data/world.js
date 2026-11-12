@@ -16,7 +16,7 @@
       art: 'a winged golden dragon with large feathered wings, long body, standing proudly' },
     nuba: { race: 'xuanyuan', name: '女魃', type: '经济', hp: 100, atk: 12, def: 0, hpUp: 10, atkUp: 1.0,
       art: 'a fierce drought goddess in a dark blue robe with long wild hair, heat waves and small flames around her hands' },
-    chiyou: { race: 'jiuli', name: '蚩尤', type: '战士', hp: 135, atk: 14, def: 0, hpUp: 7, atkUp: 0.6,
+    chiyou: { race: 'jiuli', name: '蚩尤', type: '战士', hp: 135, atk: 14, def: 0, hpUp: 8, atkUp: 0.8,
       art: 'a huge war chief with bronze head and iron forehead, bull horns, six arms holding bronze weapons' },
     xingtian: { race: 'jiuli', name: '刑天', type: '不死', hp: 165, atk: 15, def: 0, hpUp: 12, atkUp: 1.5,
       art: 'a decapitated giant warrior with no head and no neck, his shoulders end in a flat stump, a huge angry face is on his torso with two large eyes on the chest and a wide roaring mouth on the belly, holding a battle axe and a round shield' },

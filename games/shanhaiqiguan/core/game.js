@@ -315,7 +315,7 @@
           s.tiles[j].s = { k: kind, o: p.id, n, v: 0, perm: false }; await io.ev({ t: 'tile', tile: j });
         }
       },
-      phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，可以同时有好几个
+      phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，同时只能有一个（can 里挡）
         const c = s.tiles.map((x, j) => j).filter((j) => SJ.BOARD[j].adj.length >= 2 && SJ.BOARD[j].type !== 'corner' && j !== p.pos);
         const at = c[ri(s, c.length)];
         const gold = Math.round(Math.max(p.gold, 50) * mul);

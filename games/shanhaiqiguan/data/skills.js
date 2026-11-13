@@ -124,7 +124,7 @@
     T(4, 'xinghuhui', '星弧徽章', '所有经验 +100%，技能触发 +10%', { xpMul: 1, proc: 0.1 }, 'a round silver academy badge with a glowing star arc emblem'),
   ];
 
-  // 1 阶：消耗品。路过宝铺得 1 个，停下得 2 个；最多带 4 个，满了再拿到就没了。点一下马上用掉
+  // 1 阶：消耗品。路过宝铺得 1 个，停下得 2 个；最多带 4 个，满了再拿到就没了（应战帖例外）。点一下马上用掉
   const C = (id, name, desc, ic) => ({ id, name, desc, ic, tier: 1 });
   SJ.CONSUMABLES = [
     C('huichun', '回春丹', '回 15% 最大血', 'a small round red pill glowing softly on a jade dish'),
@@ -133,6 +133,8 @@
     C('shisha', '时砂', '随机一个正在冷却的技能马上清零（大招除外）；没有能清的就散掉', 'a small bronze hourglass with glowing golden sand'),
     C('wangchuan', '忘川水', '洗点：收回全部技能点，重新学', 'a small black clay bottle of misty river water'),
     C('jiedu', '解毒草', '清除所有负面状态', 'a sprig of green herb with white flowers'),
+    C('juedou', '决斗帖', '向所有对手下战书：每人马上收到一张应战帖。谁先应战，两人去竞技场打到一方倒下；到你下回合还没人应战，战书作废', 'a red paper challenge letter sealed with a black wax seal and crossed swords'),
+    Object.assign(C('yingzhan', '应战帖', '接下战书：马上和下战书的人去竞技场，打到一方倒下。别人先应战了，它就没了', 'a folded gold paper reply letter with a red seal and a single sword'), { noShop: true }),
   ];
 
   // 5 阶：神器。只在大型地图的后期宝箱里出现，每个英雄一局最多拿到一次，不占宝物栏

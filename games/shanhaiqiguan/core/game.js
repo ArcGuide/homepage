@@ -8,6 +8,7 @@
     const m = SJ.MAPS[id];
     SJ.MAP = m; SJ.BOARD = m.tiles; SJ.REGIONS = m.regions;
     m._adj = m._adj || {};
+    if (!m.arena) placeArena(m);
   };
 
   // 相邻：沿路走，碰到的最近的领地
@@ -408,7 +409,7 @@
   // 向死而生的重生概率：平时 30%，献祭期间每回合 +10%
   SJ.rebornChance = (p) => { if (!p.sk[3]) return 0; const b = p.buffs.find((x) => x.k === 'deathRite'); return 0.3 + (b ? b.v : 0); };
 
-  SJ._eliminate = eliminate; SJ._playCard = playCard; // 测试用
+  SJ._eliminate = eliminate; SJ._playCard = playCard; SJ._landOn = (...x) => landOn(...x); // 测试用
 
   async function hurtPlain(s, io, p, n, why) {
     if (hasBuff(p, 'absorb')) { p.store = (p.store || 0) + n; return; }
@@ -553,29 +554,48 @@
     }
   }
 
-  // 英雄比试：各出手 3 下。没人倒下就按剩余血量比例分胜负。
-  // 比试模式（默认开）：打完血量不结算；关掉就是真打，血量带回棋盘，打死就出局。
-  // 不算战斗、没有经验。赢家拿走输家一部分金币，按等级差：同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
-  // 同一对英雄比完一场，3 轮内再碰上不比
+  // 决斗：用「决斗帖」下战书，其他英雄每人收到一张「应战帖」。第一个用应战帖的人和下战书的人去竞技场，打到一方倒下。
+  // 比试模式（默认开）：打完血量不结算；关掉就是真打，血量带回棋盘，打死就出局。打完两人都留在竞技场。
+  // 不算战斗、没有经验。赢家拿走一部分金币：按两人中钱少的那位算，比例看等级差：同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
+  // 到下战书的人下一回合开始还没人应战，所有应战帖作废
   SJ.sparCut = (wLv, lLv) => Math.max(0.1, Math.min(0.9, 0.5 + (lLv - wLv) * 0.4 / 9));
-  SJ.SPAR_GAP = 3;
-  const sparKey = (p, q) => p.id < q.id ? `${p.id}-${q.id}` : `${q.id}-${p.id}`;
-  const canSpar = (s, p, q) => { const at = (s.sparAt || {})[sparKey(p, q)]; return at == null || s.round - at >= SJ.SPAR_GAP; };
-  const sparC = (s, p) => Object.assign(heroC(s, p), { lamp: null, xtRev: 0, absorb: false });
-  async function spar(s, io, p, q) {
-    s.stats.duels++; // 碰上就必须比，不再询问
-    (s.sparAt = s.sparAt || {})[sparKey(p, q)] = s.round;
+  // 竞技场：每张图一块，占路上连续的几格特殊地形（优先冰原、山地）。只看地图数据，结果每次都一样
+  const ARENA_TERRAIN = ['snow', 'rock', 'swamp', 'lava', 'ink', 'cloud', 'star', 'bone', 'sand', 'sea', 'water'];
+  function placeArena(m) {
+    const T = m.tiles, ok = (i) => i !== 0 && i !== m.exile && T[i] && T[i].type === 'wild' && T[i].adj.length === 2 && ARENA_TERRAIN.includes(T[i].terrain);
+    let best = null;
+    for (let i = 0; i < T.length; i++) {
+      if (!ok(i)) continue;
+      const run = [i];
+      for (let prev = i, cur = T[i].adj[0]; run.length < 3 && ok(cur) && T[cur].terrain === T[i].terrain && !run.includes(cur); ) { run.push(cur); const nx = T[cur].adj.find((x) => x !== prev); prev = cur; cur = nx; }
+      const sc = run.length * 100 - ARENA_TERRAIN.indexOf(T[i].terrain);
+      if (!best || sc > best.sc) best = { sc, run };
+    }
+    m.arena = best ? best.run : [];
+    for (const i of m.arena) T[i].type = 'arena';
+  }
+  SJ.arenaTiles = () => SJ.MAP.arena || [];
+  async function duelExpire(s, io) {
+    const o = s.players[s.duel.from];
+    for (const q of s.players) q.cons = (q.cons || []).filter((x) => x !== 'yingzhan');
+    s.duel = null;
+    await io.ev({ t: 'msg', text: `没有人应战，${o.name}的战书作废了` });
+  }
+  async function duel(s, io, p, q) { // p 下战书，q 应战
+    s.stats.duels++;
     const real = s.opts && s.opts.spar === false;
-    await io.ev({ t: 'msg', text: `${p.name} 撞上 ${q.name}，${real ? '真刀真枪打一场' : '比试一场'}` });
-    const A = sparC(s, p), D = sparC(s, q);
+    const ar = SJ.arenaTiles();
+    await io.ev({ t: 'msg', kind: 'skill', text: `${q.name} 接下了${p.name}的战书，两人奔赴竞技场，${real ? '真刀真枪' : '点到为止'}，打到一方倒下` });
+    if (ar.length) { await teleport(s, io, p, ar[0]); await teleport(s, io, q, ar[ar.length - 1]); }
+    const A = sparC(s, p), D = sparC(s, q); D.toDeath = true;
     const res = SJ.fight(A, D, s.rng);
     let win = res.winner;
     if (win === 'draw') { const ra = res.aHp / A.maxhp, rd = res.dHp / D.maxhp; win = ra > rd ? 'a' : rd > ra ? 'd' : 'draw'; }
     await io.ev({ t: 'battle', kind: 'duel', real, a: A, d: D, res, verdict: win, pid: p.id, qid: q.id });
     if (real) {
       p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
-      if (q.hp <= 0) { await eliminate(s, io, q, p, `被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
-      if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
+      if (q.hp <= 0) { await eliminate(s, io, q, p, `在竞技场被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
+      if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `在竞技场被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
       if (!p.alive || !q.alive || s.over) return;
     }
     if (win === 'draw') return;
@@ -583,6 +603,17 @@
     const v = Math.floor(Math.min(w.gold, l.gold) * SJ.sparCut(w.level, l.level)); // 按两人中钱少的那个算比例
     if (v > 0) { l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
   }
+  // 电脑估一下自己打赢 q 的把握：用独立的随机数打几场，不动对局的随机数
+  SJ.duelOdds = (s, p, q, n = 6) => {
+    let w = 0;
+    for (let k = 0; k < n; k++) {
+      const A = sparC(s, p), D = sparC(s, q); D.toDeath = true;
+      const r = SJ.fight(A, D, { v: (s.rng.v ^ (k * 2654435761)) >>> 0 || 1 });
+      if (r.winner === 'a' || (r.winner === 'draw' && r.aHp / A.maxhp > r.dHp / D.maxhp)) w++;
+    }
+    return w / n;
+  };
+  const sparC = (s, p) => Object.assign(heroC(s, p), { lamp: null, xtRev: 0, absorb: false });
 
   async function nest(s, io, p) {
     const t = s.tiles[p.pos];
@@ -646,9 +677,10 @@
   }
 
   // 消耗品：最多 4 个，满了再拿到就没了
-  async function giveCons(s, io, p, n) {
+  async function giveCons(s, io, p, n, id) {
+    const pool = SJ.CONSUMABLES.filter((x) => !x.noShop);
     for (let k = 0; k < n; k++) {
-      const c = SJ.CONSUMABLES[ri(s, SJ.CONSUMABLES.length)];
+      const c = id ? SJ.consOf(id) : pool[ri(s, pool.length)];
       if (p.cons.length >= 4) { await io.ev({ t: 'msg', text: `${p.name} 的消耗品栏满了，${c.name}没拿上` }); continue; }
       p.cons.push(c.id);
       await io.ev({ t: 'cons', pid: p.id, id: c.id });
@@ -660,6 +692,8 @@
     // 时砂：随机清一个在冷却中的非大招技能；一个都没有就不用掉
     const sand = id === 'shisha' ? p.cd.map((c, j) => j).filter((j) => p.cd[j] > 0 && p.sk[j] && !SJ.SKILLS[p.hero][j].ult) : null;
     if (sand && !sand.length) { p.cons.splice(i, 1); await io.ev({ t: 'msg', text: '没有能清的冷却（大招不算），时砂散了' }); return; }
+    if (id === 'juedou' && s.duel) { await io.ev({ t: 'msg', text: `${s.players[s.duel.from].name}的战书还在等人应战，现在不能再下战书` }); return; }
+    if (id === 'yingzhan' && (!s.duel || !s.players[s.duel.from].alive)) { p.cons.splice(i, 1); await io.ev({ t: 'msg', text: '这封战书已经作废了' }); return; }
     p.cons.splice(i, 1);
     const c = SJ.consOf(id);
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 用了${c.name}` });
@@ -670,6 +704,18 @@
       case 'shisha': { const j = sand[ri(s, sand.length)]; p.cd[j] = 0; await io.ev({ t: 'msg', text: `${SJ.SKILLS[p.hero][j].name} 冷却清零` }); break; }
       case 'wangchuan': { const n = p.sk.reduce((a, b) => a + b, 0); p.sk = [0, 0, 0, 0]; p.pts += n; break; }
       case 'jiedu': for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; break;
+      case 'juedou': {
+        s.duel = { from: p.id };
+        for (const q of alive(s)) if (q !== p) q.cons.push('yingzhan'); // 应战帖不占名额，栏满了也收得到
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 向所有人下了战书！谁先应战，就去竞技场打到一方倒下。到${p.name}下回合还没人应战，战书作废` });
+        break;
+      }
+      case 'yingzhan': {
+        const o = s.players[s.duel.from]; s.duel = null;
+        for (const q of s.players) q.cons = (q.cons || []).filter((x) => x !== 'yingzhan');
+        await duel(s, io, o, p);
+        break;
+      }
     }
   }
   // 神器：大型地图后期的宝箱里才有，一局一人最多一次
@@ -800,6 +846,7 @@
     // 地形的停下效果只在普通地块上触发；抽卡、异兽、驿站、宝铺、传送门这些功能格只结算功能，不会先被浪卷走
     if ((tile.type === 'land' || tile.type === 'wild') && await stopTerrain(s, io, p, tile, depth)) return;
     if (tile.type === 'wild') return;
+    if (tile.type === 'arena') { await giveCons(s, io, p, 1, 'juedou'); return; } // 竞技场：停下得一张决斗帖
     if (tile.type === 'post') { gain(s, p, SJ.TUNE.salary); heal(p, 15); await io.ev({ t: 'gold', pid: p.id, n: SJ.TUNE.salary, why: '驿站' }); return; }
     if (tile.type === 'portal') { await io.ev({ t: 'msg', text: `${p.name} 钻进了传送门` }); await teleport(s, io, p, tile.to); return; }
     if (tile.type === 'shop') { await giveCons(s, io, p, 2); return; } // 宝铺：停下送 2 个消耗品
@@ -910,7 +957,6 @@
   async function move(s, io, p, steps, back, fly, c) {
     fly = fly || hasBuff(p, 'fly') || hasBuff(p, 'soar');
     const dry = false; // 逐日也照常结算路上的东西
-    delete p._met;
     if (back) turnAround(s, p);
     let left = steps, seg = [];
     const flush = async (last) => {
@@ -936,10 +982,6 @@
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
       const tt = s.tiles[nx];
       if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); if (artChance(s, p) && rnd(s) < 0.3) await giveArtifact(s, io, p); else await giveTreasure(s, io, p, rnd(s) < 0.6 ? 4 : 3); }
-      if (left > 0 && !fly && !dry && s.peace <= 0 && SJ.BOARD[nx].type !== 'corner') { // 路过别的英雄也可以比试，一次移动里同一个人只比一次
-        const q = s.players.find((x) => x.alive && x !== p && x.pos === nx && !(p._met || []).includes(x.id) && canSpar(s, p, x));
-        if (q) { await flush(false); if (!p.alive || s.over) return; (p._met = p._met || []).push(q.id); await spar(s, io, p, q); if (!p.alive || s.over) return; }
-      }
       for (const ph of s.phantoms || []) if (ph.o === p.id && ph.pos === nx) await meetPhantom(s, io, ph);
       if (!tt.s || fly || dry) continue;
       if (hasBuff(p, 'avatar') && tt.s.o !== p.id) continue; // 兵主降世：不会被别人的东西拦下
@@ -1144,16 +1186,10 @@
     }
   }
 
-  // 到达一格：结算格子，碰到人可以比试，车阵的传送排在最后
+  // 到达一格：结算格子，车阵的传送排在最后
   async function arrive(s, io, p) {
     await landOn(s, io, p, 0);
     if (!p.alive || s.over) return;
-    const other = s.players.find((q) => q.alive && q !== p && q.pos === p.pos);
-    if (other && s.peace <= 0 && SJ.BOARD[p.pos].type !== 'corner' && !hasBuff(p, 'soar') && !(p._met || []).includes(other.id) && canSpar(s, p, other)) {
-      await spar(s, io, p, other);
-      if (!p.alive || s.over) return;
-    }
-    delete p._met;
     if (p._warp) { delete p._warp; await teleport(s, io, p, ri(s, N())); }
   }
 
@@ -1185,6 +1221,7 @@
     if (s.beastRound !== s.round) { s.beastRound = s.round; await tickBeasts(s, io); if (s.over) return; }
     const p = s.players[s.cur];
     if (!p.cons) p.cons = []; // 旧存档
+    if (s.duel && (s.duel.from === p.id || !s.players[s.duel.from].alive)) await duelExpire(s, io);
     s.stats.turns++;
     if (p.alive) {
       await io.ev({ t: 'turn', pid: p.id });

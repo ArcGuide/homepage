@@ -44,6 +44,8 @@
           if (id === 'shenxing' && roll() < 0.3) return { a: 'use', i };
           if (id === 'zhuanxiang' && roll() < 0.1) return { a: 'use', i };
           if (id === 'wangchuan' && p.cons.length >= 4) return { a: 'use', i }; // 电脑不洗点，栏满了就随手用掉
+          if (id === 'yingzhan' && s.duel && SJ.duelOdds(s, p, s.players[s.duel.from]) > 0.5) return { a: 'use', i }; // 觉得打得过才应战
+          if (id === 'juedou' && !s.duel && s.players.every((q) => !q.alive || q === p || SJ.duelOdds(s, p, q) >= 0.6)) return { a: 'use', i }; // 谁接都不怕才下战书
         }
         for (let i = 3; i >= 0; i--) {
           if (!SJ.canCast(p, i, s)) continue;

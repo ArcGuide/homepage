@@ -13,7 +13,7 @@
     water: [['reed', 0.04, 44]], sea: [['shell', 0.004, 40]], swamp: [['reed', 0.06, 46], ['mushroom', 0.05, 46], ['deadtree', 0.04, 66]], lava: [['fire', 0.1, 54], ['rock1', 0.05, 50]], cloud: [['cloudpuff', 0.05, 80]], ink: [['lantern', 0.012, 44]],
     study: [['books', 0.05, 46], ['lamppost', 0.025, 64], ['bamboo', 0.02, 66]], venture: [['lamppost', 0.04, 64], ['armillary', 0.02, 56]], star: [['starshard', 0.035, 40]],
   };
-  const LABEL = { event: ['？', '#f2d27a', '#7d2519'], nest: ['兽', '#b08f7c', '#fff6e6'], post: ['驿', '#e7b24e', '#4a2a10'], shop: ['宝', '#8ec5b4', '#123c34'], portal: ['门', '#a593d8', '#fff6e6'] };
+  const LABEL = { event: ['？', '#f2d27a', '#7d2519'], nest: ['兽', '#b08f7c', '#fff6e6'], post: ['驿', '#e7b24e', '#4a2a10'], shop: ['宝', '#8ec5b4', '#123c34'], portal: ['门', '#a593d8', '#fff6e6'], arena: ['斗', '#d8866a', '#4a1a10'] };
 
   function rng(v) { return () => { v = (v + 0x6D2B79F5) | 0; let t = v; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -45,7 +45,7 @@
     await Promise.all(m.tiles.filter((t) => t.type === 'corner').map(async (t) => { lmImg[t.corner] = await load(`assets/${SJ.LANDMARKS[t.corner].art}.webp`); }));
 
     const spot = {};
-    await Promise.all(['post', 'shop', 'portal'].map(async (k) => { spot[k] = await load(`assets/lm_${k}.webp`); }));
+    await Promise.all(['post', 'shop', 'portal', 'arena'].map(async (k) => { spot[k] = await load(`assets/lm_${k}.webp`); }));
     canvas.width = B.W; canvas.height = B.H;
     const c = canvas.getContext('2d');
     const pat = (ctx, t) => { if (!sheets[t]) return '#8a9a7a'; const q = ctx.createPattern(sheets[t], 'repeat'); q.setTransform(new DOMMatrix().scale(0.5)); return q; };
@@ -114,11 +114,12 @@
         break;
       }
     }
-    m.tiles.forEach((t) => { if (t.type === 'corner' && lmImg[t.corner]) items.push({ lm: t.corner, x: t.x, y: t.y }); if (spot[t.type]) items.push({ sp: t.type, x: t.x, y: t.y }); });
+    m.tiles.forEach((t) => { if (t.type === 'corner' && lmImg[t.corner]) items.push({ lm: t.corner, x: t.x, y: t.y }); if (spot[t.type] && t.type !== 'arena') items.push({ sp: t.type, x: t.x, y: t.y }); });
+    { const ar = m.arena || [], t = m.tiles[ar[Math.floor(ar.length / 2)]]; if (t && spot.arena) items.push({ sp: 'arena', x: t.x, y: t.y }); } // 竞技场只画一座，立在中间那格
     items.sort((a, b) => (a.x + a.y) - (b.x + b.y));
     for (const it of items) {
       const p = B.at(it.x, it.y);
-      if (it.sp) { const im = spot[it.sp], w = 62, h2 = w * im.height / im.width; c.drawImage(im, p.x - w / 2, p.y - 6 - h2, w, h2); continue; }
+      if (it.sp) { const im = spot[it.sp], w = it.sp === 'arena' ? 120 : 62, h2 = w * im.height / im.width; c.drawImage(im, p.x - w / 2, p.y - 6 - h2, w, h2); continue; }
       if (it.lm) {
         const im = lmImg[it.lm], w = 176, h = w * im.height / im.width, hh = Math.min(h, 210), ww = w * hh / h;
         c.drawImage(im, p.x - ww / 2, p.y + 16 - hh, ww, hh);

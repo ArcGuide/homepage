@@ -124,7 +124,7 @@
     T(4, 'xinghuhui', '星弧徽章', '所有经验 +100%，技能触发 +10%', { xpMul: 1, proc: 0.1 }, 'a round silver academy badge with a glowing star arc emblem'),
   ];
 
-  // 1 阶：消耗品。路过宝铺得 1 个，停下得 2 个；最多带 4 个，满了再拿到就没了（应战帖例外）。点一下马上用掉
+  // 1 阶：消耗品。路过宝铺得 1 个，停下得 2 个；最多带 4 个（应战帖不算），满了再拿到就挤掉最早拿到的那个。点一下马上用掉
   const C = (id, name, desc, ic) => ({ id, name, desc, ic, tier: 1 });
   SJ.CONSUMABLES = [
     C('huichun', '回春丹', '回 15% 最大血', 'a small round red pill glowing softly on a jade dish'),

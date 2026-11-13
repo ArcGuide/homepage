@@ -710,12 +710,12 @@
     return true;
   }
 
-  // 消耗品：最多 4 个，满了再拿到就没了
+  // 消耗品：最多 4 个（应战帖不算），满了再拿到就挤掉最早拿到的那个
   async function giveCons(s, io, p, n, id) {
     const pool = SJ.CONSUMABLES.filter((x) => !x.noShop);
     for (let k = 0; k < n; k++) {
       const c = id ? SJ.consOf(id) : pool[ri(s, pool.length)];
-      if (p.cons.length >= 4) { await io.ev({ t: 'msg', text: `${p.name} 的消耗品栏满了，${c.name}没拿上` }); continue; }
+      if (p.cons.filter((x) => x !== 'yingzhan').length >= 4) { const j = p.cons.findIndex((x) => x !== 'yingzhan'), old = SJ.consOf(p.cons[j]); p.cons.splice(j, 1); await io.ev({ t: 'msg', text: `${p.name} 的消耗品栏满了，${old.name}被挤掉了` }); }
       p.cons.push(c.id);
       await io.ev({ t: 'cons', pid: p.id, id: c.id });
     }

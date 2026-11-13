@@ -116,7 +116,7 @@
       <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，决斗没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
       <p>买下的地免费建一座 Lv1 建筑，分支自己选；打下来、抽卡得到的地免费随机建一座。停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
       <h3>英雄成长</h3>
-      <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>消耗品：路过宝铺送 1 个，停下送 2 个，最多带 4 个，满了再拿到就没了。掷骰前点一下马上用掉。</li><li>最多装备 4 件宝物。二阶打异兽得，三阶在自家满级城邑买，四阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出二阶，60 轮后才有四阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li><li>神器只在大型地图后期的宝箱里出现，每个英雄一局最多拿到一次。</li></ul>
+      <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>消耗品：路过宝铺送 1 个，停下送 2 个，最多带 4 个，满了再拿到会挤掉最早拿到的那个。掷骰前点一下马上用掉。</li><li>最多装备 4 件宝物。二阶打异兽得，三阶在自家满级城邑买，四阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出二阶，60 轮后才有四阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li><li>神器只在大型地图后期的宝箱里出现，每个英雄一局最多拿到一次。</li></ul>
       <h3>地形和地标</h3>
       <ul><li>山地、灵河、毒沼、云海、大海、黑水……每种地形都有自己的脾气，有的难走，有的危险，也藏着好处。难走的地方常有驿站和宝铺。停在抽卡、异兽、驿站这些功能格上，只结算功能，地形不起作用。</li><li>驿站发钱，宝铺送消耗品，门是传送门。</li><li>每个地标都有夸张的效果，停上去才知道是什么。点地图上任意一格能看到一点提示，拖动看地图，滚轮或双指缩放。</li></ul>
       <div class="btn-row" style="margin-top:12px"><button class="btn primary">知道了</button></div></div></div>`);
@@ -368,7 +368,7 @@
     else if (b.type === 'event') { name = '吉凶'; txt = '抽一张吉凶卡，立刻生效。'; }
     else if (b.type === 'nest') { name = '异兽巢穴'; txt = '可以打异兽，赢了得金币、经验，可能得宝物。'; if (t.m) { const m = SJ.MONSTERS[t.m.k]; pic = 'monster_' + m.id; txt += `<br>${m.name} 还在，血 ${Math.round(t.m.hp != null ? t.m.hp : m.hp * t.m.sc)}。`; } }
     else if (b.type === 'post') { name = '驿站'; txt = `路过得 ${SJ.TUNE.salary} 金，停下再回 15 血。`; pic = 'lm_post'; }
-    else if (b.type === 'shop') { name = '宝铺'; txt = '路过送 1 个消耗品，停下送 2 个。消耗品最多带 4 个。'; pic = 'lm_shop'; }
+    else if (b.type === 'shop') { name = '宝铺'; txt = '路过送 1 个消耗品，停下送 2 个。消耗品最多带 4 个，满了挤掉最早的。'; pic = 'lm_shop'; }
     else if (b.type === 'portal') { name = '传送门'; txt = '停下传到另一扇门。'; pic = 'lm_portal'; }
     else if (b.type === 'arena') { name = '竞技场'; txt = '英雄决斗的地方。停下送一张决斗帖。'; pic = 'lm_arena'; }
     else if (b.type === 'wild') { name = T.name; txt = T.desc; }
@@ -413,7 +413,7 @@
         ${p.buffs.length ? `<p>加持：${p.buffs.map((b) => `${BUFF[b.k] || b.k} ${b.n - 1 > 0 ? `${b.n - 1} 回合` : '本回合'}`).join('、')}</p>` : ''}
         ${Object.keys(p.status).length ? `<p>状态：${Object.entries(p.status).map(([k, n]) => `${SJ.STATUS[k]?.[0] || k} ${n}`).join('、')}</p>` : ''}</div></div>
       <h4>技能</h4><div class="sks">${list.map(skill).join('')}</div>
-      <h4>消耗品 <small>最多 4 个（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); return c ? `<button class="slot t1" ${act ? `data-a='{"a":"use","i":${i}}'` : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
+      <h4>消耗品 <small>最多 4 个，满了挤掉最早的（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); return c ? `<button class="slot t1" ${act ? `data-a='{"a":"use","i":${i}}'` : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
       ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : ''}</small></div></div>`; })() : ''}
       <h4>宝物 <small>最多装备 4 件${act ? '，点一下卸下' : ''}</small></h4><div class="slots">${p.items.map((id, i) => item(id, `{"a":"unequip","i":${i}}`)).join('')}</div>
       ${p.bag.length ? `<h4>包袱 <small>${act ? '点一下装备' : ''}</small></h4><div class="slots">${p.bag.map((id, i) => item(id, p.items.includes(null) ? `{"a":"equip","i":${i}}` : `{"a":"sell","i":${i}}`)).join('')}</div>${act && !p.items.includes(null) ? '<p class="note">宝物栏满了：先卸下一件，或者点包袱里的宝物卖掉。</p>' : ''}` : ''}

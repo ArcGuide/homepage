@@ -257,7 +257,8 @@
   // 玄虎和九尾狐虚影：不是玩家，单独画
   let beastEls = [];
   function renderBeasts() {
-    const st = $('#stage'); if (!st) return;
+    const st = $('#stage'); if (!st) return [];
+    const moved = [];
     const want = [...(S.beasts || []).map((b, k) => ['tiger' + k, b.pos, 'tiger']), ...(S.phantoms || []).map((ph, k) => ['ph' + (ph.id || ph.o), ph.pos, 'phantom', ph.o])];
     beastEls = beastEls.filter((e) => { if (want.some((w) => w[0] === e.dataset.k)) return true; e.remove(); return false; });
     for (const [k, pos, kind, o] of want) {
@@ -266,8 +267,11 @@
         e = kind === 'tiger' ? h(`<div class="beast tiger" data-k="${k}">${img('monster_xuanhu', '玄虎')}</div>`) : h(`<div class="beast phantom" data-k="${k}"><div class="px" style="background-image:url(assets/px_${S.players[o].hero}.png)"></div></div>`);
         st.append(e); beastEls.push(e);
       }
-      const { x, y } = iso(pos); e.style.left = `${x}px`; e.style.top = `${y + 6}px`; e.style.zIndex = Math.round(y) + 18;
+      const { x, y } = iso(pos), ox = parseFloat(e.style.left), oy = parseFloat(e.style.top);
+      if (kind === 'tiger' && !Number.isNaN(ox) && (Math.abs(x - ox) > 1 || Math.abs(y + 6 - oy) > 1)) { if (Math.abs(x - ox) > 1) e.classList.toggle('flip', x < ox); moved.push({ e, x, y, pos }); }
+      e.style.left = `${x}px`; e.style.top = `${y + 6}px`; e.style.zIndex = Math.round(y) + 18;
     }
+    return moved;
   }
 
   function renderTile(i, pop) {
@@ -579,7 +583,18 @@
       }
       case 'cons': { const c = SJ.consOf(e.id); toast(`${S.players[e.pid].name} 得到消耗品 ${c.name}`); if (S.players[e.pid].human) sfx.coin(); renderPlayers(); await wait(500); break; }
       case 'artifact': { const a = SJ.artOf(e.id); toast(`${S.players[e.pid].name} 得到神器 ${a.name}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1400); break; }
-      case 'beasts': renderBeasts(); if (e.move) { sfx.step('grass'); await wait(360); } break;
+      case 'beasts': { // 玄虎走路：镜头跟过去，一步一顿地踏过去；虚影还是飘过去
+        const ms = 620;
+        for (const b of beastEls) if (b.classList.contains('tiger')) b.style.setProperty('--step', `${ms / speed}ms`);
+        const moved = renderBeasts();
+        if (moved.length) {
+          const m = moved[0]; B.look(m.x, m.y - 40, ms / speed);
+          moved.forEach((t) => t.e.classList.add('walk'));
+          sfx.step(SJ.BOARD[m.pos].terrain); await wait(ms / 2); sfx.step(SJ.BOARD[m.pos].terrain); await wait(ms / 2 + 80);
+          moved.forEach((t) => t.e.classList.remove('walk'));
+        } else if (e.move) { sfx.step('grass'); await wait(360); }
+        break;
+      }
       case 'treasure': { const t = SJ.TREASURES.find((x) => x.id === e.id); toast(`${S.players[e.pid].name} 得到${TIER[t.tier]}宝物 ${t.name}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1000); break; }
       case 'death': { const p = S.players[e.pid]; logLine(`${p.name} 阵亡`); toast(`${p.name} 阵亡了（${e.why || ''}）`, 'skill'); sfx.death(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers(); placePieces(); await wait(1100); break; }
     }

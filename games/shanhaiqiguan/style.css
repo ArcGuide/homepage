@@ -469,7 +469,10 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .slot.t5 { border-color: #b33a2b; box-shadow: 0 0 0 1.5px #b33a2b, 0 0 10px #ffd76a; background: #fff6e0; }
 
 /* 玄虎、九尾狐虚影 */
-.beast { position: absolute; transform: translate(-50%, -96%); transition: left .35s linear, top .35s linear; pointer-events: none; }
+.beast { --step: 350ms; position: absolute; transform: translate(-50%, -96%); transition: left var(--step) linear, top var(--step) linear; pointer-events: none; }
+.beast.tiger.flip img { scale: -1 1; }
+.beast.tiger.walk img { transform-origin: 50% 100%; animation: tiger-stomp calc(var(--step) / 2) ease-in-out infinite alternate; }
+@keyframes tiger-stomp { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-12px) rotate(5deg); } }
 .beast.tiger { width: 124px; height: 100px; }
 .beast.tiger img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 6px #3ad0c0) drop-shadow(0 2px 0 #0007); }
 .beast.phantom { width: 96px; height: 87px; opacity: .55; filter: hue-rotate(160deg) saturate(1.4) drop-shadow(0 0 8px #9adfff); animation: phantom-bob 1.8s ease-in-out infinite alternate; }

@@ -580,7 +580,7 @@
     }
     if (win === 'draw') return;
     const w = win === 'a' ? p : q, l = win === 'a' ? q : p;
-    const v = Math.floor(l.gold * SJ.sparCut(w.level, l.level));
+    const v = Math.floor(Math.min(w.gold, l.gold) * SJ.sparCut(w.level, l.level)); // 按两人中钱少的那个算比例
     if (v > 0) { l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
   }
 

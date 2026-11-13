@@ -559,20 +559,54 @@
   // 不算战斗、没有经验。赢家拿走一部分金币：按两人中钱少的那位算，比例看等级差：同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
   // 到下战书的人下一回合开始还没人应战，所有应战帖作废
   SJ.sparCut = (wLv, lLv) => Math.max(0.1, Math.min(0.9, 0.5 + (lLv - wLv) * 0.4 / 9));
-  // 竞技场：每张图一块，占路上连续的几格特殊地形（优先冰原、山地）。只看地图数据，结果每次都一样
-  const ARENA_TERRAIN = ['snow', 'rock', 'swamp', 'lava', 'ink', 'cloud', 'star', 'bone', 'sand', 'sea', 'water'];
-  function placeArena(m) {
-    const T = m.tiles, ok = (i) => i !== 0 && i !== m.exile && T[i] && T[i].type === 'wild' && T[i].adj.length === 2 && ARENA_TERRAIN.includes(T[i].terrain);
-    let best = null;
+  // 难走的长路段：连成一片的不能买地的格子（山地、冰原、毒沼、大海……）。按「要走几步」算有多难熬，山地一格算两步
+  // 每张图最难熬的那一段放竞技场（连续 3 格，尽量放在最难走的地形、路段中间）；
+  // 10 格以上的长路段再撒功能格（宝铺、巢穴、吉凶、驿站），让朴素的地形格只剩三成左右。只看地图数据，结果每次都一样
+  SJ.DULL_MIN = 10; SJ.DULL_PLAIN = 0.3;
+  const FILL = ['shop', 'nest', 'event', 'shop', 'post', 'nest', 'event']; // 宝铺最多，其次巢穴（打赢可能掉宝物）
+  function dullSegments(m) {
+    const T = m.tiles, bad = (i) => T[i].type !== 'corner' && T[i].type !== 'land' && !SJ.TERRAIN[T[i].terrain].build;
+    const seen = new Set(), out = [];
     for (let i = 0; i < T.length; i++) {
-      if (!ok(i)) continue;
-      const run = [i];
-      for (let prev = i, cur = T[i].adj[0]; run.length < 3 && ok(cur) && T[cur].terrain === T[i].terrain && !run.includes(cur); ) { run.push(cur); const nx = T[cur].adj.find((x) => x !== prev); prev = cur; cur = nx; }
-      const sc = run.length * 100 - ARENA_TERRAIN.indexOf(T[i].terrain);
-      if (!best || sc > best.sc) best = { sc, run };
+      if (seen.has(i) || !bad(i)) continue;
+      const seg = [], q = [i]; seen.add(i);
+      while (q.length) { const x = q.shift(); seg.push(x); for (const j of T[x].adj) if (!seen.has(j) && bad(j)) { seen.add(j); q.push(j); } }
+      // 沿路排好顺序：从一头走到另一头
+      const end = seg.find((x) => T[x].adj.filter((j) => seg.includes(j)).length <= 1);
+      if (end != null) { const ord = [], vis = new Set(), st = [end]; while (st.length) { const x = st.pop(); if (vis.has(x)) continue; vis.add(x); ord.push(x); for (const j of T[x].adj) if (seg.includes(j) && !vis.has(j)) st.push(j); } seg.splice(0, seg.length, ...ord); }
+      out.push({ seg, cost: seg.reduce((a, x) => a + (SJ.TERRAIN[T[x].terrain].cost || 1), 0) });
     }
-    m.arena = best ? best.run : [];
+    return out.sort((x, y) => y.cost - x.cost);
+  }
+  function placeArena(m) {
+    const T = m.tiles, plain = (i) => i !== 0 && i !== m.exile && T[i].type === 'wild' && T[i].adj.length === 2;
+    const segs = dullSegments(m);
+    m.arena = [];
+    for (const { seg } of segs) { // 最难熬的一段里找连续 3 格，地形越难走越好，越靠中间越好
+      let best = null;
+      for (let k = 0; k + 2 < seg.length; k++) {
+        const run = seg.slice(k, k + 3);
+        if (!run.every(plain) || !run.every((x, j) => j === 0 || T[x].adj.includes(run[j - 1])) || new Set(run.map((x) => T[x].terrain)).size > 1) continue;
+        const sc = (SJ.TERRAIN[T[run[0]].terrain].cost || 1) * 1000 - Math.abs(k + 1 - seg.length / 2);
+        if (!best || sc > best.sc) best = { sc, run };
+      }
+      if (best) { m.arena = best.run; break; }
+    }
+    if (!m.arena.length) { const i = T.findIndex((t, j) => plain(j) && !SJ.TERRAIN[t.terrain].build); if (i >= 0) m.arena = [i]; } // 小图没有长路段，就占一格
     for (const i of m.arena) T[i].type = 'arena';
+    // 长路段撒功能格
+    for (const { seg } of segs) {
+      if (seg.length < SJ.DULL_MIN) continue;
+      const cand = seg.filter(plain), keep = Math.round(seg.length * SJ.DULL_PLAIN), need = cand.length - keep;
+      if (need <= 0) continue;
+      let f = 0;
+      for (let k = 0; k < need; k++) {
+        const i = cand[Math.floor((k + 0.5) * cand.length / need)];
+        let kind = FILL[f++ % FILL.length];
+        for (let t = 0; t < FILL.length && T[i].adj.some((j) => T[j].type === kind); t++) kind = FILL[f++ % FILL.length]; // 相邻的不放同一种
+        T[i].type = kind;
+      }
+    }
   }
   SJ.arenaTiles = () => SJ.MAP.arena || [];
   async function duelExpire(s, io) {

@@ -37,7 +37,7 @@
   };
 
   // 土伯大招放出的玄虎：中立，每轮走一格，停在建筑上就打 3 下，打到死为止
-  SJ.TIGER = { name: '玄虎', hp: 400, atk: 120 };
+  SJ.TIGER = { name: '玄虎', hp: 200, atk: 75 };
 
   SJ.MONSTERS = [
     { id: 'tiangou', name: '天狗', hp: 40, atk: 3, gold: 60, xp: 2, art: 'a white-headed wild cat-like hound, snarling, four legs' },
@@ -61,7 +61,7 @@
     { id: 'qinggeng', name: '青耕', kind: 'good', desc: '三回合内免疫负面状态', art: 'a small blue-green bird with white beak and white tail perched on a branch' },
     { id: 'bifang', name: '毕方', kind: 'bad', desc: '大火，随机烧毁两座建筑，烧掉的地变回无主', art: 'a crane balancing on one single leg, only one leg visible, blue body with red spots, white beak, small flames around it' },
     { id: 'feiyi', name: '肥遗', kind: 'bad', desc: '大旱，全场下回合没有收入', art: 'a six-legged snake with four wings over cracked dry earth' },
-    { id: 'zhuyan', name: '朱厌', kind: 'bad', desc: '大兵，所有人下一次踩到别人的地必须开打', art: 'a white-headed red-footed ape holding a spear' },
+    { id: 'zhuyan', name: '朱厌', kind: 'bad', desc: '大兵，所有人下回合踩到别人的地必须开打', art: 'a white-headed red-footed ape holding a spear' },
     { id: 'taotie', name: '饕餮', kind: 'bad', desc: '吞掉你一半金币', art: 'a monstrous gaping beast with a huge mouth swallowing gold coins, no lower body visible' },
     { id: 'kui', name: '夔', kind: 'bad', desc: '雷击，你掉 20 血', art: 'a one-legged grey ox-like creature with no horns, lightning storm around it' },
     { id: 'huashe', name: '化蛇', kind: 'bad', desc: '大水，随机一个区域的建筑全部降一级，1 级的冲没，地变回无主', art: 'a snake with a woman face and wings over a flood wave' },

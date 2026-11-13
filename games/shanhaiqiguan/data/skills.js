@@ -69,7 +69,7 @@
       S('tunshan', '九首吞山', 'buff', 12, '4 回合内每次出手都连打 9 段，每段攻击力 12%', { ult: true, go: (g) => g.buff('nine', 1, 4) }, 'a nine-headed serpent devouring a mountain'),
     ],
     yayu: [
-      S('fusheng', '不死灵药', 'heal', 8, `花掉 10% 金币，回 ${pct([0.25, 0.3, 0.35])} 最大血。其他玩家都要付同样的钱给你，付得起的回你这次回血量的一半；付不起的交出全部金币，不回血`, { go: (g, k) => g.elixir(0.1, [0.25, 0.3, 0.35][k]) }, 'a glowing jade medicine bottle'),
+      S('fusheng', '不死灵药', 'heal', 5, `花掉 10% 金币，回 ${pct([0.25, 0.3, 0.35])} 最大血。其他玩家都要付同样的钱给你，付得起的回你这次回血量的一半；付不起的交出全部金币，不回血`, { go: (g, k) => g.elixir(0.1, [0.25, 0.3, 0.35][k]) }, 'a glowing jade medicine bottle'),
       S('huanhun', '死而复生', 'passive', 0, `阵亡时以 25% 血复活，代价是随机毁掉自家建筑：第一次 3 座，之后每复活一次永久多 ${L([6, 5, 4])} 座，毁掉的地变回无主；建筑不够这个数就复活不了。每复活一次攻击永久 +2。毁掉的建筑会触发【向死而生】`, { sacUp: [6, 5, 4] }, 'a glowing soul returning to a beast skeleton'),
       S('jizou', '还魂疾走', 'move', 6, `向前奔 ${L([6, 9, 12])} 格，每格献出 5% 最大血，得 100 金`, { go: (g, k) => { g.dash([6, 9, 12][k], false, { bloodGold: [0.05, 100] }); } }, 'running beast legs with dust'),
       S('busi', '向死而生', 'buff', 12, '被动：自家建筑被毁时 30% 概率原地重生成 1 级建筑；因【死而复生】毁掉的建筑重生时保留原等级，再升一级。主动：5 回合内每回合献出 10% 最大血和 10% 金币，重生概率每回合再 +10%；结束后扣掉的血和钱不回来，概率回到 30%', { ult: true, pv: { reborn: [0.3] }, go: (g) => g.buff('deathRite', 0, 5) }, 'a bone rising from red earth with a green sprout'),

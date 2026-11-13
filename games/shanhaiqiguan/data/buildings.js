@@ -4,11 +4,11 @@
 
   SJ.BRANCHES = {
     garrison: { name: '驻军', hint: '低攻高防，难打穿', hp: 90, atk: 1 },
-    archer: { name: '射手', hint: '高攻低防，会杀人', hp: 50, atk: 5 },
-    magic: { name: '巫术', hint: '挂 debuff，带回棋盘', hp: 70, atk: 2 },
+    archer: { name: '射手', hint: '高攻低防，会杀人', hp: 50, atk: 2.5 },
+    magic: { name: '巫术', hint: '挂 debuff，带回棋盘', hp: 70, atk: 0.9 },
     city: { name: '城邑', hint: '每回合产金，容易被拆', hp: 60, atk: 0.5 },
     academy: { name: '学宫', hint: '强化英雄，被拆失效', hp: 60, atk: 0.5 },
-    tufu: { name: '土府', hint: '土伯的技能改建：比驻军脆、比射手钝，还能产一点金', hp: 80, atk: 2.5, special: true },
+    tufu: { name: '土府', hint: '土伯的技能改建：比驻军脆、比射手钝，还能产一点金', hp: 80, atk: 1.8, special: true },
   };
   SJ.BUILD_BRANCHES = Object.keys(SJ.BRANCHES).filter((k) => !SJ.BRANCHES[k].special); // 能正常建的五种
   SJ.LEVEL_MUL = [0, 1, 1.6, 2.5];

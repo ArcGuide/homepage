@@ -751,7 +751,7 @@
         break;
       }
       case 'feiyi': s.drought = A.length; break;
-      case 'zhuyan': s.forced = A.map((q) => q.id); break;
+      case 'zhuyan': s.forced = A.map((q) => q.id); s.forcedNew = [p.id]; break; // 只管每个人的下一个回合；抽卡的人这回合不算
       case 'taotie': p.gold = Math.floor(p.gold / 2); break;
       case 'kui': await hurtPlain(s, io, p, 20, '被雷劈死'); break;
       case 'huashe': { // 大水：一个区域的建筑各掉 40% 血
@@ -1266,6 +1266,8 @@
         const v = Math.min(p.pool, Math.round(p.maxhp * 0.2) - p.hp);
         if (v > 0) { p.hp += v; p.pool -= v; await io.ev({ t: 'heal', pid: p.id, n: v }); }
       }
+      // 朱厌：下一个回合过完就失效
+      if (s.forced.includes(p.id)) { if ((s.forcedNew || []).includes(p.id)) s.forcedNew = s.forcedNew.filter((x) => x !== p.id); else s.forced = s.forced.filter((x) => x !== p.id); }
       // 状态递减
       for (const k of Object.keys(st)) { st[k]--; if (st[k] <= 0) delete st[k]; }
       if (p.art && p.art.n != null && --p.art.n <= 0) { const a = SJ.artOf(p.art.id); p.art = null; await io.ev({ t: 'msg', text: `${a.name}的光芒散去了` }); }

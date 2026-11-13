@@ -126,6 +126,9 @@
 
   SJ.tileMaxHp = (t) => { const b = SJ.bdef(t); return b ? SJ.BRANCHES[b.branch].hp * SJ.LEVEL_MUL[b.level] * SJ.TUNE.towerHp : 30; };
 
+  SJ.tigerHp = () => Math.round(SJ.TIGER.mul * SJ.BRANCHES.garrison.hp * SJ.LEVEL_MUL[1] * SJ.TUNE.towerHp);
+  SJ.tigerAtk = (s) => SJ.TIGER.mul * SJ.BRANCHES.archer.atk * SJ.LEVEL_MUL[1] * SJ.TUNE.towerAtk * (1 + s.round * SJ.TUNE.towerGrow * (SJ.MAP.grow || 1));
+
   function buildingC(s, i, foe) {
     const t = s.tiles[i], b = SJ.bdef(t);
     if (!b) return { kind: 'building', name: '空地基', hp: t.hp != null ? t.hp : 30, maxhp: 30, atk: 1, def: 0, fx: {}, tile: i };
@@ -305,7 +308,7 @@
       },
       tiger: async () => { // 玄虎出柙：在身后放出，中立
         const at = p.from != null ? p.from : p.pos;
-        s.beasts.push({ pos: at, from: p.pos, hp: SJ.TIGER.hp, maxhp: SJ.TIGER.hp, atk: SJ.TIGER.atk });
+        s.beasts.push({ pos: at, from: p.pos, o: p.id, hp: SJ.tigerHp(), maxhp: SJ.tigerHp() });
         await io.ev({ t: 'beasts' });
         await io.ev({ t: 'msg', kind: 'skill', text: '幽都之门打开，一头玄虎跳了出来' });
       },
@@ -317,7 +320,10 @@
         }
       },
       phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，同时只能有一个（can 里挡）
-        const c = s.tiles.map((x, j) => j).filter((j) => SJ.BOARD[j].adj.length >= 2 && SJ.BOARD[j].type !== 'corner' && j !== p.pos);
+        // 不管地图大小，都在离九尾狐 12–18 格的地方出现
+        const d = SJ.distFrom(p.pos), ok = (j) => SJ.BOARD[j].adj.length >= 2 && SJ.BOARD[j].type !== 'corner' && d[j] > 0;
+        let c = s.tiles.map((x, j) => j).filter((j) => ok(j) && d[j] >= SJ.PH_NEAR && d[j] <= SJ.PH_FAR);
+        if (!c.length) { const m = Math.max(...d.filter((x, j) => ok(j))); c = s.tiles.map((x, j) => j).filter((j) => ok(j) && d[j] === m); }
         const at = c[ri(s, c.length)];
         const gold = Math.round(Math.max(p.gold, 50) * mul);
         s.phantoms.push({ id: (s.phSeq = (s.phSeq || 0) + 1), o: p.id, pos: at, from: SJ.BOARD[at].adj[0], gold });
@@ -558,7 +564,6 @@
   // 比试模式（默认开）：打完血量不结算；关掉就是真打，血量带回棋盘，打死就出局。打完两人都留在竞技场。
   // 不算战斗、没有经验。赢家拿走一部分金币：按两人中钱少的那位算，比例看等级差：同级 50%，低 9 级的赢了拿 90%，高 9 级的赢了只拿 10%
   // 到下战书的人下一回合开始还没人应战，所有应战帖作废
-  SJ.sparCut = (wLv, lLv) => Math.max(0.1, Math.min(0.9, 0.5 + (lLv - wLv) * 0.4 / 9));
   // 难走的长路段：连成一片的不能买地的格子（山地、冰原、毒沼、大海……）。按「要走几步」算有多难熬，山地一格算两步
   // 每张图最难熬的那一段放竞技场（连续 3 格，尽量放在最难走的地形、路段中间）；
   // 10 格以上的长路段再撒功能格（宝铺、巢穴、吉凶、驿站），让朴素的地形格只剩三成左右。只看地图数据，结果每次都一样
@@ -630,13 +635,19 @@
       p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
       if (q.hp <= 0) { await eliminate(s, io, q, p, `在竞技场被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
       if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `在竞技场被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
-      if (!p.alive || !q.alive || s.over) return;
     }
-    if (win === 'draw') return;
-    const w = win === 'a' ? p : q, l = win === 'a' ? q : p;
-    const v = Math.floor(Math.min(w.gold, l.gold) * SJ.sparCut(w.level, l.level)); // 按两人中钱少的那个算比例
-    if (v > 0) { l.gold -= v; gain(s, w, v); await io.ev({ t: 'toll', pid: l.id, to: w.id, n: v }); }
+    // 决斗不动钱，只给经验：赢的按对方等级拿 2 倍战斗经验，输的（和平局）拿 1 倍；下战书的人再乘 1.5
+    const w = win === 'a' ? p : win === 'd' ? q : null, lv = { [p.id]: p.level, [q.id]: q.level }; // 按开打前的等级算
+    for (const [x, y] of [[p, q], [q, p]]) {
+      if (!x.alive || s.over || x.level >= SJ.TUNE.maxLevel) continue;
+      const n = SJ.duelXp(x === w, lv[y.id], x === p);
+      const up = gainXp(s, x, n);
+      await io.ev({ t: 'msg', text: `${x.name} 在竞技场${x === w ? '得胜' : w ? '落败' : '战平'}，经验 +${n}` });
+      if (up) await io.ev({ t: 'levelup', pid: x.id, level: x.level });
+    }
   }
+  SJ.DUEL_INVITER = 1.5;
+  SJ.duelXp = (won, foeLv, inviter) => Math.round((won ? 2 : 1) * SJ.TUNE.fightXp * foeLv * (inviter ? SJ.DUEL_INVITER : 1));
   // 电脑估一下自己打赢 q 的把握：用独立的随机数打几场，不动对局的随机数
   SJ.duelOdds = (s, p, q, n = 6) => {
     let w = 0;
@@ -1016,7 +1027,8 @@
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
       const tt = s.tiles[nx];
       if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); if (artChance(s, p) && rnd(s) < 0.3) await giveArtifact(s, io, p); else await giveTreasure(s, io, p, rnd(s) < 0.6 ? 4 : 3); }
-      for (const ph of s.phantoms || []) if (ph.o === p.id && ph.pos === nx) await meetPhantom(s, io, ph);
+      const phs = (s.phantoms || []).filter((ph) => ph.o === p.id && ph.pos === nx);
+      if (phs.length && !dry) { await flush(false); if (!p.alive || s.over) return; for (const ph of phs) await meetPhantom(s, io, ph); }
       if (!tt.s || fly || dry) continue;
       if (hasBuff(p, 'avatar') && tt.s.o !== p.id) continue; // 兵主降世：不会被别人的东西拦下
       const sm = SJ.SUMMONS[tt.s.k], mine = tt.s.o === p.id;
@@ -1176,6 +1188,7 @@
 
   async function meetPhantom(s, io, ph) {
     const p = s.players[ph.o];
+    if (p.alive) await io.ev({ t: 'absorb', pid: p.id, ph: ph.id }); // 虚影飞回九尾狐身上
     s.phantoms = s.phantoms.filter((x) => x !== ph);
     await io.ev({ t: 'beasts' });
     if (!p.alive) return;
@@ -1184,6 +1197,8 @@
     await io.ev({ t: 'gold', pid: p.id, n: ph.gold });
   }
 
+  SJ.PH_NEAR = 12; SJ.PH_FAR = 18;
+  SJ.distFrom = (i0) => { const B = SJ.BOARD, d = B.map(() => -1), q = [i0]; d[i0] = 0; while (q.length) { const x = q.shift(); for (const y of B[x].adj) if (d[y] < 0) { d[y] = d[x] + 1; q.push(y); } } return d; };
   // 每轮开始：玄虎走一格，停在建筑上就打 3 下；虚影掷骰走路，路过敌方建筑交过路费
   const step1 = (s, x) => { let o = SJ.BOARD[x.pos].adj.filter((j) => j !== x.from); if (!o.length) o = [x.from]; const nx = o[ri(s, o.length)]; x.from = x.pos; x.pos = nx; return nx; };
   async function tickBeasts(s, io) {
@@ -1193,7 +1208,7 @@
       await io.ev({ t: 'beasts', move: true });
       const t = s.tiles[i];
       if (!t.b || t.owner == null) continue;
-      const A = { kind: 'monster', name: SJ.TIGER.name, id: 'xuanhu', hp: b.hp, maxhp: b.maxhp, atk: b.atk, def: 0, fx: {} };
+      const A = { kind: 'monster', name: SJ.TIGER.name, id: 'xuanhu', hp: b.hp, maxhp: b.maxhp, atk: SJ.tigerAtk(s), def: 0, fx: {} };
       const D = buildingC(s, i, A);
       const res = SJ.fight(A, D, s.rng);
       await io.ev({ t: 'battle', kind: 'beast', a: A, d: D, res, tile: i, pid: null });
@@ -1209,10 +1224,11 @@
     for (const ph of s.phantoms.slice()) {
       const p = s.players[ph.o];
       if (!p || !p.alive) { s.phantoms = s.phantoms.filter((x) => x !== ph); continue; }
-      const n = 2 + ri(s, 6) + ri(s, 6), path = [];
-      for (let k = 0; k < n && s.phantoms.includes(ph); k++) {
-        const i = step1(s, ph); path.push(i);
-        if (p.pos === i) { await io.ev({ t: 'beasts', move: true }); await meetPhantom(s, io, ph); break; }
+      const n = 2 + ri(s, 6) + ri(s, 6), d = SJ.distFrom(p.pos);
+      for (let k = 0; k < n && s.phantoms.includes(ph); k++) { // 掷骰朝九尾狐走，岔路挑近的
+        const o = SJ.BOARD[ph.pos].adj, best = Math.min(...o.map((j) => d[j])), c = o.filter((j) => d[j] === best);
+        const i = c[ri(s, c.length)]; ph.from = ph.pos; ph.pos = i;
+        if (p.pos === i) { await meetPhantom(s, io, ph); break; } // 撞上了：从原地直接飞回本体
         const t = s.tiles[i];
         if (t.b && t.owner != null && t.owner !== ph.o) { ph.gold -= Math.min(ph.gold, SJ.toll(s, i)); if (ph.gold <= 0) { s.phantoms = s.phantoms.filter((x) => x !== ph); await io.ev({ t: 'beasts' }); await io.ev({ t: 'msg', text: '九尾狐的虚影钱花光，消散了' }); } }
       }

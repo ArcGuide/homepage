@@ -110,10 +110,10 @@
       <h3>踩到别人的地</h3>
       <ul><li>交过路费，或者开打。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li><li>所有战斗都是双方各出手 3 下就收手。打塔的血量都记下来，下回接着打；异兽没被打死就回满血，绕开也要挨它一下。</li></ul>
       <h3>决斗</h3>
-      <ul><li>英雄在路上碰到不会打架。想打，就用消耗品「决斗帖」向所有人下战书：每个对手马上收到一张「应战帖」。</li><li>谁先用应战帖，两人就去竞技场打一场，打到一方倒下为止。有人应战后，别人手里的应战帖就没了。到下战书的人下一回合还没人应战，战书作废。</li><li>竞技场每张地图一座，在最难走的那段山地、冰原、大海上。停在竞技场上，送一张决斗帖；宝铺里也能拿到。打完两人都留在竞技场。</li><li>默认是比试：打完谁都不掉血，也没有经验。在「玩法设置」里关掉英雄比试，就变成真打：掉的血带回棋盘，打死就出局。</li><li>赢家拿走一部分金币，按两人中钱少的那位来算比例，从输家身上拿。比例按等级差算：同级拿 50%，以下克上拿得多（低 9 级赢了拿 90%），以大欺小拿得少（高 9 级赢了只拿 10%）。</li></ul>
+      <ul><li>英雄在路上碰到不会打架。想打，就用消耗品「决斗帖」向所有人下战书：每个对手马上收到一张「应战帖」。</li><li>谁先用应战帖，两人就去竞技场打一场，打到一方倒下为止。有人应战后，别人手里的应战帖就没了。到下战书的人下一回合还没人应战，战书作废。</li><li>竞技场每张地图一座，在最难走的那段山地、冰原、大海上。停在竞技场上，送一张决斗帖；宝铺里也能拿到。打完两人都留在竞技场。</li><li>默认是比试：打完谁都不掉血。在「玩法设置」里关掉英雄比试，就变成真打：掉的血带回棋盘，打死就出局。</li><li>决斗不动金币，只给经验，按对手的等级算：赢家拿 2 倍战斗经验，输家（或者平局）也拿 1 倍。下战书的一方，不管输赢，经验再乘 1.5。</li></ul>
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
-      <p>英雄 5 级前走路就涨经验，5 级起只能靠打塔和打异兽，决斗没有经验。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
+      <p>英雄 5 级前走路就涨经验，5 级起靠打塔、打异兽和竞技场决斗。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
       <p>买下的地免费建一座 Lv1 建筑，分支自己选；打下来、抽卡得到的地免费随机建一座。停在自家地上才能升级，同时把建筑修满。建筑平时每回合回一点血。Lv2 升 Lv3 时二选一，每个种族都不一样。塔会随轮数越来越猛。</p>
       <h3>英雄成长</h3>
       <ul><li>满级 10 级，每升一级得一个技能点。普通技能在 1、3、5 级可以升一级，大招 6 级才能学。</li><li>掷骰前点「英雄」：学技能、放技能、换宝物。主动技能都是一键释放，用完要冷却几回合。</li><li>消耗品：路过宝铺送 1 个，停下送 2 个，最多带 4 个，满了再拿到会挤掉最早拿到的那个。掷骰前点一下马上用掉。</li><li>最多装备 4 件宝物。二阶打异兽得，三阶在自家满级城邑买，四阶只有天降宝箱和地标大事件才有。</li><li>高阶宝物按轮数解锁：大型地图 30 轮前只出二阶，60 轮后才有四阶；中型地图是 20 / 40 轮，小型地图是 12 / 25 轮。没解锁时，宝箱和地标给的宝物会降成已解锁的最高阶。</li><li>神器只在大型地图后期的宝箱里出现，每个英雄一局最多拿到一次。</li></ul>
@@ -138,7 +138,7 @@
     const row = (k, title, on, off, tip) => `<label class="opt-row"><input type="checkbox" data-o="${k}" ${o[k] ? 'checked' : ''}><div><b>${title}</b><span>开：${on}</span><span>关：${off}</span><em>${tip}</em></div></label>`;
     const l = h(`<div class="layer dim"><div class="help settings"><h2>玩法设置</h2>
       ${row('autoPath', '自动选路', '到岔路随机选方向，一路走到底。', '每到岔路都停下来，由你点地图选方向。', '为了游戏流畅、好玩，建议开启。喜欢自己谋划路线、精打细算的玩家可以关掉。')}
-      ${row('spar', '英雄比试', '竞技场决斗只是比试，打完血量不变，只按胜负拿钱。', '竞技场决斗真刀真枪地打，掉的血带回棋盘，打死就出局。', '为了对局能持续下去、更有娱乐性，建议开启。关掉后，游戏可能在早期就结束。')}
+      ${row('spar', '英雄比试', '竞技场决斗只是比试，打完血量不变，只拿经验。', '竞技场决斗真刀真枪地打，掉的血带回棋盘，打死就出局。', '为了对局能持续下去、更有娱乐性，建议开启。关掉后，游戏可能在早期就结束。')}
       <div class="btn-row" style="margin-top:12px"><button class="btn primary">好了</button></div></div></div>`);
     $('button', l).onclick = () => {
       const n = {}; l.querySelectorAll('[data-o]').forEach((e) => { n[e.dataset.o] = e.checked; });
@@ -264,7 +264,7 @@
     for (const [k, pos, kind, o] of want) {
       let e = beastEls.find((x) => x.dataset.k === k);
       if (!e) {
-        e = kind === 'tiger' ? h(`<div class="beast tiger" data-k="${k}">${img('monster_xuanhu', '玄虎')}</div>`) : h(`<div class="beast phantom" data-k="${k}"><div class="px" style="background-image:url(assets/px_${S.players[o].hero}.png)"></div></div>`);
+        e = kind === 'tiger' ? h(`<div class="beast tiger" data-k="${k}" title="玄虎"><div class="px"></div></div>`) : h(`<div class="beast phantom" data-k="${k}"><div class="px" style="background-image:url(assets/px_${S.players[o].hero}.png)"></div></div>`);
         st.append(e); beastEls.push(e);
       }
       const { x, y } = iso(pos), ox = parseFloat(e.style.left), oy = parseFloat(e.style.top);
@@ -583,6 +583,17 @@
       }
       case 'cons': { const c = SJ.consOf(e.id); toast(`${S.players[e.pid].name} 得到消耗品 ${c.name}`); if (S.players[e.pid].human) sfx.coin(); renderPlayers(); await wait(500); break; }
       case 'artifact': { const a = SJ.artOf(e.id); toast(`${S.players[e.pid].name} 得到神器 ${a.name}`, 'skill'); sfx.treasure(); renderPlayers(); await wait(1400); break; }
+      case 'absorb': { // 虚影化作狐火飞回九尾狐身上
+        const el = beastEls.find((x) => x.dataset.k === 'ph' + e.ph), pc = pieces[e.pid];
+        if (el && pc) {
+          const ms = 650 / speed;
+          B.look(parseFloat(pc.style.left), parseFloat(pc.style.top) - 46, ms);
+          el.style.setProperty('--step', `${ms}ms`); el.classList.add('absorb');
+          sfx.whoosh(); el.style.left = pc.style.left; el.style.top = pc.style.top;
+          await wait(ms); pc.classList.add('drink'); setTimeout(() => pc.classList.remove('drink'), 500); await wait(250);
+        }
+        break;
+      }
       case 'beasts': { // 玄虎走路：镜头跟过去，一步一顿地踏过去；虚影还是飘过去
         const ms = 620;
         for (const b of beastEls) if (b.classList.contains('tiger')) b.style.setProperty('--step', `${ms / speed}ms`);

@@ -470,11 +470,14 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 
 /* 玄虎、九尾狐虚影 */
 .beast { --step: 350ms; position: absolute; transform: translate(-50%, -96%); transition: left var(--step) linear, top var(--step) linear; pointer-events: none; }
-.beast.tiger.flip img { scale: -1 1; }
-.beast.tiger.walk img { transform-origin: 50% 100%; animation: tiger-stomp calc(var(--step) / 2) ease-in-out infinite alternate; }
-@keyframes tiger-stomp { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-12px) rotate(5deg); } }
-.beast.tiger { width: 124px; height: 100px; }
-.beast.tiger img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 6px #3ad0c0) drop-shadow(0 2px 0 #0007); }
+.beast.tiger { width: 132px; height: 111px; }
+.beast.tiger .px { width: 132px; height: 111px; background: url(assets/px_xuanhu.png) no-repeat 0 0 / 792px 111px; image-rendering: pixelated; animation: tiger-idle .9s steps(2) infinite; filter: drop-shadow(0 0 5px #3ad0c0) drop-shadow(0 2px 0 #0007); }
+.beast.tiger.flip .px { scale: -1 1; }
+.beast.tiger.walk .px { animation: tiger-walk calc(var(--step) * .75) steps(4) infinite; }
+@keyframes tiger-idle { from { background-position-x: 0; } to { background-position-x: -264px; } }
+@keyframes tiger-walk { from { background-position-x: -264px; } to { background-position-x: -792px; } }
 .beast.phantom { width: 96px; height: 87px; opacity: .55; filter: hue-rotate(160deg) saturate(1.4) drop-shadow(0 0 8px #9adfff); animation: phantom-bob 1.8s ease-in-out infinite alternate; }
 .beast.phantom .px { width: 96px; height: 87px; background-repeat: no-repeat; background-size: 576px 87px; image-rendering: pixelated; animation: px-idle .9s steps(2) infinite; }
+.beast.phantom.absorb { transition: left var(--step) cubic-bezier(.5, 0, .9, .6), top var(--step) cubic-bezier(.5, 0, .9, .6), scale var(--step) ease-in, opacity var(--step) ease-in; scale: .35; opacity: .9; filter: hue-rotate(160deg) saturate(2) brightness(1.6) drop-shadow(0 0 14px #bfefff); }
+.piece.drink .px { filter: drop-shadow(0 0 10px #bfefff) brightness(1.35); }
 @keyframes phantom-bob { from { translate: 0 0; } to { translate: 0 -8px; } }

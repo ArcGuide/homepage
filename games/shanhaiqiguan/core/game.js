@@ -315,12 +315,11 @@
           s.tiles[j].s = { k: kind, o: p.id, n, v: 0, perm: false }; await io.ev({ t: 'tile', tile: j });
         }
       },
-      phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，同时只有一个
-        s.phantoms = s.phantoms.filter((x) => x.o !== p.id);
+      phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，可以同时有好几个
         const c = s.tiles.map((x, j) => j).filter((j) => SJ.BOARD[j].adj.length >= 2 && SJ.BOARD[j].type !== 'corner' && j !== p.pos);
         const at = c[ri(s, c.length)];
         const gold = Math.round(Math.max(p.gold, 50) * mul);
-        s.phantoms.push({ o: p.id, pos: at, from: SJ.BOARD[at].adj[0], gold });
+        s.phantoms.push({ id: (s.phSeq = (s.phSeq || 0) + 1), o: p.id, pos: at, from: SJ.BOARD[at].adj[0], gold });
         await io.ev({ t: 'beasts' });
         await io.ev({ t: 'msg', kind: 'skill', text: `九尾狐的虚影出现了，身上带着 ${gold} 金` });
       },

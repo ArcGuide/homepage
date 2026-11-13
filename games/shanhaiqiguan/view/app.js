@@ -258,7 +258,7 @@
   let beastEls = [];
   function renderBeasts() {
     const st = $('#stage'); if (!st) return;
-    const want = [...(S.beasts || []).map((b, k) => ['tiger' + k, b.pos, 'tiger']), ...(S.phantoms || []).map((ph, k) => ['ph' + ph.o, ph.pos, 'phantom', ph.o])];
+    const want = [...(S.beasts || []).map((b, k) => ['tiger' + k, b.pos, 'tiger']), ...(S.phantoms || []).map((ph, k) => ['ph' + (ph.id || ph.o), ph.pos, 'phantom', ph.o])];
     beastEls = beastEls.filter((e) => { if (want.some((w) => w[0] === e.dataset.k)) return true; e.remove(); return false; });
     for (const [k, pos, kind, o] of want) {
       let e = beastEls.find((x) => x.dataset.k === k);

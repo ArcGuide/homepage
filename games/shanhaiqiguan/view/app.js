@@ -388,7 +388,7 @@
 
   function showPlayer(i) { sfx.click(); heroPanel(S.players[i]); }
 
-  const BUFF = { atkPct: '攻击', wingAtk: '振翼加攻', def: '防御', dodge: '闪避', crit: '暴击', thorn: '反伤', lifesteal: '吸血', tollCut: '过路费减免', buildCut: '建造减免', fly: '飞行', stepMul: '步数翻倍', towerAtk: '塔攻击', undying: '打不死', revive: '还魂', twin: '连打两下', absorb: '吸收伤害', pool: '形夭', scorch: '焚身', trail: '赤足', autoUp: '路过升级', regen: '每回合回血', venom: '攻击带毒', soar: '展翅', vault: '蓄水', avatar: '兵主降世', fear: '无首之惧', qianli: '赤地千里', deathRite: '向死而生', holdUp: '守城升级', steps: '步数' };
+  const BUFF = { atkPct: '攻击', wingAtk: '振翼加攻', def: '防御', dodge: '闪避', crit: '暴击', thorn: '反伤', lifesteal: '吸血', tollCut: '过路费减免', buildCut: '建造减免', fly: '飞行', stepMul: '步数翻倍', towerAtk: '塔攻击', undying: '打不死', revive: '还魂', twin: '连打两下', absorb: '吸收伤害', pool: '形夭', scorch: '焚身', trail: '赤足', autoUp: '路过升级', regen: '每回合回血', venom: '攻击带毒', soar: '展翅', vault: '蓄水', avatar: '兵主降世', fear: '无首之惧', qianli: '赤地千里', deathRite: '向死而生', riteAfter: '向死而生余威', bldAtk: '筑城加攻', bldDef: '筑城加防', procUp: '指南车几率', holdUp: '守城升级', steps: '步数' };
   const TIER = ['', '消耗品', '二阶', '三阶', '四阶', '神器'];
 
   // 英雄面板。act 存在时是自己回合，可以操作；否则只看

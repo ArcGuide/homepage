@@ -100,16 +100,18 @@
 
   SJ.heroStats = function (s, p) {
     const h = SJ.HEROES[p.hero];
-    let atk = h.atk + (p.level - 1) * (h.atkUp || 1) + treasure(p, 'atk') + (p.atkBonus || 0);
+    const nb = pv(p, 'bldAtk') || pv(p, 'bldDef') ? s.tiles.filter((t) => t.owner === p.id && t.b).length : 0; // 筑城令：按自家建筑数加攻防
+    const rite = p.buffs.find((b) => b.k === 'deathRite' || b.k === 'riteAfter'); // 向死而生：每回合加的攻击
+    let atk = h.atk + (p.level - 1) * (h.atkUp || 1) + treasure(p, 'atk') + (p.atkBonus || 0) + pv(p, 'bldAtk') * nb + (rite && rite.a || 0);
     atk *= 1 + ownFx(s, p, 'heroAtk');
     const lit = pv(p, 'candleNear') && nearCandle(s, p.pos, p.id) ? pv(p, 'candleNear') : 0;
     atk *= 1 + pv(p, 'landAtk') * SJ.lands(s, p) + pv(p, 'atkPct') + pv(p, 'wingAtk') + lit + pv(p, 'avatar');
-    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + lit;
+    const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + lit + pv(p, 'bldDef') * nb;
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
     const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge');
     const k0 = SJ.SKILLS[p.hero][0], base = p.sk[0] && k0.pr ? k0.pr[p.sk[0] - 1] : 0;
-    const proc = base ? base + ownFx(s, p, 'heroProc') + treasure(p, 'proc') : 0;
+    const proc = base ? base + ownFx(s, p, 'heroProc') + treasure(p, 'proc') + pv(p, 'procUp') : 0;
     return { atk, def, dodge, proc, hp: p.hp, maxhp: p.maxhp };
   };
 
@@ -247,6 +249,7 @@
         o = o || {};
         const c = { n: 0 };
         p._dash = k.id; // 画面按技能放位移动画
+        if (o.vary) n += ri(s, 2 * o.vary + 1) - o.vary; // 步数上下浮动
         try { await move(s, io, p, n, false, fly, c); } finally { delete p._dash; }
         if (!p.alive || s.over) return;
         if (o.heal) { const v = heal(p, Math.round(p.maxhp * o.heal * c.n)); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); }
@@ -254,6 +257,16 @@
           const lost = Math.min(p.hp - 1, Math.round(p.maxhp * o.bloodGold[0] * c.n)), money = o.bloodGold[1] * c.n;
           if (lost > 0) { p.hp -= lost; await io.ev({ t: 'hurt', pid: p.id, n: lost, why: k.name }); }
           if (money) { gain(s, p, money); await io.ev({ t: 'gold', pid: p.id, n: money, why: k.name }); }
+        }
+        if (o.swapHp) { // 还魂疾走：停在敌人建筑上，和它交换剩余生命百分比
+          const t = s.tiles[p.pos];
+          if (t.b && t.owner != null && t.owner !== p.id) {
+            const m = SJ.tileMaxHp(t), bp = (t.hp != null ? t.hp : m) / m, hp0 = p.hp, hpPct = p.hp / p.maxhp;
+            p.hp = Math.max(1, Math.round(p.maxhp * bp)); t.hp = Math.max(1, Math.round(m * hpPct)); if (t.hp >= m) t.hp = null;
+            await io.ev({ t: 'tile', tile: p.pos });
+            if (p.hp > hp0) await io.ev({ t: 'heal', pid: p.id, n: p.hp - hp0 }); else if (p.hp < hp0) await io.ev({ t: 'hurt', pid: p.id, n: hp0 - p.hp, why: k.name });
+            await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 和${SJ.bdef(t).name}互换了生命：自己 ${Math.round(bp * 100)}%，建筑 ${Math.round(hpPct * 100)}%` });
+          }
         }
         if (o.turn) turnAround(s, p);
         if (o.candle) await placeCandle(s, io, p);
@@ -413,7 +426,7 @@
   }
 
   // 向死而生的重生概率：平时 30%，献祭期间每回合 +10%
-  SJ.rebornChance = (p) => { if (!p.sk[3]) return 0; const b = p.buffs.find((x) => x.k === 'deathRite'); return 0.3 + (b ? b.v : 0); };
+  SJ.rebornChance = (p) => { if (!p.sk[3]) return 0; const b = p.buffs.find((x) => x.k === 'deathRite' || x.k === 'riteAfter'); return 0.3 + (b ? b.v : 0); };
 
   SJ._eliminate = eliminate; SJ._playCard = playCard; SJ._landOn = (...x) => landOn(...x); // 测试用
 
@@ -1300,11 +1313,11 @@
       });
       for (let i = 0; i < s.tiles.length; i++) { const t = s.tiles[i]; if (t.s && t.s.o === p.id && !t.s.perm && --t.s.n <= 0) { const k = t.s.k; t.s = null; await io.ev({ t: 'tile', tile: i }); if (k === 'stones') await stoneSettle(s, io, p, i); } }
       if (hasBuff(p, 'deathRite')) { // 向死而生：每回合献出一成血和钱，重生概率 +10%
-        const b = p.buffs.find((x) => x.k === 'deathRite'); b.v = Math.round((b.v + 0.1) * 10) / 10;
+        const b = p.buffs.find((x) => x.k === 'deathRite'); b.v = Math.round((b.v + 0.1) * 10) / 10; b.a = (b.a || 0) + 3;
         const hv = Math.min(p.hp - 1, Math.round(p.maxhp * 0.1)), gv = Math.floor(p.gold * 0.1);
         if (hv > 0) { p.hp -= hv; await io.ev({ t: 'hurt', pid: p.id, n: hv, why: '向死而生' }); }
         p.gold -= gv;
-        await io.ev({ t: 'msg', kind: 'skill', text: `向死而生：献出 ${hv} 血、${gv} 金，建筑重生概率 ${Math.round(SJ.rebornChance(p) * 100)}%` });
+        await io.ev({ t: 'msg', kind: 'skill', text: `向死而生：献出 ${hv} 血、${gv} 金，建筑重生概率 ${Math.round(SJ.rebornChance(p) * 100)}%，攻击 +${b.a}` });
       }
       if (p.id === 0 && s.round % SJ.TUNE.chestEvery === 0) { // 天降宝箱
         const c = SJ.BOARD.map((b, i) => i).filter((i) => ['land', 'wild'].includes(SJ.BOARD[i].type) && !s.tiles[i].b && !s.players.some((q) => q.pos === i));
@@ -1360,6 +1373,7 @@
       const ended = p.buffs.filter((b) => b.n <= 1);
       p.buffs = p.buffs.filter((b) => --b.n > 0);
       for (const b of ended) {
+        if (b.k === 'deathRite' && p.alive) { addBuff(p, 'riteAfter', b.v, 2); p.buffs[p.buffs.length - 1].a = b.a || 0; } // 向死而生：加成再留 2 回合
         if (b.k === 'pool') p.pool = 0;
         if (b.k === 'vault' && p.alive) { const v = Math.round(p.vault * (1 + b.v)); p.vault = 0; if (v) { gain(s, p, v); await io.ev({ t: 'gold', pid: p.id, n: v, why: '蓄水' }); } }
         if (b.k === 'absorb' && p.store && p.alive) { const v = Math.round(p.store * b.v); p.store = 0; if (v) { await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 吸收的伤害一起爆发` }); await hurtPlain(s, io, p, v, '被自己吸收的伤害压垮'); } }

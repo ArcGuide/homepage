@@ -337,13 +337,13 @@
           s.tiles[j].s = { k: kind, o: p.id, n, v: 0, perm: false }; await io.ev({ t: 'tile', tile: j });
         }
       },
-      phantom: async (mul) => { // 狐媚：凭空变出带钱的虚影，同时只能有一个（can 里挡）
+      phantom: async (per) => { // 狐媚：凭空变出带钱的虚影，钱数 = 每轮 per × 当前轮数（至少按第 5 轮算），不看身家，不会利滚利；同时只能有一个（can 里挡）
         // 不管地图大小，都在离九尾狐 12–18 格的地方出现
         const d = SJ.distFrom(p.pos), ok = (j) => SJ.BOARD[j].adj.length >= 2 && SJ.BOARD[j].type !== 'corner' && d[j] > 0;
         let c = s.tiles.map((x, j) => j).filter((j) => ok(j) && d[j] >= SJ.PH_NEAR && d[j] <= SJ.PH_FAR);
         if (!c.length) { const m = Math.max(...d.filter((x, j) => ok(j))); c = s.tiles.map((x, j) => j).filter((j) => ok(j) && d[j] === m); }
         const at = c[ri(s, c.length)];
-        const gold = Math.round(Math.max(p.gold, 50) * mul);
+        const gold = per * Math.max(5, s.round);
         s.phantoms.push({ id: (s.phSeq = (s.phSeq || 0) + 1), o: p.id, pos: at, from: SJ.BOARD[at].adj[0], gold });
         await io.ev({ t: 'beasts' });
         await io.ev({ t: 'msg', kind: 'skill', text: `九尾狐的虚影出现了，身上带着 ${gold} 金` });

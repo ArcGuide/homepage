@@ -147,6 +147,10 @@
     return { kind: 'building', name: b.name, id: b.id, hp: t.hp != null ? t.hp : maxhp, maxhp, atk, def, dodge: (fx.dodge || 0) + (terr === 'forest' ? 0.15 : 0), crit: fx.crit || 0, fx, tile: i };
   }
 
+  // 后期通胀：到了这张图的后期（高阶宝物全解锁那一轮）起，过路费每轮再复利涨 2%
+  SJ.lateRound = () => (SJ.MAP.tierAt || [30, 60])[1];
+  SJ.TUNE.inflate = 0.02;
+  SJ.inflation = (s) => (s.round > SJ.lateRound() ? Math.pow(1 + SJ.TUNE.inflate, s.round - SJ.lateRound()) : 1);
   SJ.toll = function (s, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
     let v = SJ.TOLL[SJ.tileLevel(t)];
@@ -156,6 +160,7 @@
     const all = s.tiles.every((x, j) => SJ.BOARD[j].type !== 'land' || SJ.BOARD[j].region !== reg || x.owner === t.owner);
     if (all) v *= 2;
     v *= 1 + s.round * SJ.TUNE.tollGrow * (SJ.MAP.grow || 1);
+    v *= SJ.inflation(s); // 后期通胀
     const op = s.players[t.owner]; if (op) v *= 1 + treasure(op, 'tollUp');
     return Math.round(v);
   };

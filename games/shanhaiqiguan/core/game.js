@@ -782,6 +782,7 @@
   async function giveArtifact(s, io, p) {
     const a = SJ.ARTIFACTS[ri(s, SJ.ARTIFACTS.length)];
     p.art = { id: a.id, n: a.n }; p.hadArt = true;
+    if (a.id === 'xinghupan') p.cd = p.cd.map(() => 0); // 拿到当回合就清
     await io.ev({ t: 'artifact', pid: p.id, id: a.id });
   }
   const artChance = (s, p) => SJ.bigMap() && !p.hadArt && s.round >= (SJ.MAP.tierAt || [30, 60])[1];
@@ -1288,7 +1289,7 @@
     s.stats.turns++;
     if (p.alive) {
       await io.ev({ t: 'turn', pid: p.id });
-      p.cd = p.cd.map((c, j) => Math.max(0, c - 1 - (SJ.SKILLS[p.hero][j].ult ? 0 : treasure(p, 'cdFast')) - (hasArt(p, 'xinghupan') ? 2 : 0))); // 河图对大招无效
+      p.cd = hasArt(p, 'xinghupan') ? p.cd.map(() => 0) : p.cd.map((c, j) => Math.max(0, c - 1 - (SJ.SKILLS[p.hero][j].ult ? 0 : treasure(p, 'cdFast')))); // 星弧星盘：每回合冷却全清；河图对大招无效
       { const rg = stat(p, 'regen'); if (rg) { const v = heal(p, rg); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } }
       // 收入
       let inc = 0, taken = 0, taken2 = null;

@@ -142,7 +142,7 @@
   SJ.ARTIFACTS = [
     AR('xinghuzhui', '星弧吊坠', '12 轮内，路过的自家 1 级建筑自动升到 2 级，然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
     AR('busishu', '不死树果', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing golden fruit from the immortal tree of Kunlun with jade leaves'),
-    AR('xinghupan', '星弧星盘', '12 轮内，技能冷却每回合多减 2，然后消失', 12, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
+    AR('xinghupan', '星弧星盘', '5 回合内所有技能（包括大招）没有冷却，每回合都能放，然后消失', 5, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
   ];
   // 给玩家看的技能说明：有点故事味。上面的 desc 是精确规则，留给设计文档和批注表
   SJ.SAY = {

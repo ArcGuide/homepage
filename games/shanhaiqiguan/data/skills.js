@@ -140,7 +140,7 @@
   // 5 阶：神器。只在大型地图的后期宝箱里出现，每个英雄一局最多拿到一次，不占宝物栏
   const AR = (id, name, desc, n, ic) => ({ id, name, desc, n, ic, tier: 5 });
   SJ.ARTIFACTS = [
-    AR('xinghuzhui', '星弧吊坠', '12 轮内，路过的自家 1 级建筑自动升到 2 级，然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
+    AR('xinghuzhui', '星弧吊坠', '12 回合内，路过的自家建筑自动升一级（最高 3 级），然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
     AR('busishu', '不死树果', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing golden fruit from the immortal tree of Kunlun with jade leaves'),
     AR('xinghupan', '星弧星盘', '5 回合内所有技能（包括大招）没有冷却，每回合都能放，然后消失', 5, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
   ];

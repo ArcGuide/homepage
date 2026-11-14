@@ -1008,7 +1008,7 @@
       if (!p.alive || s.over) break;
       const t = s.tiles[i];
       if (scorch && t.owner != null && t.owner !== p.id && t.b) { const m = SJ.tileMaxHp(t); t.hp = Math.max(1, (t.hp != null ? t.hp : m) - scorch); await io.ev({ t: 'tile', tile: i }); }
-      if (t.owner === p.id && t.b && (hasBuff(p, 'autoUp') ? SJ.tileLevel(t) < 3 : hasArt(p, 'xinghuzhui') && SJ.tileLevel(t) === 1)) await upgradeTile(s, io, p, i); // 翼覆千里：路过升一级；星弧吊坠只升 1 级
+      if (t.owner === p.id && t.b && SJ.tileLevel(t) < 3 && (hasBuff(p, 'autoUp') || hasArt(p, 'xinghuzhui'))) await upgradeTile(s, io, p, i); // 翼覆千里、星弧吊坠：路过的自家建筑升一级
     }
   }
 

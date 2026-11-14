@@ -1,7 +1,7 @@
 // 音效都用 WebAudio 现场合成；背景音乐是 assets/music 里的曲子。
 // 所有声音都走 out()：主音量 -> 压缩器；一部分送进混响。
 (function () {
-  const S = window.SJ.sfx = { muted: false, volume: 0.9 };
+  const S = window.SJ.sfx = { muted: false, volume: 0.75 };
   try { S.muted = localStorage.getItem('sijing.mute') === '1'; } catch (e) { /* 无痕模式 */ }
   let offline = false, ctx = null, bus = null, wet = null, master = null, noiseBuf = null, amb = null, ambWant = null;
 
@@ -166,9 +166,9 @@
     setTimeout(() => { a.nodes.forEach((n) => { try { n.stop(); } catch (e) { /* 已停 */ } }); a.gain.disconnect(); }, 650);
   };
 
-  // ---------- 背景音乐：Suno 生成的曲子，按地图风格轮播（同一风格几首打乱顺序），环境音叠在下面 ----------
+  // ---------- 背景音乐：Suno 生成的曲子，每张地图一首，环境音叠在下面 ----------
   // 走 WebAudio 的增益节点淡入淡出（iPhone 上 audio.volume 改不了）；静音跟总开关走
-  const MUSIC = { title: ['title'], kunlun: ['mountain1', 'mountain2', 'mountain3'], penglai: ['sea1', 'sea2', 'sea3'], youdu: ['underground1', 'underground2'], starc: ['starc'] };
+  const MUSIC = { title: ['title'], kunlun: ['mountain1'], zhuolu: ['mountain2'], kunqiu: ['mountain3'], penglai: ['sea1'], tanggu: ['sea2'], xiandao: ['sea3'], youdu: ['underground1'], taodu: ['underground2'], starc: ['starc'] }; // 每张地图一首，循环放
   S.musicVol = 0.45;
   let mus = null, musId = null, musList = [];
   function musFade(m, to, sec) { const t = ctx.currentTime, g = m.g.gain; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(to, t + sec); }

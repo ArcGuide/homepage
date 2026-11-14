@@ -235,7 +235,7 @@
     $('#b-zoom').onclick = () => { all = false; B.zoomDefault(); B.cam.free = 0; focusCur(300); }; // 不小心缩放了，一键回到原比例
     $('#mini').onclick = (e) => { const r = e.target.getBoundingClientRect(); B.cam.x = (e.clientX - r.left) / r.width * B.W; B.cam.y = (e.clientY - r.top) / r.height * B.H; B.cam.free = Date.now() + 3000; B.apply(200); };
     focusCur(0);
-    sfx.ambient((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map); sfx.music(S.map);
+    sfx.ambient((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map); sfx.music(S.map); sfx.preload(S.players.map((p) => p.hero));
     runLoop();
   }
 
@@ -707,7 +707,7 @@
   async function ultShow(e) {
     const p = S.players[e.pid], u = ULT[e.sk];
     logLine(`${p.name} 释放大招 ${e.name}`);
-    sfx.ult(u.fx === 'eye' ? 'lids' : u.fx === 'wargod' || u.fx === 'spirit' ? 'blades' : u.fx === 'drought' || u.fx === 'sunrise' ? 'sun' : u.fx === 'jade' ? 'heal' : u.fx === 'hydra' ? 'blades' : u.fx);
+    sfx.ult(u.fx === 'eye' ? 'lids' : u.fx === 'wargod' || u.fx === 'spirit' ? 'blades' : u.fx === 'drought' || u.fx === 'sunrise' ? 'sun' : u.fx === 'jade' ? 'heal' : u.fx === 'hydra' ? 'blades' : u.fx, p.hero);
     const c0 = { x: B.cam.x, y: B.cam.y, z: B.cam.z }, { x, y } = iso(p.pos);
     B.cam.free = 0; B.cam.x = x; B.cam.y = y - 40; B.cam.z = Math.min(1.6, c0.z * 1.3); B.apply(450 / speed);
     const [hx, hy] = toScreen(x, y - 10);

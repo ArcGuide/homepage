@@ -109,8 +109,9 @@
     blink() { tone(1200, 0.25, { to: 300, vol: 0.05, wet: true }); hiss(0.25, { f: 4000, to: 900, q: 3, vol: 0.05, wet: true }); },
     land() { tone(90, 0.3, { to: 45, type: 'triangle', vol: 0.18 }); hiss(0.25, { f: 500, q: 0.7, vol: 0.12 }); },
     ping(kind) { if (kind === 'bad') { tone(300, 0.3, { to: 180, type: 'triangle', vol: 0.08 }); } else { pluck(5, 0, 0.07); pluck(8, 0.08, 0.06); } },
-    // 大招全屏动画的配乐
-    ult(fx) {
+    // 大招全屏动画的配乐；有录音素材的英雄（龙吟、虎啸、狐鸣……）再叠一层录音
+    ult(fx, hero) {
+      if (ULT_REC.includes(hero)) rec('ult_' + hero, 0.6);
       tone(55, 1.6, { to: 40, type: 'triangle', vol: 0.22, attack: 0.02 }); hiss(1.2, { f: 300, to: 2400, q: 0.8, vol: 0.08, attack: 0.3, wet: true });
       if (fx === 'drum') [0.25, 0.75, 1.25].forEach((at) => { tone(70, 0.45, { to: 38, type: 'sine', vol: 0.32, at }); hiss(0.18, { f: 200, q: 0.6, vol: 0.2, at }); metal(240, 0.6, { vol: 0.05, at }); });
       else if (fx === 'sun') { hiss(1.6, { f: 400, to: 1800, q: 0.5, vol: 0.14, attack: 0.4 }); tone(98, 1.4, { type: 'sawtooth', vol: 0.04, attack: 0.3 }); }
@@ -165,6 +166,20 @@
     const t = ctx.currentTime; a.gain.gain.cancelScheduledValues(t); a.gain.gain.setValueAtTime(Math.max(a.gain.gain.value, 0.0001), t); a.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
     setTimeout(() => { a.nodes.forEach((n) => { try { n.stop(); } catch (e) { /* 已停 */ } }); a.gain.disconnect(); }, 650);
   };
+
+  // ---------- 录音素材：assets/sfx 里的 m4a，开局预先解码 ----------
+  const ULT_REC = ['yinglong', 'tubo', 'jiuweihu', 'yayu', 'chiyou', 'xingtian'];
+  const REC = {};
+  function load(name) {
+    if (REC[name] || offline || !ac()) return;
+    REC[name] = fetch(`assets/sfx/${name}.m4a`).then((r) => r.arrayBuffer()).then((b) => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))).then((buf) => { REC[name] = buf; }).catch(() => { REC[name] = null; });
+  }
+  function rec(name, vol) {
+    if (offline || !ac()) return;
+    const b = REC[name]; if (!(b instanceof AudioBuffer)) { load(name); return; }
+    const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; g.gain.value = vol; s.connect(g); g.connect(master); s.start();
+  }
+  S.preload = (heroes) => heroes.forEach((h) => { if (ULT_REC.includes(h)) load('ult_' + h); });
 
   // ---------- 背景音乐：Suno 生成的曲子，每张地图一首，环境音叠在下面 ----------
   // 走 WebAudio 的增益节点淡入淡出（iPhone 上 audio.volume 改不了）；静音跟总开关走

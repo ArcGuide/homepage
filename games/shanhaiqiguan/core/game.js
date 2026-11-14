@@ -294,7 +294,7 @@
       reclaim: async () => {
         let n = 0;
         for (let j = 0; j < s.tiles.length; j++) { const m = s.tiles[j].s; if (m && m.k === 'candle' && m.o === p.id) { s.tiles[j].s = null; n++; await io.ev({ t: 'tile', tile: j }); } }
-        const atk = Math.round(n * 2) / 10; p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
+        const atk = Math.round(n * 5) / 10; p.maxhp += n * 2; p.hp += n * 2; p.atkBonus = (p.atkBonus || 0) + atk;
         await io.ev({ t: 'msg', kind: 'skill', text: `烛龙收回 ${n} 个【烛】，最大血 +${n * 2}${atk ? `，攻击 +${atk}` : ''}` });
       },
       elixir: async (cost, f) => { // 不死灵药：花一成金币回血；别人付同样的钱给窫窳，回窫窳回血量的一半；付不起的交出全部金币，不回血
@@ -1023,7 +1023,7 @@
       await io.ev({ t: 'move', pid: p.id, path, dash: p._dash, fly: !!fly });
       if (!dry) await passOver(s, io, p, last ? path.slice(0, -1) : path);
       if (p.alive && p.level < SJ.TUNE.walkXpLevel && gainXp(s, p, path.length * SJ.TUNE.walkXp)) await io.ev({ t: 'levelup', pid: p.id, level: p.level }); // 5 级前走一格 1 经验
-      if (p.alive && hasBuff(p, 'trail')) for (const i of path) if (!s.tiles[i].s) { s.tiles[i].s = { k: 'fire', o: p.id, n: 3, v: 2 }; await io.ev({ t: 'tile', tile: i }); }
+      if (p.alive && hasBuff(p, 'trail')) for (const i of path) if (!s.tiles[i].s) { s.tiles[i].s = { k: 'fire', o: p.id, n: 3, v: 3 }; await io.ev({ t: 'tile', tile: i }); }
       if (p.alive && p._burn) { const v = p._burn; delete p._burn; await hurtPlain(s, io, p, v, '死在火焰里'); }
     };
     while (left > 0 && p.alive && !s.over) {

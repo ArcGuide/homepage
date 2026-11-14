@@ -33,9 +33,9 @@
       S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家建筑免费升一级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
     ],
     nuba: [
-      S('dahan', '大旱', 'passive', 0, `敌方攻击有 ${pct([0.06, 0.09, 0.12])} 落空`, { pv: { dodge: [0.06, 0.09, 0.12] } }, 'a blazing sun over cracked dry earth'),
-      S('fenshen', '焚身', 'buff', 5, `${L([2, 3, 4])} 回合内，路过的敌方建筑每座掉 ${L([10, 15, 20])} 血`, { go: (g, k) => g.buff('scorch', [10, 15, 20][k], [2, 3, 4][k]) }, 'a woman silhouette wrapped in flames'),
-      S('chidi', '赤足', 'buff', 6, `${L([3, 4, 5])} 回合内走过的格子留下火焰，敌人踩到掉 2 血，火焰留 3 轮`, { go: (g, k) => g.buff('trail', 1, [3, 4, 5][k]) }, 'a ring of fire on red earth'),
+      S('dahan', '大旱', 'passive', 0, `敌方攻击有 ${pct([0.08, 0.12, 0.16])} 落空`, { pv: { dodge: [0.08, 0.12, 0.16] } }, 'a blazing sun over cracked dry earth'),
+      S('fenshen', '焚身', 'buff', 5, `${L([2, 3, 4])} 回合内，路过的敌方建筑每座掉 ${L([15, 20, 25])} 血`, { go: (g, k) => g.buff('scorch', [15, 20, 25][k], [2, 3, 4][k]) }, 'a woman silhouette wrapped in flames'),
+      S('chidi', '赤足', 'buff', 6, `${L([3, 4, 5])} 回合内走过的格子留下火焰，敌人踩到掉 3 血，火焰留 3 轮`, { go: (g, k) => g.buff('trail', 1, [3, 4, 5][k]) }, 'a ring of fire on red earth'),
       S('qianli', '赤地千里', 'econ', 12, '3 轮内，其他所有玩家每回合的收入全归你', { ult: true, go: (g) => g.buff('qianli', 1, 3) }, 'a parched red landscape with withered crops under a huge sun'),
     ],
     chiyou: [
@@ -66,7 +66,7 @@
       S('jiutou', '九首连噬', 'passive', 0, `一场战斗里越打越狠：第 1 下额外 +${L([0.2, 0.4, 0.6])} 伤害，第 2 下 +${L([0.6, 1.2, 1.8])}，第 3 下 +${L([1.2, 2.4, 3.6])}，依次累加`, { pv: { stackHit: [0.2, 0.4, 0.6] } }, 'nine snake heads striking together'),
       S('duxue', '噬血', 'buff', 5, `3 回合内吸血 ${pct([0.2, 0.3, 0.4])}`, { go: (g, k) => { g.buff('lifesteal', [0.2, 0.3, 0.4][k], 3); } }, 'fangs dripping green and red venom'),
       S('duze', '毒泽', 'summon', 6, `在脚下和前后各一格吐出毒泽，共 3 格，持续 ${L([3, 4, 5])} 轮。敌人停在上面（路过不算），接下来 3 回合的收入全归相柳，不掉血`, { go: (g, k) => g.spread('poison', [3, 4, 5][k]) }, 'a bubbling green poison swamp'),
-      S('tunshan', '九首吞山', 'buff', 12, '4 回合内每次出手都连打 9 段，每段攻击力 12%', { ult: true, go: (g) => g.buff('nine', 1, 4) }, 'a nine-headed serpent devouring a mountain'),
+      S('tunshan', '九首吞山', 'buff', 12, '5 回合内每次出手都连打 9 段，每段攻击力 12%', { ult: true, go: (g) => g.buff('nine', 1, 5) }, 'a nine-headed serpent devouring a mountain'),
     ],
     yayu: [
       S('fusheng', '不死灵药', 'heal', 5, `花掉 10% 金币，回 ${pct([0.25, 0.3, 0.35])} 最大血。其他玩家都要付同样的钱给你，付得起的回你这次回血量的一半；付不起的交出全部金币，不回血`, { go: (g, k) => g.elixir(0.1, [0.25, 0.3, 0.35][k]) }, 'a glowing jade medicine bottle'),
@@ -90,7 +90,7 @@
       S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击和防御各 +${pct([0.08, 0.12, 0.16])}。学会后所有【烛】都有这个特点：烛龙在【烛】前后 2 格内攻击和防御各 +${pct([0.04, 0.08, 0.12])}`, { pv: { candleNear: [0.04, 0.08, 0.12] }, go: (g, k) => { g.candle(); g.buff('atkPct', [0.08, 0.12, 0.16][k], 3); g.buff('def', [0.08, 0.12, 0.16][k], 3); } }, 'a huge glowing eye opening'),
       S('zhuzhao', '烛照', 'buff', 5, `在脚下放一个【烛】；3 回合内暴击率 +${pct([0.05, 0.1, 0.15])}。学会后所有【烛】都有这个特点：烛龙在【烛】前后 2 格内付的过路费减 ${pct([0.15, 0.3, 0.45])}`, { pv: { candleToll: [0.15, 0.3, 0.45] }, go: (g, k) => { g.candle(); g.buff('crit', [0.05, 0.1, 0.15][k], 3); } }, 'a burning candle held in a serpent mouth'),
       S('xianzhu', '衔烛夜行', 'move', 5, `向前游 ${L([6, 9, 12])} 格，在起点和终点各留一个【烛】。学会后所有【烛】都有这个特点：其他英雄停在【烛】上，传送到随机另一个【烛】并掉 ${L([5, 10, 15])} 血，这两个【烛】随后消失`, { pv: { candleHurt: [5, 10, 15] }, go: (g, k) => { g.candle(); g.dash([6, 9, 12][k], false, { candle: true }); } }, 'a red serpent gliding through night with a candle'),
-      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2、攻击永久 +0.2', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
+      S('zhuyin', '烛阴闭目', 'buff', 12, '回收地图上所有【烛】，每个让最大血永久 +2、攻击永久 +0.5', { ult: true, go: (g) => g.reclaim() }, 'a giant closed serpent eye in a dark sky'),
     ],
   };
 
@@ -154,9 +154,9 @@
     xushui: '应龙把全部金币像水一样蓄起来，3 回合后开闸放出，多出 15% / 30% / 45%。',
     zhenyi: '应龙振翼高飞，向前飞 6 / 9 / 12 格，地形和路障都拦不住。飞过的每一格，都让接下来 3 回合的攻击 +2%。',
     yifu: '应龙双翼遮天，6 回合内飞行、步数翻倍，掠过的自家建筑都长高一级。',
-    dahan: '女魃所到之处一片大旱，敌人热得眼花，出手有 6% / 9% / 12% 打空。',
-    fenshen: '女魃浑身燃起旱火，2 / 3 / 4 回合内路过的敌方建筑，每座被烤掉 10 / 15 / 20 血。',
-    chidi: '女魃赤足走过的地方会烧起来。3 / 4 / 5 回合内留下的火能烧 3 轮，敌人踩上去掉 2 血。',
+    dahan: '女魃所到之处一片大旱，敌人热得眼花，出手有 8% / 12% / 16% 打空。',
+    fenshen: '女魃浑身燃起旱火，2 / 3 / 4 回合内路过的敌方建筑，每座被烤掉 15 / 20 / 25 血。',
+    chidi: '女魃赤足走过的地方会烧起来。3 / 4 / 5 回合内留下的火能烧 3 轮，敌人踩上去掉 3 血。',
     qianli: '赤地千里，颗粒无收。3 轮内，其他所有玩家每回合的收入，都流进女魃的口袋。',
     bingqi: '蚩尤以血饲刃。每次出手先割下自己眼下一成的血，再把它化成 125% / 150% / 175% 的伤害砍向对手。',
     xueji: '杀到兴起，蚩尤有 20% 的机会献上 5% 最大血，一口气连砍 2 / 3 / 4 下。',
@@ -177,7 +177,7 @@
     jiutou: '相柳九个头轮番咬上来，一场仗里越咬越狠：第 1 下多咬 0.2 / 0.4 / 0.6 伤害，第 2 下多 0.6 / 1.2 / 1.8，第 3 下多 1.2 / 2.4 / 3.6，一直往上叠。',
     duxue: '相柳毒牙见血，3 回合内吸血 20% / 30% / 40%。',
     duze: '相柳吐出一片毒泽，盖住脚下和前后各一格，留 3 / 4 / 5 轮。敌人路过没事，要是停在毒泽里，不掉血，但接下来 3 回合的收入都归相柳。',
-    tunshan: '九个头一齐张口吞山。4 回合内每次出手都连咬 9 口，每口是 12% 的攻击力。',
+    tunshan: '九个头一齐张口吞山。5 回合内每次出手都连咬 9 口，每口是 12% 的攻击力。',
     fusheng: '窫窳花一成金币熬一炉不死药，回 25% / 30% / 35% 最大血。别的玩家都得掏同样多的钱来讨一口：掏得起的回窫窳这次回血量的一半，掏不起的交出全部金币，一口也喝不上。',
     huanhun: '窫窳死了还能活过来，带着 25% 的血复活，代价是自家建筑随机塌掉：第一次 3 座，之后每复活一次多塌 6 / 5 / 4 座，建筑不够就活不过来。每活一次，攻击永久 +2。',
     jizou: '窫窳一路狂奔 5–7 / 11–13 / 17–19 格，每格献出 5% 最大血，换 100 金。要是停在敌人的建筑上，就和这座建筑互换剩余生命的百分比。',
@@ -193,7 +193,7 @@
     zhengyan: '烛龙一睁眼，天就亮了。在脚下放一支【烛】，3 回合内攻击和防御各 +8% / 12% / 16%。学会后，烛龙在任何【烛】前后 2 格内，攻击和防御各 +4% / 8% / 12%。',
     zhuzhao: '在脚下放一支【烛】，3 回合内暴击 +5% / 10% / 15%。学会后，烛龙在任何【烛】前后 2 格内，付的过路费少 15% / 30% / 45%。',
     xianzhu: '烛龙衔烛夜行，向前游 6 / 9 / 12 格，在起点和终点各留一支【烛】。学会后，别的英雄停在【烛】上，会被烛光卷到另一支【烛】，掉 5 / 10 / 15 血，两支【烛】随后熄灭。',
-    zhuyin: '烛龙闭眼，天就黑了。收回地图上所有的【烛】，每支让最大血永久 +2、攻击永久 +0.2。',
+    zhuyin: '烛龙闭眼，天就黑了。收回地图上所有的【烛】，每支让最大血永久 +2、攻击永久 +0.5。',
   };
   for (const h in SJ.SKILLS) for (const k of SJ.SKILLS[h]) k.say = SJ.SAY[k.id] || k.desc;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -76,6 +76,20 @@
     heal() { [5, 7, 8].forEach((n, i) => pluck(n, i * 0.1, 0.07)); tone(1320, 0.75, { vol: 0.03, at: 0.08, wet: true, attack: 0.2 }); },
   };
 
+  // 小技能里没有录音的，按技能特点单独合成
+  const poof = (at) => { hiss(0.18, { f: 1400, to: 300, q: 0.7, vol: 0.12, at }); tone(320, 0.14, { to: 640, type: 'triangle', vol: 0.05, at }); }; // 烛火点燃
+  const SK_SYN = {
+    chezhen() { hiss(1.0, { f: 180, q: 0.6, vol: 0.12, attack: 0.15 }); for (let i = 0; i < 7; i++) tone(150, 0.05, { type: 'triangle', to: 90, vol: 0.09, at: 0.08 + i * 0.12 }); metal(880, 0.7, { vol: 0.05, at: 0.1 }); metal(1046, 0.7, { vol: 0.04, at: 0.55 }); },
+    chidi() { tone(90, 0.25, { to: 50, type: 'triangle', vol: 0.16 }); hiss(0.55, { f: 3600, q: 0.8, vol: 0.06, at: 0.05, attack: 0.05 }); for (let i = 0; i < 5; i++) tone(2400 + Math.random() * 1800, 0.02, { vol: 0.02, at: 0.1 + Math.random() * 0.4 }); },
+    duanshou() { [0, 0.22].forEach((at) => tone(65, 0.35, { to: 40, vol: 0.24, at })); tone(98, 0.75, { type: 'sawtooth', vol: 0.035, at: 0.1, attack: 0.15 }); tone(104, 0.75, { type: 'sawtooth', vol: 0.035, at: 0.12, attack: 0.15 }); },
+    mengzhi() { hiss(0.7, { f: 200, to: 1300, q: 1, vol: 0.1, attack: 0.55 }); tone(60, 0.7, { to: 130, type: 'triangle', vol: 0.08, attack: 0.5 }); tone(80, 0.3, { to: 40, vol: 0.22, at: 0.68 }); },
+    tufu() { [0, 0.2, 0.4].forEach((at, i) => { tone(85 - i * 8, 0.22, { to: 45, type: 'triangle', vol: 0.2, at }); hiss(0.12, { f: 420, q: 0.8, vol: 0.12, at }); }); tone(190, 0.05, { type: 'triangle', vol: 0.06, to: 110, at: 0.42 }); },
+    humei() { [4, 5, 7, 9].forEach((n, i) => pluck(n, i * 0.08, 0.06)); tone(1760, 0.8, { vol: 0.02, at: 0.15, wet: true, attack: 0.2 }); tone(1772, 0.8, { vol: 0.02, at: 0.15, wet: true, attack: 0.2 }); },
+    zhengyan() { poof(0); tone(110, 0.6, { to: 82, type: 'triangle', vol: 0.1, at: 0.12, attack: 0.1 }); metal(330, 0.6, { vol: 0.04, at: 0.2 }); },
+    zhuzhao() { poof(0); tone(880, 0.6, { type: 'triangle', vol: 0.05, at: 0.1, attack: 0.1, wet: true }); tone(1320, 0.6, { vol: 0.04, at: 0.14, attack: 0.1, wet: true }); },
+    xianzhu() { poof(0); hiss(0.6, { f: 500, to: 1600, q: 2, vol: 0.08, at: 0.08, attack: 0.1 }); tone(150, 0.5, { to: 300, type: 'triangle', vol: 0.05, at: 0.08 }); poof(0.55); },
+  };
+
   Object.assign(S, {
     click() { tone(880, 0.06, { type: 'triangle', vol: 0.09 }); tone(1320, 0.04, { vol: 0.05, at: 0.015 }); },
     turn() { pluck(3, 0, 0.08); pluck(5, 0.1, 0.08); },
@@ -89,7 +103,8 @@
     miss() { hiss(0.17, { f: 1600, to: 500, q: 2, vol: 0.17 }); },
     stun() { [0, 0.09, 0.18].forEach((at) => tone(1800, 0.07, { vol: 0.04, at, to: 1200 })); },
     skill() { tone(392, 0.16, { type: 'sawtooth', vol: 0.05 }); tone(587, 0.2, { type: 'triangle', vol: 0.09, at: 0.07, wet: true }); tone(880, 0.34, { type: 'triangle', vol: 0.09, at: 0.15, wet: true }); hiss(0.3, { f: 2200, q: 1, vol: 0.06, at: 0.05 }); },
-    cast(kind) { (CAST[kind] || CAST.buff)(); },
+    cast(kind, id) { if (SK_REC.includes(id) && rec('sk_' + id, 0.55)) return; (SK_SYN[id] || CAST[kind] || CAST.buff)(); },
+    light() { if (!rec('xing_light', 0.6)) S.portal(); }, // 天弧之光的传送
     build() { [0, 0.11, 0.22].forEach((at, i) => { tone(150 + i * 20, 0.07, { type: 'triangle', vol: 0.14, at }); hiss(0.04, { f: 1800, q: 1, vol: 0.09, at }); }); pluck(4, 0.3, 0.07); },
     fire() { hiss(0.6, { f: 500, to: 2200, q: 0.6, vol: 0.18, attack: 0.05 }); for (let i = 0; i < 6; i++) tone(2000 + Math.random() * 2000, 0.02, { vol: 0.025, at: 0.05 + Math.random() * 0.45 }); },
     block() { tone(95, 0.2, { type: 'triangle', to: 55, vol: 0.2 }); metal(420, 0.26, { vol: 0.06 }); },
@@ -169,17 +184,18 @@
 
   // ---------- 录音素材：assets/sfx 里的 m4a，开局预先解码 ----------
   const ULT_REC = ['yinglong', 'tubo', 'jiuweihu', 'yayu', 'chiyou', 'xingtian'];
+  const SK_REC = ['xushui', 'zhenyi', 'fenshen', 'ganqi', 'denglin', 'benpao', 'fanzhen', 'zhenmu', 'duxue', 'duze', 'fusheng', 'jizou', 'huanxing', 'tianhai', 'zhanchi'];
   const REC = {};
   function load(name) {
     if (REC[name] || offline || !ac()) return;
     REC[name] = fetch(`assets/sfx/${name}.m4a`).then((r) => r.arrayBuffer()).then((b) => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))).then((buf) => { REC[name] = buf; }).catch(() => { REC[name] = null; });
   }
   function rec(name, vol) {
-    if (offline || !ac()) return;
-    const b = REC[name]; if (!(b instanceof AudioBuffer)) { load(name); return; }
-    const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; g.gain.value = vol; s.connect(g); g.connect(master); s.start();
+    if (offline || !ac()) return false;
+    const b = REC[name]; if (!(b instanceof AudioBuffer)) { load(name); return false; }
+    const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; g.gain.value = vol; s.connect(g); g.connect(master); s.start(); return true;
   }
-  S.preload = (heroes) => heroes.forEach((h) => { if (ULT_REC.includes(h)) load('ult_' + h); });
+  S.preload = (heroes) => { load('xing_light'); heroes.forEach((h) => { if (ULT_REC.includes(h)) load('ult_' + h); (window.SJ.SKILLS[h] || []).forEach((k) => { if (SK_REC.includes(k.id)) load('sk_' + k.id); }); }); };
 
   // ---------- 背景音乐：Suno 生成的曲子，每张地图一首，环境音叠在下面 ----------
   // 走 WebAudio 的增益节点淡入淡出（iPhone 上 audio.volume 改不了）；静音跟总开关走

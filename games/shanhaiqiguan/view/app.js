@@ -566,7 +566,7 @@
       }
       case 'jump': if (e.light && pieces[e.pid]) { // 天弧之光：化成蓝光，一道光飞过去，再从光里现身
         const pc = pieces[e.pid], x0 = parseFloat(pc.style.left), y0 = parseFloat(pc.style.top), q = iso(e.pos), ms = 560 / speed;
-        sfx.portal(); fxAt(x0, y0, 'arc-beam', 1000); pc.classList.add('arc-out'); await wait(380);
+        sfx.light(); fxAt(x0, y0, 'arc-beam', 1000); pc.classList.add('arc-out'); await wait(380);
         const orb = fxAt(x0, y0 - 40, 'arc-orb', ms + 400, 9e5); pc.style.setProperty('--step', '0ms'); placePieces();
         B.look(q.x, q.y - 40, ms); await wait(30); if (orb) { orb.style.transition = `left ${ms}ms ease-in-out, top ${ms}ms ease-in-out`; orb.style.left = `${q.x}px`; orb.style.top = `${q.y - 34}px`; }
         await wait(560); orb?.remove(); fxAt(q.x, q.y + 6, 'arc-beam', 1000); pc.classList.add('arc-in'); pc.classList.remove('arc-out'); await wait(620); pc.classList.remove('arc-in'); break;
@@ -582,7 +582,7 @@
         const m = h(`<div class="castfx" style="left:${q.x}px;top:${q.y - 70}px">${img('sk_' + e.sk)}<b>${e.name}</b></div>`);
         st.append(m); setTimeout(() => m.remove(), 1300 / speed);
         if (ULT[e.sk]) { await ultShow(e); renderPlayers(); break; }
-        sfx.cast(SJ.SKILLS[S.players[e.pid].hero].find((k) => k.id === e.sk).kind); logLine(`${S.players[e.pid].name} 释放 ${e.name}`); B.look(q.x, q.y - 40, 200); renderPlayers(); await wait(900); break;
+        sfx.cast(SJ.SKILLS[S.players[e.pid].hero].find((k) => k.id === e.sk).kind, e.sk); logLine(`${S.players[e.pid].name} 释放 ${e.name}`); B.look(q.x, q.y - 40, 200); renderPlayers(); await wait(900); break;
       }
       case 'casted': {
         soarSync(); S.tiles.forEach((_, i) => renderTile(i)); renderPlayers();

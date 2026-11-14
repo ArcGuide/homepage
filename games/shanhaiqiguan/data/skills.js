@@ -121,7 +121,7 @@
     T(4, 'shenshu', '神荼索', '吸血 25%', { lifesteal: 0.25 }, 'a glowing reed rope binding a ghost'),
     T(4, 'jiuding', '九州鼎', '每回合 +100 金，防御 +10%', { income: 100, def: 0.1 }, 'a great bronze tripod cauldron'),
     T(4, 'wangmuyao', '西王母药', '血量上限 +100，每回合回 10 血', { hp: 100, regen: 10 }, 'a jade bottle of the queen mother elixir with a peach'),
-    T(4, 'xinghuhui', '星弧徽章', '所有经验 +100%，技能触发 +10%', { xpMul: 1, proc: 0.1 }, 'a round silver academy badge with a glowing star arc emblem'),
+    T(4, 'xinghuhui', '星弧徽章', '所有经验 +100%，技能触发 +10%', { xpMul: 1, proc: 0.1 }, 'a round silver academy badge with the STARC Institute logo on a navy enamel center'),
   ];
 
   // 1 阶：消耗品。路过宝铺得 1 个，停下得 2 个；最多带 4 个（应战帖不算），满了再拿到就挤掉最早拿到的那个。点一下马上用掉
@@ -140,9 +140,9 @@
   // 5 阶：神器。只在大型地图的后期宝箱里出现，每个英雄一局最多拿到一次，不占宝物栏
   const AR = (id, name, desc, n, ic) => ({ id, name, desc, n, ic, tier: 5 });
   SJ.ARTIFACTS = [
-    AR('xinghuzhui', '星弧吊坠', '12 轮内，路过的自家 1 级建筑自动升到 2 级，然后消失', 12, 'a glowing pendant shaped like a silver star arc on a fine chain'),
+    AR('xinghuzhui', '星弧吊坠', '12 轮内，路过的自家 1 级建筑自动升到 2 级，然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
     AR('busishu', '不死树果', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing golden fruit from the immortal tree of Kunlun with jade leaves'),
-    AR('xinghupan', '星弧星盘', '12 轮内，技能冷却每回合多减 2，然后消失', 12, 'a bronze astrolabe plate engraved with a star arc and constellations, glowing'),
+    AR('xinghupan', '星弧星盘', '12 轮内，技能冷却每回合多减 2，然后消失', 12, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
   ];
   // 给玩家看的技能说明：有点故事味。上面的 desc 是精确规则，留给设计文档和批注表
   SJ.SAY = {

@@ -248,7 +248,7 @@
     st.insertAdjacentHTML('beforeend', B.tilesSvg());
     SJ.BOARD.forEach((_, i) => renderTile(i));
     S.players.forEach((p) => {
-      const e = h(`<div class="piece" style="--pc:${PCOLOR[p.id]}"><div class="aura"><b class="wl"></b><b class="wr"></b><i></i><i></i><i></i><i></i><i></i></div><div class="px" style="background-image:url(assets/px_${p.hero}.png)"></div></div>`);
+      const e = h(`<div class="piece" style="--pc:${PCOLOR[p.id]}"><div class="aura"><b class="wl"></b><b class="wr"></b><i></i><i></i><i></i><i></i><i></i></div><div class="px" style="background-image:url(assets/px_${p.hero}.png)"></div>${ARTMARK}</div>`);
       pieces[p.id] = e; st.append(e);
     });
     placePieces();
@@ -305,7 +305,10 @@
   // 精卫展翅的造型：放技能时状态还没加上，所以掷骰、走路时也要再刷一次
   // 加持期间人物换造型：翼覆千里金龙之气，兵主降世血焰，形夭战魂，与日逐走背日
   const has = (p, k) => p.buffs.some((b) => b.k === k);
+  // 拿着神器时头顶的星弧小标：一颗星、一道弧
+  const ARTMARK = '<div class="artmark"><svg viewBox="0 0 44 32"><defs><linearGradient id="amArc" x1="0" x2="1"><stop offset="0" stop-color="#3d8bff" stop-opacity="0"/><stop offset=".55" stop-color="#7cc4ff"/><stop offset="1" stop-color="#e6f4ff"/></linearGradient></defs><path d="M3 27 Q 20 15 41 19" fill="none" stroke="url(#amArc)" stroke-width="4.2" stroke-linecap="round"/><path d="M22 2 L24.6 8.6 L31.5 9.1 L26.2 13.6 L27.9 20.4 L22 16.7 L16.1 20.4 L17.8 13.6 L12.5 9.1 L19.4 8.6 Z" fill="#8cc8ff" stroke="#e6f4ff" stroke-width="1" stroke-linejoin="round"/></svg></div>';
   const FORMS = {
+    hasart: (p) => !!p.art,
     soar: (p) => has(p, 'soar'),
     yifu: (p) => has(p, 'fly'),
     berserk: (p) => has(p, 'avatar'),
@@ -415,7 +418,7 @@
         ${Object.keys(p.status).length ? `<p>状态：${Object.entries(p.status).map(([k, n]) => `${SJ.STATUS[k]?.[0] || k} ${n}`).join('、')}</p>` : ''}</div></div>
       <h4>技能</h4><div class="sks">${list.map(skill).join('')}</div>
       <h4>消耗品 <small>最多 4 个，满了挤掉最早的（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); return c ? `<button class="slot t1" ${act ? `data-a='{"a":"use","i":${i}}'` : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
-      ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : ''}</small></div></div>`; })() : ''}
+      ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : p.art.uses ? `（还剩 ${p.art.uses} 次）` : ''}</small></div></div>`; })() : ''}
       <h4>宝物 <small>最多装备 4 件${act ? '，点一下卸下' : ''}</small></h4><div class="slots">${p.items.map((id, i) => item(id, `{"a":"unequip","i":${i}}`)).join('')}</div>
       ${p.bag.length ? `<h4>包袱 <small>${act ? '点一下装备' : ''}</small></h4><div class="slots">${p.bag.map((id, i) => item(id, p.items.includes(null) ? `{"a":"equip","i":${i}}` : `{"a":"sell","i":${i}}`)).join('')}</div>${act && !p.items.includes(null) ? '<p class="note">宝物栏满了：先卸下一件，或者点包袱里的宝物卖掉。</p>' : ''}` : ''}
       <div class="btn-row"><button class="btn primary" id="hp-close">${act ? '返回' : '关闭'}</button></div></div></div>`);
@@ -561,7 +564,13 @@
         if (D) { const { x, y } = iso(end); trail(x, y + 6, 'land'); if (D.fly) sfx.land(); }
         p.pos = end; placePieces(); break;
       }
-      case 'jump': { sfx.portal(); const pc = pieces[e.pid]; pc.style.setProperty('--step', '0ms'); placePieces(); const q = iso(e.pos); B.look(q.x, q.y - 40, 300); await wait(620); break; }
+      case 'jump': if (e.light && pieces[e.pid]) { // 天弧之光：化成蓝光，一道光飞过去，再从光里现身
+        const pc = pieces[e.pid], x0 = parseFloat(pc.style.left), y0 = parseFloat(pc.style.top), q = iso(e.pos), ms = 560 / speed;
+        sfx.portal(); fxAt(x0, y0, 'arc-beam', 1000); pc.classList.add('arc-out'); await wait(380);
+        const orb = fxAt(x0, y0 - 40, 'arc-orb', ms + 400, 9e5); pc.style.setProperty('--step', '0ms'); placePieces();
+        B.look(q.x, q.y - 40, ms); await wait(30); if (orb) { orb.style.transition = `left ${ms}ms ease-in-out, top ${ms}ms ease-in-out`; orb.style.left = `${q.x}px`; orb.style.top = `${q.y - 34}px`; }
+        await wait(560); orb?.remove(); fxAt(q.x, q.y + 6, 'arc-beam', 1000); pc.classList.add('arc-in'); pc.classList.remove('arc-out'); await wait(620); pc.classList.remove('arc-in'); break;
+      } else { sfx.portal(); const pc = pieces[e.pid]; pc.style.setProperty('--step', '0ms'); placePieces(); const q = iso(e.pos); B.look(q.x, q.y - 40, 300); await wait(620); break; }
       case 'msg': logLine(e.text); toast(e.text, e.kind); if (/拦下/.test(e.text)) sfx.block(); renderPlayers(); placePieces(); if (e.kind === 'skill') sfx.skill(); await wait(800); break;
       case 'tile': if (e.look) await lookTile(e.tile, e.look); renderTile(e.tile, e.built || e.buy); renderPlayers(); if (e.built || e.buy) sfx.build(); if (e.fire) sfx.fire(); if (e.built) logLine(`${S.players[e.pid].name} 建造了 ${SJ.BUILDINGS[S.tiles[e.tile].b].name}`); await wait(e.fire ? 450 : 240); break;
       case 'toll': { renderPlayers(); const q = S.players[e.to], p = S.players[e.pid]; logLine(`${p.name} 付给 ${q.name} ${e.n} 金`); floaty(e.pid, `-${e.n}`, '#ffd76a'); sfx.pay(); await wait(560); break; }

@@ -47,7 +47,7 @@
     xingtian: [
       S('duanshou', '断首再战', 'buff', 5, `被动：血越少攻击越高，最多 +${pct([0.5, 0.8, 1.2])}。主动：3 回合内，交战的对手因无首的恐惧，攻击和防御各降 ${pct([0.2, 0.3, 0.4])}`, { pv: { lowHp: [0.5, 0.8, 1.2] }, go: (g, k) => g.buff('fear', [0.2, 0.3, 0.4][k], 3) }, 'a headless torso with a roaring face on the chest'),
       S('ganqi', '干戚舞', 'buff', 5, `被动：反弹伤害，血越少反弹越多，最多 ${pct([0.35, 0.55, 0.75])}。主动：3 回合内攻击和闪避各 +${pct([0.05, 0.1, 0.15])}`, { pv: { thornLow: [0.35, 0.55, 0.75] }, go: (g, k) => { g.buff('atkPct', [0.05, 0.1, 0.15][k], 3); g.buff('dodge', [0.05, 0.1, 0.15][k], 3); } }, 'a crossed battle axe and round shield'),
-      S('mengzhi', '猛志', 'buff', 6, `被动：血越少暴击越高，最多 +${pct([0.15, 0.3, 0.45])}。主动：3 回合内吸收全部伤害，结束时一次受到吸收总量的 ${pct([1, 0.75, 0.5])}`, { pv: { critLow: [0.15, 0.3, 0.45] }, go: (g, k) => g.buff('absorb', [1, 0.75, 0.5][k], 3) }, 'a charging warrior silhouette with dust'),
+      S('mengzhi', '猛志', 'buff', 7, `被动：血越少暴击越高，最多 +${pct([0.15, 0.3, 0.45])}。主动：3 回合内吸收全部伤害，结束时一次受到吸收总量的 ${pct([1, 0.75, 0.5])}`, { pv: { critLow: [0.15, 0.3, 0.45] }, go: (g, k) => g.buff('absorb', [1, 0.75, 0.5][k], 3) }, 'a charging warrior silhouette with dust'),
       S('xingyao', '形夭', 'buff', 12, '血量高于 20% 才能用：血量降到 20%，多出的血存起来。12 回合内，每回合结束时血量低于 20% 就从存量补到 20%，到期存量清零', { ult: true, can: (p) => p.hp > p.maxhp * 0.2, go: (g) => g.pool(12) }, 'a headless giant rising with blazing spirit'),
     ],
     kuafu: [
@@ -83,7 +83,7 @@
     jingwei: [
       S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 9% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),
       S('tianhai', '填海', 'summon', 5, `在身后连放 3 块石头，${L([9, 7, 5])} 轮后自然消失。敌方英雄停在石头上（路过不算），石头碎掉，他掉 ${pct([0.03, 0.06, 0.09])} 最大血、交 ${pct([0.03, 0.06, 0.09])} 金币给你。石头自然消失时看脚下：无主领地归你；你的地建筑升一级；敌人的地建筑掉 25% 血；其他格子什么都不发生`, { go: (g, k) => g.behind('stones', 3, [9, 7, 5][k] - (g.lv(3) ? 1 : 0), [0.03, 0.06, 0.09][k]) }, 'a pile of round pebbles in waves'),
-      S('zhanchi', '展翅', 'buff', 7, '2 回合内飞在空中，停下时什么都不触发：不战斗、不交过路费，也不买地、不遇异兽', { go: (g) => g.buff('soar', 1, 2) }, 'small bird wings in flight over sea'),
+      S('zhanchi', '展翅', 'buff', 7, '2 回合内飞在空中，停下时什么都不触发：不战斗、不交过路费，也不买地、不遇异兽。河图减不了它的冷却', { noFast: true, go: (g) => g.buff('soar', 1, 2) }, 'small bird wings in flight over sea'),
       S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头少等 1 轮；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
     ],
     zhulong: [
@@ -115,7 +115,7 @@
     T(3, 'yuchan', '玉蝉', '技能触发 +10%，经验 +50%', { proc: 0.1, xpMul: 0.5 }, 'a jade cicada carving'),
     T(4, 'xuanyuanjian', '轩辕剑', '攻击 +15，暴击 +10%', { atk: 15, crit: 0.1 }, 'a legendary golden sword with sun and moon on the blade'),
     T(4, 'xirang', '息壤', '自家过路费 +50%，建筑每回合多回血', { tollUp: 0.5, repair: 0.1 }, 'a glowing lump of self-growing magic soil'),
-    T(4, 'hetu', '河图', '技能触发 +15%，冷却每回合多减 1（大招除外）', { proc: 0.15, cdFast: 1 }, 'an ancient diagram scroll of dots carried on a dragon horse'),
+    T(4, 'hetu', '河图', '技能触发 +15%，冷却每回合多减 1（大招和精卫的展翅除外）', { proc: 0.15, cdFast: 1 }, 'an ancient diagram scroll of dots carried on a dragon horse'),
     T(4, 'luoshu', '洛书', '建造升级便宜 40%', { buildCut: 0.4 }, 'a turtle shell with a magic square of dots'),
     T(4, 'dengzhang', '夸父杖', '步数 +3，每回合回 6 血', { steps: 3, regen: 6 }, 'a giant wooden staff with leaves sprouting'),
     T(4, 'shenshu', '神荼索', '吸血 25%', { lifesteal: 0.25 }, 'a glowing reed rope binding a ghost'),
@@ -141,9 +141,9 @@
   const AR = (id, name, desc, n, ic) => ({ id, name, desc, n, ic, tier: 5 });
   SJ.ARTIFACTS = [
     AR('xinghuzhui', '星弧吊坠', '12 回合内，路过的自家建筑自动升一级（最高 3 级），然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
-    AR('busishu', '星弧甘露', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing crystal water droplet with the STARC Institute logo on a navy center'),
-    AR('xinghuguang', '星弧之光', '8 回合内：掷骰后直接传送到 3 倍步数远的地方，路上什么都不触发、不受地形和路障影响；每回合多走一次；闪避 +80%', 8, 'a radiant starburst of light around the STARC Institute logo on a navy center'),
-    AR('xinghupan', '星弧星盘', '5 回合内所有技能（包括大招）没有冷却，每回合都能放，然后消失', 5, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
+    AR('busishu', '星星甘露', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing crystal water droplet with a glowing blue star on a navy center'),
+    AR('xinghuguang', '天弧之光', '8 回合内：掷骰后直接传送到 3 倍步数远的地方，路上什么都不触发、不受地形和路障影响；每回合多走一次；闪避 +80%', 8, 'a radiant starburst of light around a glowing blue arc on a navy center'),
+    AR('xinghupan', '深蓝星盘', '接下来 4 次放技能不受冷却限制（包括大招），用完消失；技能本来就好了的不算次数', null, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
   ];
   // 给玩家看的技能说明：有点故事味。上面的 desc 是精确规则，留给设计文档和批注表
   SJ.SAY = {

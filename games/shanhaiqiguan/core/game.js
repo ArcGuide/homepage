@@ -210,7 +210,7 @@
     if (i === 3) return p.sk[3] === 0 && p.level >= 6;
     return p.sk[i] < 3 && p.level >= p.sk[i] * 2 + 1;
   };
-  SJ.canCast = (p, i, s) => { const k = SJ.SKILLS[p.hero][i]; return !!k.go && p.sk[i] > 0 && p.cd[i] <= 0 && (!k.can || k.can(p, s || SJ._s)); };
+  SJ.canCast = (p, i, s) => { const k = SJ.SKILLS[p.hero][i]; return !!k.go && p.sk[i] > 0 && (p.cd[i] <= 0 || (p.art && p.art.id === 'xinghupan' && p.art.uses > 0)) && (!k.can || k.can(p, s || SJ._s)); };
   // 土府：站在自家建筑上，而且这座还不是土府
   SJ.canTufu = (s, p) => { const t = s.tiles[p.pos]; return t.owner === p.id && !!t.b && SJ.BUILDINGS[t.b].branch !== 'tufu'; };
 
@@ -239,6 +239,9 @@
   async function cast(s, io, p, i) {
     if (!SJ.canCast(p, i, s)) return;
     const k = SJ.SKILLS[p.hero][i], lv = p.sk[i] - 1;
+    if (p.cd[i] > 0) { // 深蓝星盘：冷却中的技能照放，用掉一次
+      if (--p.art.uses <= 0) { const a = SJ.artOf(p.art.id); p.art = null; await io.ev({ t: 'msg', text: `${a.name}的光芒散去了` }); } else await io.ev({ t: 'msg', kind: 'skill', text: `${SJ.artOf('xinghupan').name}还能再免 ${p.art.uses} 次冷却` });
+    }
     p.cd[i] = Array.isArray(k.cd) ? k.cd[lv] : k.cd;
     await io.ev({ t: 'cast', pid: p.id, sk: k.id, name: k.name });
     const g = {
@@ -393,9 +396,9 @@
 
   async function eliminate(s, io, p, killer, why) {
     if (!p.alive) return;
-    if (p.art && p.art.id === 'busishu') { // 星弧甘露：满血加 1000 金复活
+    if (p.art && p.art.id === 'busishu') { // 星星甘露：满血加 1000 金复活
       p.art = null; p.hp = p.maxhp; gain(s, p, 1000);
-      await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 饮下星弧甘露，满血复活，还得到 1000 金` });
+      await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 饮下星星甘露，满血复活，还得到 1000 金` });
       return;
     }
     if (hasBuff(p, 'revive')) {
@@ -788,7 +791,7 @@
   async function giveArtifact(s, io, p) {
     const a = SJ.ARTIFACTS[ri(s, SJ.ARTIFACTS.length)];
     p.art = { id: a.id, n: a.n }; p.hadArt = true;
-    if (a.id === 'xinghupan') p.cd = p.cd.map(() => 0); // 拿到当回合就清
+    if (a.id === 'xinghupan') p.art.uses = 4; // 深蓝星盘：4 次免冷却
     await io.ev({ t: 'artifact', pid: p.id, id: a.id });
   }
   const artChance = (s, p) => SJ.bigMap() && !p.hadArt && s.round >= (SJ.MAP.tierAt || [30, 60])[1];
@@ -1287,14 +1290,14 @@
     return d1 === d2;
   }
 
-  // 星弧之光：顺着路数出 n 格，直接传过去，路上什么都不触发，地形不算步数
+  // 天弧之光：顺着路数出 n 格，直接传过去，路上什么都不触发，地形不算步数
   async function lightJump(s, io, p, n, back) {
     if (back) turnAround(s, p);
     let pos = p.pos, from = p.from;
     for (let k = 0; k < n; k++) { let o = SJ.BOARD[pos].adj.filter((x) => x !== from); if (!o.length) o = [from]; const nx = o[ri(s, o.length)]; from = pos; pos = nx; }
     p.pos = pos; p.from = from;
     await io.ev({ t: 'jump', pid: p.id, pos, light: true });
-    await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 化作星弧之光，一闪到了 ${n} 格外` });
+    await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 化作天弧之光，一闪到了 ${n} 格外` });
   }
 
   SJ.takeTurn = async function (s, io) {
@@ -1306,7 +1309,7 @@
     s.stats.turns++;
     if (p.alive) {
       await io.ev({ t: 'turn', pid: p.id });
-      p.cd = hasArt(p, 'xinghupan') ? p.cd.map(() => 0) : p.cd.map((c, j) => Math.max(0, c - 1 - (SJ.SKILLS[p.hero][j].ult ? 0 : treasure(p, 'cdFast')))); // 星弧星盘：每回合冷却全清；河图对大招无效
+      p.cd = p.cd.map((c, j) => { const k = SJ.SKILLS[p.hero][j]; return Math.max(0, c - 1 - (k.ult || k.noFast ? 0 : treasure(p, 'cdFast'))); }); // 河图对大招和展翅无效
       { const rg = stat(p, 'regen'); if (rg) { const v = heal(p, rg); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } }
       // 收入
       let inc = 0, taken = 0, taken2 = null;
@@ -1361,7 +1364,7 @@
           await io.ev({ t: 'msg', text: `${p.name} 这回合动不了` });
         } else {
           let again = true, doubles = 0;
-          s.extra = hasArt(p, 'xinghuguang') ? 1 : 0; // 星弧之光：每回合多走一次
+          s.extra = hasArt(p, 'xinghuguang') ? 1 : 0; // 天弧之光：每回合多走一次
           while (again && p.alive && !s.over) {
             const dbl = await rollAndGo(s, io, p);
             if (!p.alive || s.over) break;

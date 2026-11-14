@@ -482,3 +482,20 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .beast.phantom.absorb { transition: left var(--step) cubic-bezier(.5, 0, .9, .6), top var(--step) cubic-bezier(.5, 0, .9, .6), scale var(--step) ease-in, opacity var(--step) ease-in; scale: .35; opacity: .9; filter: hue-rotate(160deg) saturate(2) brightness(1.6) drop-shadow(0 0 14px #bfefff); }
 .piece.drink .px { filter: drop-shadow(0 0 10px #bfefff) brightness(1.35); }
 @keyframes phantom-bob { from { translate: 0 0; } to { translate: 0 -8px; } }
+/* 神器：头顶的星弧小标 */
+.piece .artmark { position: absolute; left: 50%; top: -6px; width: 40px; height: 29px; margin-left: -20px; z-index: 3; display: none; filter: drop-shadow(0 0 2px #3d8bff) drop-shadow(0 0 6px #3d8bffaa); animation: artbob 1.6s ease-in-out infinite alternate; }
+.piece .artmark svg { display: block; width: 100%; height: 100%; }
+.piece.hasart .artmark { display: block; }
+.piece.yifu .artmark, .piece.dash-zhenyi .artmark { translate: 0 -34px; }
+.piece.soar .artmark { translate: 0 -64px; }
+@keyframes artbob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+/* 天弧之光：原地化成蓝光柱，一团光飞过去，再从光柱里现身 */
+.piece.arc-out { transition: opacity .34s ease-in, filter .34s ease-in; opacity: 0; filter: brightness(2.6) drop-shadow(0 0 10px #5aa8ff); }
+.piece.arc-in { transition: opacity .45s ease-out, filter .7s ease-out; }
+.arc-beam { position: absolute; width: 0; height: 0; pointer-events: none; }
+.arc-beam::before { content: ""; position: absolute; left: -24px; bottom: 0; width: 48px; height: 190px; border-radius: 24px 24px 50% 50%; background: linear-gradient(to top, #f2f9ff, #8fd0ffee 22%, #3d8bffaa 60%, #3d8bff00); transform-origin: 50% 100%; animation: arc-beam 1s ease-out forwards; box-shadow: 0 0 30px 6px #3d8bff66; }
+.arc-beam::after { content: ""; position: absolute; left: -50px; top: -17px; width: 100px; height: 34px; border-radius: 50%; border: 3px solid #9fd4ff; box-shadow: 0 0 14px 4px #3d8bffaa, inset 0 0 12px #7cc4ff; animation: arc-ring 1s ease-out forwards; }
+@keyframes arc-beam { 0% { transform: scale(.3, 0); opacity: 0; } 25% { transform: scale(1, 1); opacity: 1; } 60% { transform: scale(.7, 1.05); opacity: .9; } 100% { transform: scale(.1, 1.1); opacity: 0; } }
+@keyframes arc-ring { 0% { transform: scale(.2); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+.arc-orb { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, #fff 0 18%, #9fd4ff 40%, #3d8bff88 65%, #3d8bff00 72%); box-shadow: 0 0 26px 10px #3d8bff99, 0 0 60px 20px #3d8bff44; animation: arc-orb .2s ease-in-out infinite alternate; }
+@keyframes arc-orb { to { transform: scale(1.18); } }

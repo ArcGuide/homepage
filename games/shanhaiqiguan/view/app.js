@@ -305,10 +305,22 @@
   // 精卫展翅的造型：放技能时状态还没加上，所以掷骰、走路时也要再刷一次
   // 加持期间人物换造型：翼覆千里金龙之气，兵主降世血焰，形夭战魂，与日逐走背日
   const has = (p, k) => p.buffs.some((b) => b.k === k);
-  // 拿着神器时头顶的星弧小标：一颗星、一道弧
-  const ARTMARK = '<div class="artmark"><svg viewBox="0 0 44 32"><defs><linearGradient id="amArc" x1="0" x2="1"><stop offset="0" stop-color="#3d8bff" stop-opacity="0"/><stop offset=".55" stop-color="#7cc4ff"/><stop offset="1" stop-color="#e6f4ff"/></linearGradient></defs><path d="M3 27 Q 20 15 41 19" fill="none" stroke="url(#amArc)" stroke-width="4.2" stroke-linecap="round"/><path d="M22 2 L24.6 8.6 L31.5 9.1 L26.2 13.6 L27.9 20.4 L22 16.7 L16.1 20.4 L17.8 13.6 L12.5 9.1 L19.4 8.6 Z" fill="#8cc8ff" stroke="#e6f4ff" stroke-width="1" stroke-linejoin="round"/></svg></div>';
+  // 拿着神器时头顶的小标，每件神器不一样：星弧吊坠是转着的圆环，星星甘露是几颗闪的星星，天弧之光是一道弧，深蓝星盘是一颗星加一道弧
+  // 弧的渐变只定义一次，放在一个不隐藏的 0 尺寸 svg 里（定义在 display:none 的 svg 里时 Chrome 不渲染）
+  document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="amArc" x1="0" x2="1"><stop offset="0" stop-color="#3d8bff" stop-opacity="0"/><stop offset=".55" stop-color="#7cc4ff"/><stop offset="1" stop-color="#e6f4ff"/></linearGradient></defs></svg>');
+  const ARTMARK = '<div class="artmark">'
+    + '<svg class="m-xinghupan" viewBox="0 0 44 32"><path d="M3 27 Q 20 15 41 19" fill="none" stroke="url(#amArc)" stroke-width="4.2" stroke-linecap="round"/><path d="M22 2 L24.6 8.6 L31.5 9.1 L26.2 13.6 L27.9 20.4 L22 16.7 L16.1 20.4 L17.8 13.6 L12.5 9.1 L19.4 8.6 Z" fill="#8cc8ff" stroke="#e6f4ff" stroke-width="1" stroke-linejoin="round"/></svg>'
+    + '<svg class="m-xinghuzhui" viewBox="0 0 44 32"><ellipse cx="22" cy="18" rx="18" ry="7" fill="none" stroke="#2f6fe0" stroke-width="3.2"/><ellipse cx="22" cy="18" rx="12" ry="4.2" fill="none" stroke="#8cc8ff" stroke-width="1.6"/><circle r="2.6" fill="#e6f4ff"><animateMotion dur="2.4s" repeatCount="indefinite" path="M40 18 A18 7 0 1 1 4 18 A18 7 0 1 1 40 18"/></circle></svg>'
+    + '<svg class="m-busishu" viewBox="0 0 44 32" fill="#8cc8ff" stroke="#e6f4ff" stroke-width="1.4" stroke-linejoin="round">'
+    + '<g class="tw"><path transform="translate(22 13) scale(0.9)" d="M0 -10 L2.6 -3.4 L9.5 -2.9 L4.2 1.6 L5.9 8.4 L0 4.7 L-5.9 8.4 L-4.2 1.6 L-9.5 -2.9 L-2.6 -3.4 Z"/></g><g class="tw"><path transform="translate(8 22) scale(0.55)" d="M0 -10 L2.6 -3.4 L9.5 -2.9 L4.2 1.6 L5.9 8.4 L0 4.7 L-5.9 8.4 L-4.2 1.6 L-9.5 -2.9 L-2.6 -3.4 Z"/></g><g class="tw"><path transform="translate(36 22) scale(0.6)" d="M0 -10 L2.6 -3.4 L9.5 -2.9 L4.2 1.6 L5.9 8.4 L0 4.7 L-5.9 8.4 L-4.2 1.6 L-9.5 -2.9 L-2.6 -3.4 Z"/></g><g class="tw"><path transform="translate(33 5) scale(0.35)" d="M0 -10 L2.6 -3.4 L9.5 -2.9 L4.2 1.6 L5.9 8.4 L0 4.7 L-5.9 8.4 L-4.2 1.6 L-9.5 -2.9 L-2.6 -3.4 Z"/></g></svg>'
+    + '<svg class="m-xinghuguang" viewBox="0 0 44 32"><path d="M3 28 Q 18 6 41 9" fill="none" stroke="url(#amArc)" stroke-width="5" stroke-linecap="round"/><circle cx="41" cy="9" r="3" fill="#f2f9ff"/></svg>'
+    + '</div>';
   const FORMS = {
     hasart: (p) => !!p.art,
+    'art-xinghuzhui': (p) => !!p.art && p.art.id === 'xinghuzhui',
+    'art-busishu': (p) => !!p.art && p.art.id === 'busishu',
+    'art-xinghuguang': (p) => !!p.art && p.art.id === 'xinghuguang',
+    'art-xinghupan': (p) => !!p.art && p.art.id === 'xinghupan',
     soar: (p) => has(p, 'soar'),
     yifu: (p) => has(p, 'fly'),
     berserk: (p) => has(p, 'avatar'),
@@ -418,7 +430,7 @@
         ${Object.keys(p.status).length ? `<p>状态：${Object.entries(p.status).map(([k, n]) => `${SJ.STATUS[k]?.[0] || k} ${n}`).join('、')}</p>` : ''}</div></div>
       <h4>技能</h4><div class="sks">${list.map(skill).join('')}</div>
       <h4>消耗品 <small>最多 4 个，满了挤掉最早的（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); return c ? `<button class="slot t1" ${act ? `data-a='{"a":"use","i":${i}}'` : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
-      ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : p.art.uses ? `（还剩 ${p.art.uses} 次）` : ''}</small></div></div>`; })() : ''}
+      ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : p.art.uses ? `（还剩 ${p.art.uses} 次）` : ''}</small></div><div class="artnote"><p class="flavor">${a.flavor}</p><p>神器只在大型地图第 ${SJ.TUNE.artRound} 轮以后的宝箱里才可能开出来。</p><p>每个英雄一局只能得到一件，不占宝物栏；用完或到期就消失，不会再有第二件。</p></div></div>`; })() : ''}
       <h4>宝物 <small>最多装备 4 件${act ? '，点一下卸下' : ''}</small></h4><div class="slots">${p.items.map((id, i) => item(id, `{"a":"unequip","i":${i}}`)).join('')}</div>
       ${p.bag.length ? `<h4>包袱 <small>${act ? '点一下装备' : ''}</small></h4><div class="slots">${p.bag.map((id, i) => item(id, p.items.includes(null) ? `{"a":"equip","i":${i}}` : `{"a":"sell","i":${i}}`)).join('')}</div>${act && !p.items.includes(null) ? '<p class="note">宝物栏满了：先卸下一件，或者点包袱里的宝物卖掉。</p>' : ''}` : ''}
       <div class="btn-row"><button class="btn primary" id="hp-close">${act ? '返回' : '关闭'}</button></div></div></div>`);

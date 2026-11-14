@@ -138,12 +138,12 @@
   ];
 
   // 5 阶：神器。只在大型地图的后期宝箱里出现，每个英雄一局最多拿到一次，不占宝物栏
-  const AR = (id, name, desc, n, ic) => ({ id, name, desc, n, ic, tier: 5 });
+  const AR = (id, name, desc, n, ic, flavor) => ({ id, name, desc, n, ic, flavor, tier: 5 });
   SJ.ARTIFACTS = [
-    AR('xinghuzhui', '星弧吊坠', '12 回合内，路过的自家建筑自动升一级（最高 3 级），然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
-    AR('busishu', '星星甘露', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing crystal water droplet with a glowing blue star on a navy center'),
-    AR('xinghuguang', '天弧之光', '8 回合内：掷骰后直接传送到 3 倍步数远的地方，路上什么都不触发、不受地形和路障影响；每回合多走一次；闪避 +80%', 8, 'a radiant starburst of light around a glowing blue arc on a navy center'),
-    AR('xinghupan', '深蓝星盘', '接下来 4 次放技能不受冷却限制（包括大招），用完消失；技能本来就好了的不算次数', null, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
+    AR('xinghuzhui', '星弧吊坠', '12 回合内，路过的自家建筑直接升到 3 级；带着期间免交过路费', 12, 'a round silver ring pendant, the open center crossed by fine glowing deep navy blue lines, on a fine chain', '星弧学院（STARC）珍藏的吊坠。环里的深蓝细线描的是星辰运行的轨道，带着它走过的城池，会一夜长高。'),
+    AR('busishu', '星星甘露', '阵亡时以满血和 1000 金复活，用后消失；带着期间自家建筑攻击 +20%', null, 'a glowing crystal water droplet with a glowing blue star on a navy center', '星弧学院（STARC）的星星夜里落下的一滴露水。守着它的人倒下了还能再起来，城墙也跟着硬气。'),
+    AR('xinghuguang', '天弧之光', '8 回合内：掷骰后直接传送到 3 倍步数远的地方，路上什么都不触发、不受地形和路障影响；落在别人的建筑上直接占领；每回合多走一次', 8, 'a radiant starburst of light around a glowing blue arc on a navy center', '星弧学院（STARC）天际的那道弧光。它划过的地方，便是你的落脚之地。'),
+    AR('xinghupan', '深蓝星盘', '接下来 4 次放技能不受冷却限制（包括大招），用完消失；技能本来就好了的不算次数；带着期间自家建筑过路费 +50%', null, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center', '星弧学院（STARC）推演星象用的盘子。转上一圈，时辰就由你说了算。'),
   ];
   // 给玩家看的技能说明：有点故事味。上面的 desc 是精确规则，留给设计文档和批注表
   SJ.SAY = {

@@ -109,7 +109,7 @@
     const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + lit + pv(p, 'bldDef') * nb;
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
-    const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge') + (hasArt(p, 'xinghuguang') ? 0.8 : 0);
+    const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge');
     const k0 = SJ.SKILLS[p.hero][0], base = p.sk[0] && k0.pr ? k0.pr[p.sk[0] - 1] : 0;
     const proc = base ? base + ownFx(s, p, 'heroProc') + treasure(p, 'proc') + pv(p, 'procUp') : 0;
     return { atk, def, dodge, proc, hp: p.hp, maxhp: p.maxhp };
@@ -140,6 +140,7 @@
     const adj = SJ.adjacent(i).filter((j) => s.tiles[j].owner === t.owner && s.tiles[j].b);
     if (fx.adjDef) def += fx.adjDef * adj.length;
     const op = s.players[t.owner]; if (op) atk *= 1 + pv(op, 'towerAtk');
+    if (op && hasArt(op, 'busishu')) atk *= 1.2; // 星星甘露：带着时自家建筑攻击 +20%
     if (fx.adjAtk && adj.some((j) => SJ.BUILDINGS[s.tiles[j].b].branch === 'garrison')) atk *= 1 + fx.adjAtk;
     if (fx.atkDown && foe) foe.atk *= 1 - fx.atkDown;
     const maxhp = SJ.tileMaxHp(t), terr = SJ.BOARD[i].terrain;
@@ -162,6 +163,7 @@
     v *= 1 + s.round * SJ.TUNE.tollGrow * (SJ.MAP.grow || 1);
     v *= SJ.inflation(s); // 后期通胀
     const op = s.players[t.owner]; if (op) v *= 1 + treasure(op, 'tollUp');
+    if (op && hasArt(op, 'xinghupan')) v *= 1.5; // 深蓝星盘：带着时自家建筑过路费 +50%
     return Math.round(v);
   };
 
@@ -794,7 +796,8 @@
     if (a.id === 'xinghupan') p.art.uses = 4; // 深蓝星盘：4 次免冷却
     await io.ev({ t: 'artifact', pid: p.id, id: a.id });
   }
-  const artChance = (s, p) => SJ.bigMap() && !p.hadArt && s.round >= (SJ.MAP.tierAt || [30, 60])[1];
+  SJ.TUNE.artRound = 80; // 神器第 80 轮起才可能出
+  const artChance = (s, p) => SJ.bigMap() && !p.hadArt && s.round >= SJ.TUNE.artRound;
 
   async function teleport(s, io, p, i) {
     p.pos = i; p.from = SJ.BOARD[i].adj[ri(s, SJ.BOARD[i].adj.length)];
@@ -949,6 +952,7 @@
       return;
     }
     const owner = s.players[t.owner];
+    if (hasArt(p, 'xinghuzhui')) { await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 带着星弧吊坠，免交过路费` }); return; }
     const lit = pv(p, 'candleToll') && nearCandle(s, i, p.id) ? pv(p, 'candleToll') : 0;
     const toll = Math.round(SJ.toll(s, i) * Math.max(0, 1 - pv(p, 'tollCut') - lit));
     if (s.peace > 0) {
@@ -975,7 +979,7 @@
     t.b = `${p.race}_${k}_1`; t.hp = null;
     await io.ev({ t: 'tile', tile: i, built: true, pid: p.id });
   }
-  SJ._autoBuild = autoBuild; // 测试用
+  SJ._autoBuild = autoBuild; SJ._buildingC = (...x) => buildingC(...x); // 测试用
 
   async function buildHere(s, io, p, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
@@ -1018,7 +1022,9 @@
       if (!p.alive || s.over) break;
       const t = s.tiles[i];
       if (scorch && t.owner != null && t.owner !== p.id && t.b) { const m = SJ.tileMaxHp(t); t.hp = Math.max(1, (t.hp != null ? t.hp : m) - scorch); await io.ev({ t: 'tile', tile: i }); }
-      if (t.owner === p.id && t.b && SJ.tileLevel(t) < 3 && (hasBuff(p, 'autoUp') || hasArt(p, 'xinghuzhui'))) await upgradeTile(s, io, p, i); // 翼覆千里、星弧吊坠：路过的自家建筑升一级
+      if (t.owner === p.id && t.b && SJ.tileLevel(t) < 3 && hasArt(p, 'xinghuzhui')) { // 星弧吊坠：路过的自家建筑直接升到 3 级
+        for (let l = SJ.tileLevel(t); l < 3; l = SJ.tileLevel(t)) { await upgradeTile(s, io, p, i); if (SJ.tileLevel(t) === l) break; }
+      } else if (t.owner === p.id && t.b && SJ.tileLevel(t) < 3 && hasBuff(p, 'autoUp')) await upgradeTile(s, io, p, i); // 翼覆千里：路过的自家建筑升一级
     }
   }
 
@@ -1298,6 +1304,8 @@
     p.pos = pos; p.from = from;
     await io.ev({ t: 'jump', pid: p.id, pos, light: true });
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 化作天弧之光，一闪到了 ${n} 格外` });
+    const t = s.tiles[pos]; // 落在别人的建筑上：直接占领，建筑留着
+    if (t && t.b && t.owner != null && t.owner !== p.id) { const nm = SJ.bdef(t).name; t.owner = p.id; t.hp = null; t.stop = 0; await io.ev({ t: 'tile', tile: pos }); await io.ev({ t: 'msg', kind: 'skill', text: `天弧之光落下，${nm} 直接归了 ${p.name}` }); }
   }
 
   SJ.takeTurn = async function (s, io) {

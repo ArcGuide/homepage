@@ -484,7 +484,13 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 @keyframes phantom-bob { from { translate: 0 0; } to { translate: 0 -8px; } }
 /* 神器：头顶的星弧小标 */
 .piece .artmark { position: absolute; left: 50%; top: -6px; width: 40px; height: 29px; margin-left: -20px; z-index: 3; display: none; filter: drop-shadow(0 0 2px #3d8bff) drop-shadow(0 0 6px #3d8bffaa); animation: artbob 1.6s ease-in-out infinite alternate; }
-.piece .artmark svg { display: block; width: 100%; height: 100%; }
+.piece .artmark svg { display: none; width: 100%; height: 100%; }
+.piece.art-xinghupan .artmark .m-xinghupan, .piece.art-xinghuzhui .artmark .m-xinghuzhui, .piece.art-busishu .artmark .m-busishu, .piece.art-xinghuguang .artmark .m-xinghuguang { display: block; }
+.artmark .m-busishu .tw { animation: twinkle 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+.artmark .m-busishu .tw:nth-child(2) { animation-delay: -.5s; } .artmark .m-busishu .tw:nth-child(3) { animation-delay: -.9s; } .artmark .m-busishu .tw:nth-child(4) { animation-delay: -.3s; }
+@keyframes twinkle { from { opacity: .45; transform: scale(.8); } to { opacity: 1; transform: scale(1.05); } }
+.artnote { grid-column: span 3; border: 1.5px dashed #b33a2b88; border-radius: 8px; padding: 6px 9px; background: #fffaf0; font-size: 11.5px; line-height: 1.45; color: var(--ink2); text-align: left; }
+.artnote p { margin: 0 0 3px; } .artnote .flavor { font-family: var(--serif); font-style: italic; color: var(--ink); margin-bottom: 5px; }
 .piece.hasart .artmark { display: block; }
 .piece.yifu .artmark, .piece.dash-zhenyi .artmark { translate: 0 -34px; }
 .piece.soar .artmark { translate: 0 -64px; }

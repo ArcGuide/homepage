@@ -150,7 +150,7 @@
   // 后期通胀：到了这张图的后期（高阶宝物全解锁那一轮）起，过路费每轮再复利涨 2%
   SJ.lateRound = () => (SJ.MAP.tierAt || [30, 60])[1];
   SJ.TUNE.inflate = 0.02;
-  SJ.inflation = (s) => (s.round > SJ.lateRound() ? Math.pow(1 + SJ.TUNE.inflate, s.round - SJ.lateRound()) : 1);
+  SJ.inflation = (s) => (s && s.round > SJ.lateRound() ? Math.pow(1 + SJ.TUNE.inflate, s.round - SJ.lateRound()) : 1);
   SJ.toll = function (s, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
     let v = SJ.TOLL[SJ.tileLevel(t)];
@@ -165,8 +165,9 @@
     return Math.round(v);
   };
 
-  SJ.price = (i) => SJ.REGIONS[SJ.BOARD[i].region].price;
-  SJ.buildCost = (p, level) => Math.round(SJ.BUILD_COST[level] * (p.race === 'xuanyuan' ? 0.8 : 1) * Math.max(0, 1 - stat(p, 'buildCut')));
+  // 买地、升级、城邑宝物的价钱也跟着后期通胀涨（和过路费同一个系数）
+  SJ.price = (i, s) => Math.round(SJ.REGIONS[SJ.BOARD[i].region].price * SJ.inflation(s || SJ._s));
+  SJ.buildCost = (p, level, s) => Math.round(SJ.BUILD_COST[level] * (p.race === 'xuanyuan' ? 0.8 : 1) * Math.max(0, 1 - stat(p, 'buildCut')) * SJ.inflation(s || SJ._s));
 
   SJ.cityIncome = function (s, i) {
     const t = s.tiles[i], b = SJ.bdef(t);
@@ -924,7 +925,7 @@
     if (tile.type === 'nest') { await nest(s, io, p); return; }
     // 领地
     if (t.owner == null) {
-      const price = SJ.price(i);
+      const price = SJ.price(i, s);
       if (p.gold >= price && await io.ask('buy', { p, tile: i, price })) {
         p.gold -= price; t.owner = p.id;
         { const o = await ghostRob(s, io, p, i, price); if (o) { gain(s, o, price); await io.ev({ t: 'toll', pid: p.id, to: o.id, n: price }); } }
@@ -937,9 +938,10 @@
       if (t.hp != null) { t.hp = null; await io.ev({ t: 'tile', tile: i }); await io.ev({ t: 'msg', text: `${p.name} 修好了这里的建筑` }); }
       await buildHere(s, io, p, i);
       const bd = SJ.bdef(t);
-      if (bd && bd.level === 3 && bd.branch === 'city' && p.gold >= SJ.TUNE.shop2Price && SJ.maxTier(s) >= 3) {
+      const p2 = Math.round(SJ.TUNE.shop2Price * SJ.inflation(s));
+      if (bd && bd.level === 3 && bd.branch === 'city' && p.gold >= p2 && SJ.maxTier(s) >= 3) {
         const pool = SJ.TREASURES.filter((x) => x.tier === 3 && !p.items.includes(x.id) && !p.bag.includes(x.id));
-        if (pool.length) { const item = pool[ri(s, pool.length)]; if (await io.ask('shop', { p, item, price: SJ.TUNE.shop2Price, city: bd.name })) { p.gold -= SJ.TUNE.shop2Price; await giveTreasure(s, io, p, 3, item.id); } }
+        if (pool.length) { const item = pool[ri(s, pool.length)]; if (await io.ask('shop', { p, item, price: p2, city: bd.name })) { p.gold -= p2; await giveTreasure(s, io, p, 3, item.id); } }
       }
       return;
     }
@@ -977,13 +979,13 @@
     const robBank = async (n) => { const o = await ghostRob(s, io, p, i, n); if (o) { gain(s, o, n); await io.ev({ t: 'toll', pid: p.id, to: o.id, n }); } };
     if (!b) { await autoBuild(s, io, p, i); return; }
     if (b.level === 1) {
-      const cost = SJ.buildCost(p, 2);
+      const cost = SJ.buildCost(p, 2, s);
       if (p.gold < cost) return;
       const id = `${b.race}_${b.branch}_2`;
       if (!await io.ask('upgrade', { p, tile: i, cost, options: [id] })) return;
       p.gold -= cost; t.b = id; t.hp = null; useBuild(p); await robBank(cost);
     } else if (b.level === 2) {
-      const cost = SJ.buildCost(p, 3);
+      const cost = SJ.buildCost(p, 3, s);
       if (p.gold < cost) return;
       const ids = lv3(b);
       const id = await io.ask('fork', { p, tile: i, cost, options: ids });

@@ -51,7 +51,7 @@
 
   // ---------- 主菜单 ----------
   function title() {
-    S = null; sfx.stopAmbient(); document.querySelector('.layer')?.remove();
+    S = null; sfx.stopAmbient(); sfx.music('title'); document.querySelector('.layer')?.remove();
     const has = !!store.get(SAVE);
     app.innerHTML = `<div class="title"><video class="cover" src="assets/cover.mp4" poster="assets/cover.jpg" autoplay muted playsinline preload="auto" aria-hidden="true"></video>
       <h1>${GAME}</h1>
@@ -148,7 +148,7 @@
   }
 
   function setup() {
-    sfx.stopAmbient();
+    sfx.stopAmbient(); sfx.music('title');
     const ids = Object.keys(SJ.HEROES);
     const shuffle = ids.slice().sort(() => Math.random() - 0.5);
     const seats = [{ kind: 'human', hero: shuffle[0] }, { kind: 'ai', hero: null }, { kind: 'ai', hero: null }, { kind: 'off', hero: null }];
@@ -235,7 +235,7 @@
     $('#b-zoom').onclick = () => { all = false; B.zoomDefault(); B.cam.free = 0; focusCur(300); }; // 不小心缩放了，一键回到原比例
     $('#mini').onclick = (e) => { const r = e.target.getBoundingClientRect(); B.cam.x = (e.clientX - r.left) / r.width * B.W; B.cam.y = (e.clientY - r.top) / r.height * B.H; B.cam.free = Date.now() + 3000; B.apply(200); };
     focusCur(0);
-    sfx.ambient((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map);
+    sfx.ambient((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map); sfx.music((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map);
     runLoop();
   }
 

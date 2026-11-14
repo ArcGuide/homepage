@@ -1,4 +1,4 @@
-// 全部音效都用 WebAudio 现场合成，不需要音频文件。
+// 音效都用 WebAudio 现场合成；背景音乐是 assets/music 里的曲子。
 // 所有声音都走 out()：主音量 -> 压缩器；一部分送进混响。
 (function () {
   const S = window.SJ.sfx = { muted: false, volume: 0.9 };
@@ -122,7 +122,7 @@
       else [4, 5, 7, 9].forEach((n, i) => pluck(n, 0.2 + i * 0.12, 0.08));
     },
     death() { tone(82, 1.1, { to: 40, type: 'triangle', vol: 0.2 }); metal(160, 1.3, { vol: 0.08, at: 0.05 }); hiss(0.8, { f: 400, to: 120, q: 0.7, vol: 0.1 }); },
-    toggle() { S.muted = !S.muted; try { localStorage.setItem('sijing.mute', S.muted ? '1' : '0'); } catch (e) { /* 忽略 */ } if (master) master.gain.value = S.muted ? 0 : S.volume; return S.muted; },
+    toggle() { S.muted = !S.muted; try { localStorage.setItem('sijing.mute', S.muted ? '1' : '0'); } catch (e) { /* 忽略 */ } if (master) master.gain.value = S.muted ? 0 : S.volume; if (mus) { if (S.muted) mus.a.pause(); else { mus.g.gain.value = 0; musGo(); } } return S.muted; },
   });
 
   // ---------- 地图环境音 ----------
@@ -165,6 +165,34 @@
     const t = ctx.currentTime; a.gain.gain.cancelScheduledValues(t); a.gain.gain.setValueAtTime(Math.max(a.gain.gain.value, 0.0001), t); a.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
     setTimeout(() => { a.nodes.forEach((n) => { try { n.stop(); } catch (e) { /* 已停 */ } }); a.gain.disconnect(); }, 650);
   };
+
+  // ---------- 背景音乐：Suno 生成的曲子，按地图风格轮播（同一风格几首打乱顺序），环境音叠在下面 ----------
+  // 走 WebAudio 的增益节点淡入淡出（iPhone 上 audio.volume 改不了）；静音跟总开关走
+  const MUSIC = { title: ['title'], kunlun: ['mountain1', 'mountain2', 'mountain3'], penglai: ['sea1', 'sea2', 'sea3'], youdu: ['underground1', 'underground2'], starc: ['starc'] };
+  S.musicVol = 0.45;
+  let mus = null, musId = null, musList = [];
+  function musFade(m, to, sec) { const t = ctx.currentTime, g = m.g.gain; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(to, t + sec); }
+  function musNext() {
+    if (!musList.length) { musList = MUSIC[musId].slice().sort(() => Math.random() - 0.5); }
+    const a = new Audio(`assets/music/${musList.shift()}.m4a`), g = ctx.createGain();
+    a.preload = 'auto'; g.gain.value = 0; ctx.createMediaElementSource(a).connect(g); g.connect(ctx.destination);
+    const m = mus = { a, g };
+    a.onended = () => { if (mus === m) { g.disconnect(); musNext(); } };
+    musGo();
+  }
+  function musGo() { // 浏览器不让自动播放时，等第一次点击再放
+    if (!mus || S.muted || offline) return;
+    const m = mus; m.a.play().then(() => musFade(m, S.musicVol, 2.5)).catch(() => {});
+  }
+  function musStop(m) { if (!m) return; musFade(m, 0, 1.2); setTimeout(() => { m.a.pause(); m.g.disconnect(); }, 1300); }
+  S.music = function (id) {
+    if (offline || id === musId) return;
+    musId = id; const old = mus; mus = null; musList = [];
+    if (old) musStop(old);
+    if (MUSIC[id] && ac()) musNext();
+  };
+  S.musicState = () => mus && { src: mus.a.src.split('/').pop(), paused: mus.a.paused, t: Math.round(mus.a.currentTime), gain: +mus.g.gain.value.toFixed(2), ctx: ctx.state }; // 调试用
+  ['pointerdown', 'keydown'].forEach((k) => window.addEventListener(k, () => { if (ctx && ctx.state === 'suspended' && !offline) ctx.resume(); if (mus && mus.a.paused) musGo(); }, true));
 
   // 离线渲染一个声音，返回峰值和响度，用来查削波和没声音
   S.check = async function (fn, seconds) {

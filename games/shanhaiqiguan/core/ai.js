@@ -1,6 +1,7 @@
 // 启发式 AI。有点莽才好玩。估算战斗用独立的随机流，不影响游戏本身的种子。
 (function (g) {
   const SJ = g.SJ = g.SJ || {};
+  SJ.AI_RASH = { accept: 0.3, invite: 0.2 }; // 决斗冲动：打不过也应战 30%；不是谁都打得过，每回合也有 20% 下战书
 
   function estimate(A, D, seed, n) {
     const st = { v: seed };
@@ -44,8 +45,9 @@
           if (id === 'shenxing' && roll() < 0.3) return { a: 'use', i };
           if (id === 'zhuanxiang' && roll() < 0.1) return { a: 'use', i };
           if (id === 'wangchuan' && p.cons.filter((x) => x !== 'yingzhan').length >= 4) return { a: 'use', i }; // 电脑不洗点，栏满了就随手用掉
-          if (id === 'yingzhan' && s.duel && SJ.duelOdds(s, p, s.players[s.duel.from]) > 0.5) return { a: 'use', i }; // 觉得打得过才应战
-          if (id === 'juedou' && !s.duel && s.players.every((q) => !q.alive || q === p || SJ.duelOdds(s, p, q) >= 0.6)) return { a: 'use', i }; // 谁接都不怕才下战书
+          // 决斗不全按把握来：觉得打得过就上，打不过也有一定概率一冲动就上
+          if (id === 'yingzhan' && s.duel && (SJ.duelOdds(s, p, s.players[s.duel.from]) > 0.5 || roll() < SJ.AI_RASH.accept)) return { a: 'use', i };
+          if (id === 'juedou' && !s.duel && (s.players.every((q) => !q.alive || q === p || SJ.duelOdds(s, p, q) >= 0.6) || roll() < SJ.AI_RASH.invite)) return { a: 'use', i };
         }
         for (let i = 3; i >= 0; i--) {
           if (!SJ.canCast(p, i, s)) continue;

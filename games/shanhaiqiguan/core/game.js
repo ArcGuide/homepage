@@ -1288,7 +1288,7 @@
     s.stats.turns++;
     if (p.alive) {
       await io.ev({ t: 'turn', pid: p.id });
-      p.cd = p.cd.map((c) => Math.max(0, c - 1 - treasure(p, 'cdFast') - (hasArt(p, 'xinghupan') ? 2 : 0)));
+      p.cd = p.cd.map((c, j) => Math.max(0, c - 1 - (SJ.SKILLS[p.hero][j].ult ? 0 : treasure(p, 'cdFast')) - (hasArt(p, 'xinghupan') ? 2 : 0))); // 河图对大招无效
       { const rg = stat(p, 'regen'); if (rg) { const v = heal(p, rg); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); } }
       // 收入
       let inc = 0, taken = 0, taken2 = null;

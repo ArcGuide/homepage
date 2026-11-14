@@ -115,7 +115,7 @@
     T(3, 'yuchan', '玉蝉', '技能触发 +10%，经验 +50%', { proc: 0.1, xpMul: 0.5 }, 'a jade cicada carving'),
     T(4, 'xuanyuanjian', '轩辕剑', '攻击 +15，暴击 +10%', { atk: 15, crit: 0.1 }, 'a legendary golden sword with sun and moon on the blade'),
     T(4, 'xirang', '息壤', '自家过路费 +50%，建筑每回合多回血', { tollUp: 0.5, repair: 0.1 }, 'a glowing lump of self-growing magic soil'),
-    T(4, 'hetu', '河图', '技能触发 +15%，冷却每回合多减 1', { proc: 0.15, cdFast: 1 }, 'an ancient diagram scroll of dots carried on a dragon horse'),
+    T(4, 'hetu', '河图', '技能触发 +15%，冷却每回合多减 1（大招除外）', { proc: 0.15, cdFast: 1 }, 'an ancient diagram scroll of dots carried on a dragon horse'),
     T(4, 'luoshu', '洛书', '建造升级便宜 40%', { buildCut: 0.4 }, 'a turtle shell with a magic square of dots'),
     T(4, 'dengzhang', '夸父杖', '步数 +3，每回合回 6 血', { steps: 3, regen: 6 }, 'a giant wooden staff with leaves sprouting'),
     T(4, 'shenshu', '神荼索', '吸血 25%', { lifesteal: 0.25 }, 'a glowing reed rope binding a ghost'),

@@ -22,7 +22,7 @@
   SJ.SKILLS = {
     huangdi: [
       S('zhinan', '指南车', 'passive', 0, `每次打中时 ${pct([0.25, 0.5, 0.75])} 再削掉对手当前血量的 50%`, { pr: [0.25, 0.5, 0.75] }, 'a bronze south-pointing chariot figurine'),
-      S('zhucheng', '筑城令', 'passive', 0, `自家建筑守住一次进攻后，有 ${pct([0.1, 0.15, 0.2])} 概率升一级。另外自家每有一座建筑，黄帝攻击 +${L([0.2, 0.4, 0.6])}、防御 +${pct([0.005, 0.01, 0.015])}`, { pv: { holdUp: [0.1, 0.15, 0.2], bldAtk: [0.2, 0.4, 0.6], bldDef: [0.005, 0.01, 0.015] } }, 'a bamboo decree scroll with a red seal over a rammed earth wall'),
+      S('zhucheng', '筑城令', 'passive', 0, `自家建筑守住一次进攻后，有 ${pct([0.1, 0.15, 0.2])} 概率升一级。另外自家每有一座建筑，黄帝攻击 +${L([0.1, 0.2, 0.3])}、防御 +${pct([0.0025, 0.005, 0.0075])}`, { pv: { holdUp: [0.1, 0.15, 0.2], bldAtk: [0.1, 0.2, 0.3], bldDef: [0.0025, 0.005, 0.0075] } }, 'a bamboo decree scroll with a red seal over a rammed earth wall'),
       S('chezhen', '车阵', 'summon', 6, `在脚下摆车阵，持续 ${L([5, 7, 9])} 轮。敌人走到这里被拦下，结算完这一格后传送到随机位置`, { go: (g, k) => g.summon('chariot', [5, 7, 9][k]) }, 'a circle of bronze war chariots'),
       S('zhuolu', '涿鹿号令', 'buff', 12, '5 回合内全部自家建筑攻击 +100%，守住后升级的概率再 +20%；筑城令每座建筑再多加 0.2 攻击、0.5% 防御；指南车触发几率 +25%', { ult: true, go: (g) => { g.buff('towerAtk', 1, 5); g.buff('holdUp', 0.2, 5); g.buff('bldAtk', 0.2, 5); g.buff('bldDef', 0.005, 5); g.buff('procUp', 0.25, 5); } }, 'a great war drum and golden imperial banner'),
     ],
@@ -30,7 +30,7 @@
       S('baoyu', '暴雨', 'passive', 0, `每下 ${pct([0.15, 0.22, 0.3])} 让对手停手两拍并受伤`, { pr: [0.15, 0.22, 0.3] }, 'a grey storm cloud with many bright blue rain streaks and a lightning bolt'),
       S('xushui', '蓄水', 'econ', 5, `存起全部金币，3 回合后取出，并多得 ${pct([0.15, 0.3, 0.45])}`, { go: (g, k) => g.vault([0.15, 0.3, 0.45][k], 3) }, 'a swirling orb of gathered water held by a dragon claw'),
       S('zhenyi', '振翼', 'move', 5, `向前飞 ${L([6, 9, 12])} 格，无视地形和路障；每飞一格，接下来 3 回合攻击 +2%（飞 ${L([6, 9, 12])} 格就是 +${pct([0.12, 0.18, 0.24])}）`, { go: (g, k) => g.dash([6, 9, 12][k], true, { atk: 0.02 }) }, 'a golden feathered wing beating'),
-      S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家 1 级建筑免费升到 2 级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
+      S('yifu', '翼覆千里', 'move', 12, '6 回合内飞行，步数翻倍，路过的自家建筑免费升一级', { ult: true, go: (g) => { g.buff('fly', 1, 6); g.buff('stepMul', 1, 6); g.buff('autoUp', 1, 6); } }, 'huge golden wings spread across the sky'),
     ],
     nuba: [
       S('dahan', '大旱', 'passive', 0, `敌方攻击有 ${pct([0.06, 0.09, 0.12])} 落空`, { pv: { dodge: [0.06, 0.09, 0.12] } }, 'a blazing sun over cracked dry earth'),
@@ -51,9 +51,9 @@
       S('xingyao', '形夭', 'buff', 12, '血量高于 20% 才能用：血量降到 20%，多出的血存起来。12 回合内，每回合结束时血量低于 20% 就从存量补到 20%，到期存量清零', { ult: true, can: (p) => p.hp > p.maxhp * 0.2, go: (g) => g.pool(12) }, 'a headless giant rising with blazing spirit'),
     ],
     kuafu: [
-      S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([1, 2, 3])}`, { pv: { steps: [1, 2, 3] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
+      S('zhuiri', '大步', 'passive', 0, `每次步数 +${L([2, 4, 6])}`, { pv: { steps: [2, 4, 6] } }, 'a giant bare foot in a long running stride kicking up golden dust, side view'),
       S('denglin', '弃杖成林', 'summon', 8, `在脚下种邓林：敌人被拦下，自己路过回 30 血，持续 ${L([4, 6, 8])} 轮`, { go: (g, k) => { g.summon('grove', [4, 6, 8][k]); } }, 'a wooden staff sprouting into a peach grove'),
-      S('benpao', '逐日', 'move', 8, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身。路上碰到的宝箱、英雄、召唤物、驿站和地形照常生效`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
+      S('benpao', '逐日', 'move', 6, `向前跑 ${L([12, 24, 36])} 格，每格回 1% 最大血，跑完转身。路上碰到的宝箱、英雄、召唤物、驿站和地形照常生效`, { go: (g, k) => g.dash([12, 24, 36][k], false, { heal: 0.01, turn: true }) }, 'a running giant toward a red sun'),
       S('yuri', '与日逐走', 'buff', 12, '这回合结束后再连走 2 个完整回合', { ult: true, go: (g) => g.turns(2) }, 'a giant running hard beneath three blazing suns in the sky, long shadow'),
     ],
     tubo: [
@@ -147,13 +147,13 @@
   // 给玩家看的技能说明：有点故事味。上面的 desc 是精确规则，留给设计文档和批注表
   SJ.SAY = {
     zhinan: '黄帝造指南车，大雾里也认得准要害。每次打中，有 25% / 50% / 75% 的机会再削掉对手眼下一半的血。',
-    zhucheng: '黄帝下令筑城。自家建筑每守住一次进攻，有 10% / 15% / 20% 的机会再加高一级；黄帝自己每有一座建筑，攻击多 0.2 / 0.4 / 0.6、防御多 0.5% / 1% / 1.5%。',
+    zhucheng: '黄帝下令筑城。自家建筑每守住一次进攻，有 10% / 15% / 20% 的机会再加高一级；黄帝自己每有一座建筑，攻击多 0.1 / 0.2 / 0.3、防御多 0.25% / 0.5% / 0.75%。',
     chezhen: '战车围成一圈，在脚下摆 5 / 7 / 9 轮。闯进来的敌人被拦住，办完这一格的事，就被冲散到地图上随便哪里。',
     zhuolu: '涿鹿战鼓一响，5 回合内自家所有建筑攻击翻倍，守住进攻后加高一级的机会再多 20%；筑城令给黄帝的加成每座建筑再多 0.2 攻击、0.5% 防御，指南车出手的机会再多 25%。',
     baoyu: '应龙一甩尾，暴雨倾盆。每次出手有 15% / 22% / 30% 的机会把对手淋得停手两拍，还要受伤。',
     xushui: '应龙把全部金币像水一样蓄起来，3 回合后开闸放出，多出 15% / 30% / 45%。',
     zhenyi: '应龙振翼高飞，向前飞 6 / 9 / 12 格，地形和路障都拦不住。飞过的每一格，都让接下来 3 回合的攻击 +2%。',
-    yifu: '应龙双翼遮天，6 回合内飞行、步数翻倍，掠过的自家 1 级建筑都长成 2 级。',
+    yifu: '应龙双翼遮天，6 回合内飞行、步数翻倍，掠过的自家建筑都长高一级。',
     dahan: '女魃所到之处一片大旱，敌人热得眼花，出手有 6% / 9% / 12% 打空。',
     fenshen: '女魃浑身燃起旱火，2 / 3 / 4 回合内路过的敌方建筑，每座被烤掉 10 / 15 / 20 血。',
     chidi: '女魃赤足走过的地方会烧起来。3 / 4 / 5 回合内留下的火能烧 3 轮，敌人踩上去掉 2 血。',
@@ -166,7 +166,7 @@
     ganqi: '刑天舞干戚，伤得越重越不好惹。被动：把伤害弹回去，血越少弹得越多，最多 35% / 55% / 75%。主动：3 回合内攻击和闪避各 +5% / 10% / 15%。',
     mengzhi: '猛志固常在。被动：血越少越容易暴击，最多 +15% / 30% / 45%。主动：3 回合内硬扛下所有伤害，到时候再一次吃下其中的 100% / 75% / 50%。',
     xingyao: '刑天把血气压到两成，多出来的藏进胸腹。12 回合内，每回合结束时血量低于两成，就从藏着的血里补回两成；到期没用完的就散了。血量高于两成才能用。',
-    zhuiri: '夸父一步顶别人几步，每次掷骰多走 1 / 2 / 3 步。',
+    zhuiri: '夸父一步顶别人几步，每次掷骰多走 2 / 4 / 6 步。',
     denglin: '夸父扔下手杖，脚下长出一片邓林，留 4 / 6 / 8 轮。敌人走到这里被林子拦住，夸父自己路过能歇脚回 30 血。',
     benpao: '夸父追着太阳狂奔，向前跑 12 / 24 / 36 格，每跑一格回 1% 最大血，跑完转身。路上碰到什么，照样发生什么。',
     yuri: '夸父与日竞走，这回合结束后，再连走 2 个完整回合。',

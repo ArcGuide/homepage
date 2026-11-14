@@ -141,7 +141,8 @@
   const AR = (id, name, desc, n, ic) => ({ id, name, desc, n, ic, tier: 5 });
   SJ.ARTIFACTS = [
     AR('xinghuzhui', '星弧吊坠', '12 回合内，路过的自家建筑自动升一级（最高 3 级），然后消失', 12, 'a round silver medallion pendant with the STARC Institute logo on a navy enamel face, on a fine chain'),
-    AR('busishu', '不死树果', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing golden fruit from the immortal tree of Kunlun with jade leaves'),
+    AR('busishu', '星弧甘露', '阵亡时以满血和 1000 金复活，用后消失', null, 'a glowing crystal water droplet with the STARC Institute logo on a navy center'),
+    AR('xinghuguang', '星弧之光', '8 回合内：掷骰后直接传送到 3 倍步数远的地方，路上什么都不触发、不受地形和路障影响；每回合多走一次；闪避 +80%', 8, 'a radiant starburst of light around the STARC Institute logo on a navy center'),
     AR('xinghupan', '星弧星盘', '5 回合内所有技能（包括大招）没有冷却，每回合都能放，然后消失', 5, 'a bronze astrolabe plate engraved with constellations around the STARC Institute logo on a navy center'),
   ];
   // 给玩家看的技能说明：有点故事味。上面的 desc 是精确规则，留给设计文档和批注表

@@ -109,7 +109,7 @@
     const def = (h.def || 0) + ownFx(s, p, 'heroDef') + stat(p, 'def') + lit + pv(p, 'bldDef') * nb;
     if (p.status.weak) atk *= 0.7;
     if (p.bless) atk *= 1.5;
-    const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge');
+    const dodge = ownFx(s, p, 'heroDodge') + stat(p, 'dodge') + (hasArt(p, 'xinghuguang') ? 0.8 : 0);
     const k0 = SJ.SKILLS[p.hero][0], base = p.sk[0] && k0.pr ? k0.pr[p.sk[0] - 1] : 0;
     const proc = base ? base + ownFx(s, p, 'heroProc') + treasure(p, 'proc') + pv(p, 'procUp') : 0;
     return { atk, def, dodge, proc, hp: p.hp, maxhp: p.maxhp };
@@ -387,9 +387,9 @@
 
   async function eliminate(s, io, p, killer, why) {
     if (!p.alive) return;
-    if (p.art && p.art.id === 'busishu') { // 不死树果：满血加 1000 金复活
+    if (p.art && p.art.id === 'busishu') { // 星弧甘露：满血加 1000 金复活
       p.art = null; p.hp = p.maxhp; gain(s, p, 1000);
-      await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 吃下不死树果，满血复活，还得到 1000 金` });
+      await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 饮下星弧甘露，满血复活，还得到 1000 金` });
       return;
     }
     if (hasBuff(p, 'revive')) {
@@ -1275,9 +1275,19 @@
     steps = Math.max(1, steps + bonus);
     const back = p.status.confuse && rnd(s) < 0.5;
     await io.ev({ t: 'roll', pid: p.id, d1, d2, bonus, back });
-    await move(s, io, p, steps, back);
+    if (hasArt(p, 'xinghuguang')) await lightJump(s, io, p, steps * 3, back); else await move(s, io, p, steps, back);
     if (!p.alive || s.over) return false;
     return d1 === d2;
+  }
+
+  // 星弧之光：顺着路数出 n 格，直接传过去，路上什么都不触发，地形不算步数
+  async function lightJump(s, io, p, n, back) {
+    if (back) turnAround(s, p);
+    let pos = p.pos, from = p.from;
+    for (let k = 0; k < n; k++) { let o = SJ.BOARD[pos].adj.filter((x) => x !== from); if (!o.length) o = [from]; const nx = o[ri(s, o.length)]; from = pos; pos = nx; }
+    p.pos = pos; p.from = from;
+    await io.ev({ t: 'jump', pid: p.id, pos, light: true });
+    await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 化作星弧之光，一闪到了 ${n} 格外` });
   }
 
   SJ.takeTurn = async function (s, io) {
@@ -1344,7 +1354,7 @@
           await io.ev({ t: 'msg', text: `${p.name} 这回合动不了` });
         } else {
           let again = true, doubles = 0;
-          s.extra = 0;
+          s.extra = hasArt(p, 'xinghuguang') ? 1 : 0; // 星弧之光：每回合多走一次
           while (again && p.alive && !s.over) {
             const dbl = await rollAndGo(s, io, p);
             if (!p.alive || s.over) break;

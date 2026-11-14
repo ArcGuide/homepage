@@ -123,6 +123,7 @@ svg.tiles { position: absolute; left: 0; top: 0; overflow: visible; }
 .log div:last-child { color: var(--ink); font-weight: 600; }
 .minimap { position: absolute; right: 8px; top: 8px; width: 150px; z-index: 700; border: 1.5px solid var(--ink); border-radius: 6px; cursor: pointer; background: #000; }
 .mapbtn { position: absolute; right: 8px; top: 92px; width: 44px; z-index: 701; font-size: 12px; }
+.mapbtn.zoombtn { right: 56px; width: 52px; }
 .loading { position: absolute; inset: 0; display: grid; place-items: center; z-index: 950; background: #2a2620; color: #f6efdf; font: 700 20px var(--serif); }
 
 .dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 900; display: flex; justify-content: center; padding: 0 8px 10px; pointer-events: none; }

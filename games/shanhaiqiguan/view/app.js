@@ -218,7 +218,7 @@
   async function startGame() {
     app.innerHTML = `<div class="top" id="top"></div><div class="boardwrap" id="wrap"><div class="world" id="stage"><canvas id="ground"></canvas></div>
       <div class="hud" id="hud"><div class="round" id="round"></div><div class="dice" id="dice"></div><div class="dice-note" id="dnote"></div><div class="log" id="log"></div></div>
-      <canvas class="minimap" id="mini"></canvas><button class="iconbtn mapbtn" id="b-all">全图</button><div class="loading" id="loading">正在铺开山海…</div><div class="dock" id="dock"></div></div>`;
+      <canvas class="minimap" id="mini"></canvas><button class="iconbtn mapbtn" id="b-all">全图</button><button class="iconbtn mapbtn zoombtn" id="b-zoom" title="回到默认缩放，镜头回到当前英雄">原比例</button><div class="loading" id="loading">正在铺开山海…</div><div class="dock" id="dock"></div></div>`;
     pieces = {}; sprites = {}; tileKey = {}; beastEls = [];
     B.setup(SJ.MAP);
     const st = $('#stage');
@@ -232,6 +232,7 @@
     buildBoard(); renderPlayers(); renderBeasts();
     let all = false;
     $('#b-all').onclick = () => { all = !all; if (all) B.fitAll(); else { B.zoomDefault(); B.cam.free = 0; focusCur(0); } };
+    $('#b-zoom').onclick = () => { all = false; B.zoomDefault(); B.cam.free = 0; focusCur(300); }; // 不小心缩放了，一键回到原比例
     $('#mini').onclick = (e) => { const r = e.target.getBoundingClientRect(); B.cam.x = (e.clientX - r.left) / r.width * B.W; B.cam.y = (e.clientY - r.top) / r.height * B.H; B.cam.free = Date.now() + 3000; B.apply(200); };
     focusCur(0);
     sfx.ambient((SJ.MAPS[S.map] && SJ.MAPS[S.map].amb) || S.map);

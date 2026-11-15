@@ -128,8 +128,9 @@
 
   SJ.tileMaxHp = (t) => { const b = SJ.bdef(t); return b ? SJ.BRANCHES[b.branch].hp * SJ.LEVEL_MUL[b.level] * SJ.TUNE.towerHp : 30; };
 
-  SJ.tigerHp = () => Math.round(SJ.TIGER.mul * SJ.BRANCHES.garrison.hp * SJ.LEVEL_MUL[1] * SJ.TUNE.towerHp);
-  SJ.tigerAtk = (s) => SJ.TIGER.mul * SJ.BRANCHES.archer.atk * SJ.LEVEL_MUL[1] * SJ.TUNE.towerAtk * (1 + s.round * SJ.TUNE.towerGrow * (SJ.MAP.grow || 1));
+  // 玄虎：塔是攻击随回合涨、血不涨，玄虎反过来，攻击固定、血随回合涨（和塔攻击同一个系数），哪一轮打都一样
+  SJ.tigerHp = (s) => Math.round(SJ.TIGER.hp * (1 + s.round * SJ.TUNE.towerGrow * (SJ.MAP.grow || 1)));
+  SJ.tigerAtk = () => SJ.TIGER.atk;
 
   function buildingC(s, i, foe) {
     const t = s.tiles[i], b = SJ.bdef(t);
@@ -332,7 +333,7 @@
       },
       tiger: async () => { // 玄虎出柙：在身后放出，中立
         const at = p.from != null ? p.from : p.pos;
-        s.beasts.push({ pos: at, from: p.pos, o: p.id, hp: SJ.tigerHp(), maxhp: SJ.tigerHp() });
+        s.beasts.push({ pos: at, from: p.pos, o: p.id, hp: SJ.tigerHp(s), maxhp: SJ.tigerHp(s) });
         await io.ev({ t: 'beasts' });
         await io.ev({ t: 'msg', kind: 'skill', text: '幽都之门打开，一头玄虎跳了出来' });
       },
@@ -1234,6 +1235,7 @@
   async function tickBeasts(s, io) {
     s.beasts = s.beasts || []; s.phantoms = s.phantoms || [];
     for (const b of s.beasts.slice()) {
+      { const m = SJ.tigerHp(s); if (b.maxhp !== m) { b.hp = Math.max(1, Math.round(b.hp * m / b.maxhp)); b.maxhp = m; } } // 血上限随回合涨，按比例带着当前血一起涨
       const i = step1(s, b);
       await io.ev({ t: 'beasts', move: true });
       const t = s.tiles[i];

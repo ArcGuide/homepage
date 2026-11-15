@@ -37,7 +37,7 @@
   };
 
   // 土伯大招放出的玄虎：中立，每轮走一格，停在建筑上就打 3 下，打到死为止
-  SJ.TIGER = { name: '玄虎', mul: 1.2 }; // 会走路的塔：生命按 1 级驻军、攻击按 1 级射手，各乘 mul，攻击和塔一样随回合变强
+  SJ.TIGER = { name: '玄虎', atk: 90, hp: 115 }; // 攻击固定；生命 = hp × 塔攻击的成长系数（和塔攻击同步涨），这样哪一轮放出来都一样能打，一只平均拆 8 座左右
 
   SJ.MONSTERS = [
     { id: 'tiangou', name: '天狗', hp: 40, atk: 3, gold: 60, xp: 2, art: 'a white-headed wild cat-like hound, snarling, four legs' },

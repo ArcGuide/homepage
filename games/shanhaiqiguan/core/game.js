@@ -666,7 +666,7 @@
       if (q.hp <= 0) { await eliminate(s, io, q, p, `在竞技场被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
       if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `在竞技场被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
     }
-    // 赢家拿走两人押的钱；平局各拿回自己那份。经验按对手开打前的等级：赢家 0.7 倍战斗经验，输家（和平局）0.4 倍；下战书的人再乘 1.5
+    // 赢家拿走两人押的钱；平局各拿回自己那份。经验按对手开打前的等级：赢家 0.7 倍战斗经验，输家（和平局）0.4 倍；下战书的人不加成
     const w = win === 'a' ? p : win === 'd' ? q : null, lv = { [p.id]: p.level, [q.id]: q.level };
     if (pot) {
       if (w && w.alive) { gain(s, w, pot); await io.ev({ t: 'gold', pid: w.id, n: pot, why: '决斗赢得' }); await io.ev({ t: 'msg', kind: 'skill', text: `${w.name} 赢走了 ${pot} 金` }); }
@@ -674,7 +674,7 @@
     }
     for (const [x, y] of [[p, q], [q, p]]) {
       if (!x.alive || s.over || x.level >= SJ.TUNE.maxLevel) continue;
-      const n = SJ.duelXp(x === w, lv[y.id], x === p);
+      const n = SJ.duelXp(x === w, lv[y.id]);
       const up = gainXp(s, x, n);
       await io.ev({ t: 'msg', text: `${x.name} 在竞技场${x === w ? '得胜' : w ? '落败' : '战平'}，经验 +${n}` });
       if (up) await io.ev({ t: 'levelup', pid: x.id, level: x.level });
@@ -682,8 +682,7 @@
   }
   SJ.killXp = (lv) => 6 * SJ.TUNE.fightXp * lv; // 打死一个 lv 级英雄给的经验（塔守住打死来犯英雄时用的那个）
   SJ.DUEL_XP = { win: 0.7, lose: 0.4 }; // 乘战斗经验 × 对手等级，不显示给玩家
-  SJ.DUEL_INVITER = 1.5;
-  SJ.duelXp = (won, foeLv, inviter) => Math.round((won ? SJ.DUEL_XP.win : SJ.DUEL_XP.lose) * SJ.TUNE.fightXp * foeLv * (inviter ? SJ.DUEL_INVITER : 1));
+  SJ.duelXp = (won, foeLv) => Math.round((won ? SJ.DUEL_XP.win : SJ.DUEL_XP.lose) * SJ.TUNE.fightXp * foeLv);
   // 电脑估一下自己打赢 q 的把握：用独立的随机数打几场，不动对局的随机数
   SJ.duelOdds = (s, p, q, n = 6) => {
     let w = 0;

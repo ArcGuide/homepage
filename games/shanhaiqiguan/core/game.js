@@ -639,14 +639,19 @@
     }
   }
   SJ.arenaTiles = () => SJ.MAP.arena || [];
+  // 决斗赌注：下战书和应战各押 SJ.DUEL_STAKE 金，赢家全拿；平局各自拿回；没人应战原数退回
+  SJ.DUEL_STAKE = 1000;
+  SJ.canInvite = (s, p) => p.gold >= SJ.DUEL_STAKE && s.players.some((q) => q !== p && q.alive && q.gold >= SJ.DUEL_STAKE);
+  SJ.canAccept = (s, p) => !!s.duel && s.duel.from !== p.id && p.gold >= SJ.DUEL_STAKE;
   async function duelExpire(s, io) {
-    const o = s.players[s.duel.from];
+    const o = s.players[s.duel.from], back = s.duel.stake || 0;
     for (const q of s.players) q.cons = (q.cons || []).filter((x) => x !== 'yingzhan');
     s.duel = null;
-    await io.ev({ t: 'msg', text: `没有人应战，${o.name}的战书作废了` });
+    if (back && o.alive) { o.gold += back; await io.ev({ t: 'gold', pid: o.id, n: back, why: '战书作废退回' }); }
+    await io.ev({ t: 'msg', text: `没有人应战，${o.name}的战书作废了${back && o.alive ? `，押的 ${back} 金原数退回` : ''}` });
   }
-  async function duel(s, io, p, q) { // p 下战书，q 应战
-    s.stats.duels++;
+  async function duel(s, io, p, q, pot) { // p 下战书，q 应战；pot 是两人押下的金币
+    s.stats.duels++; pot = pot || 0;
     const real = s.opts && s.opts.spar === false;
     const ar = SJ.arenaTiles();
     await io.ev({ t: 'msg', kind: 'skill', text: `${q.name} 接下了${p.name}的战书，两人奔赴竞技场，${real ? '真刀真枪' : '点到为止'}，打到一方倒下` });
@@ -661,18 +666,22 @@
       if (q.hp <= 0) { await eliminate(s, io, q, p, `在竞技场被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
       if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `在竞技场被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
     }
-    // 决斗不动钱，只给经验：赢的按对方等级拿 2 倍战斗经验，输的（和平局）拿 1 倍；下战书的人再乘 1.5
-    const w = win === 'a' ? p : win === 'd' ? q : null, lv = { [p.id]: p.level, [q.id]: q.level }; // 按开打前的等级算
-    for (const [x, y] of [[p, q], [q, p]]) {
+    // 赢家拿走两人押的钱；平局各拿回自己那份。经验：赢家拿当前等级升级所需的 70%，输家（和平局）拿 40%
+    const w = win === 'a' ? p : win === 'd' ? q : null;
+    if (pot) {
+      if (w && w.alive) { gain(s, w, pot); await io.ev({ t: 'gold', pid: w.id, n: pot, why: '决斗赢得' }); await io.ev({ t: 'msg', kind: 'skill', text: `${w.name} 赢走了 ${pot} 金` }); }
+      else if (!w) for (const x of [p, q]) if (x.alive) { x.gold += pot / 2; await io.ev({ t: 'gold', pid: x.id, n: pot / 2, why: '平局退回' }); }
+    }
+    for (const x of [p, q]) {
       if (!x.alive || s.over || x.level >= SJ.TUNE.maxLevel) continue;
-      const n = SJ.duelXp(x === w, lv[y.id], x === p);
+      const n = SJ.duelXp(x === w, x.level);
       const up = gainXp(s, x, n);
       await io.ev({ t: 'msg', text: `${x.name} 在竞技场${x === w ? '得胜' : w ? '落败' : '战平'}，经验 +${n}` });
       if (up) await io.ev({ t: 'levelup', pid: x.id, level: x.level });
     }
   }
-  SJ.DUEL_INVITER = 1.5;
-  SJ.duelXp = (won, foeLv, inviter) => Math.round((won ? 2 : 1) * SJ.TUNE.fightXp * foeLv * (inviter ? SJ.DUEL_INVITER : 1));
+  SJ.DUEL_XP = { win: 0.7, lose: 0.4 }; // 占自己当前等级升级所需经验的比例，不显示给玩家
+  SJ.duelXp = (won, lv) => Math.round(SJ.xpNeed(lv) * (won ? SJ.DUEL_XP.win : SJ.DUEL_XP.lose));
   // 电脑估一下自己打赢 q 的把握：用独立的随机数打几场，不动对局的随机数
   SJ.duelOdds = (s, p, q, n = 6) => {
     let w = 0;
@@ -763,7 +772,9 @@
     const sand = id === 'shisha' ? p.cd.map((c, j) => j).filter((j) => p.cd[j] > 0 && p.sk[j] && !SJ.SKILLS[p.hero][j].ult) : null;
     if (sand && !sand.length) { p.cons.splice(i, 1); await io.ev({ t: 'msg', text: '没有能清的冷却（大招不算），时砂散了' }); return; }
     if (id === 'juedou' && s.duel) { await io.ev({ t: 'msg', text: `${s.players[s.duel.from].name}的战书还在等人应战，现在不能再下战书` }); return; }
+    if (id === 'juedou' && !SJ.canInvite(s, p)) { await io.ev({ t: 'msg', text: `下战书要押 ${SJ.DUEL_STAKE} 金，而且至少还要有一名对手也有 ${SJ.DUEL_STAKE} 金` }); return; }
     if (id === 'yingzhan' && (!s.duel || !s.players[s.duel.from].alive)) { p.cons.splice(i, 1); await io.ev({ t: 'msg', text: '这封战书已经作废了' }); return; }
+    if (id === 'yingzhan' && !SJ.canAccept(s, p)) { await io.ev({ t: 'msg', text: `应战要押 ${SJ.DUEL_STAKE} 金，你的钱不够` }); return; }
     p.cons.splice(i, 1);
     const c = SJ.consOf(id);
     await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 用了${c.name}` });
@@ -775,15 +786,17 @@
       case 'wangchuan': { const n = p.sk.reduce((a, b) => a + b, 0); p.sk = [0, 0, 0, 0]; p.pts += n; break; }
       case 'jiedu': for (const k of Object.keys(p.status)) if (k !== 'immune') delete p.status[k]; break;
       case 'juedou': {
-        s.duel = { from: p.id };
+        p.gold -= SJ.DUEL_STAKE; await io.ev({ t: 'gold', pid: p.id, n: -SJ.DUEL_STAKE, why: '押下战书' });
+        s.duel = { from: p.id, stake: SJ.DUEL_STAKE };
         for (const q of alive(s)) if (q !== p) q.cons.push('yingzhan'); // 应战帖不占名额，栏满了也收得到
-        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 向所有人下了战书！谁先应战，就去竞技场打到一方倒下。到${p.name}下回合还没人应战，战书作废` });
+        await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 押下 ${SJ.DUEL_STAKE} 金，向所有人下了战书！谁先押 ${SJ.DUEL_STAKE} 金应战，就去竞技场打到一方倒下，赢家拿走全部 ${SJ.DUEL_STAKE * 2} 金。到${p.name}下回合还没人应战，战书作废，钱原数退回` });
         break;
       }
       case 'yingzhan': {
-        const o = s.players[s.duel.from]; s.duel = null;
+        const o = s.players[s.duel.from], stake = s.duel.stake || 0; s.duel = null;
         for (const q of s.players) q.cons = (q.cons || []).filter((x) => x !== 'yingzhan');
-        await duel(s, io, o, p);
+        p.gold -= SJ.DUEL_STAKE; await io.ev({ t: 'gold', pid: p.id, n: -SJ.DUEL_STAKE, why: '押下应战' });
+        await duel(s, io, o, p, stake + SJ.DUEL_STAKE);
         break;
       }
     }
@@ -1096,7 +1109,7 @@
         if (!p.alive || s.over) return;
         const own = s.players[tt.s.o], f = tt.s.v || 0.03;
         tt.s = null; await io.ev({ t: 'tile', tile: nx });
-        const v = Math.min(p.gold, Math.round(p.gold * f)); p.gold -= v; if (own.alive) gain(s, own, v);
+        const v = Math.min(p.gold, SJ.stoneGold(s, own)); p.gold -= v; if (own.alive) gain(s, own, v);
         await io.ev({ t: 'msg', text: `${p.name} 踩碎了填海石${v ? `，交给${own.name} ${v} 金` : ''}` });
         if (v) await io.ev({ t: 'toll', pid: p.id, to: own.id, n: v });
         await hurtPlain(s, io, p, Math.max(1, Math.round(p.maxhp * f)), '被填海石砸死');
@@ -1209,6 +1222,8 @@
   }
 
   // 填海石自然消失：无主领地归精卫，自家建筑升一级，敌人建筑掉 25% 血
+  // 填海石收的钱：按填海等级 100/200/300，学了志不可夺 300/500/700，再乘物价
+  SJ.stoneGold = (s, own) => { const k = Math.max(0, (own.sk[1] || 1) - 1); return Math.round((own.sk[3] ? [300, 500, 700] : [100, 200, 300])[k] * SJ.inflation(s)); };
   async function stoneSettle(s, io, p, i) {
     const t = s.tiles[i];
     if (SJ.BOARD[i].type !== 'land') return;

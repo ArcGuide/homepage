@@ -82,9 +82,9 @@
     ],
     jingwei: [
       S('xianshi', '衔石', 'passive', 0, `战斗中每下 ${pct([0.1, 0.15, 0.2])} 对敌人造成其最大血 9% 的伤害`, { pr: [0.1, 0.15, 0.2] }, 'a small bird carrying a pebble'),
-      S('tianhai', '填海', 'summon', 5, `在身后连放 3 块石头，${L([9, 7, 5])} 轮后自然消失。敌方英雄停在石头上（路过不算），石头碎掉，他掉 ${pct([0.03, 0.06, 0.09])} 最大血、交 ${pct([0.03, 0.06, 0.09])} 金币给你。石头自然消失时看脚下：无主领地归你；你的地建筑升一级；敌人的地建筑掉 25% 血；其他格子什么都不发生`, { go: (g, k) => g.behind('stones', 3, [9, 7, 5][k] - (g.lv(3) ? 1 : 0), [0.03, 0.06, 0.09][k]) }, 'a pile of round pebbles in waves'),
+      S('tianhai', '填海', 'summon', 5, `在身后连放 3 块石头，${L([9, 7, 5])} 轮后自然消失。敌方英雄停在石头上（路过不算），石头碎掉，他掉 ${pct([0.03, 0.06, 0.09])} 最大血、交 ${L([100, 200, 300])} 金给你（随物价上涨）。石头自然消失时看脚下：无主领地归你；你的地建筑升一级；敌人的地建筑掉 25% 血；其他格子什么都不发生`, { go: (g, k) => g.behind('stones', 3, [9, 7, 5][k] - (g.lv(3) ? 1 : 0), [0.03, 0.06, 0.09][k]) }, 'a pile of round pebbles in waves'),
       S('zhanchi', '展翅', 'buff', 7, '2 回合内飞在空中，停下时什么都不触发：不战斗、不交过路费，也不买地、不遇异兽。河图减不了它的冷却', { noFast: true, go: (g) => g.buff('soar', 1, 2) }, 'small bird wings in flight over sea'),
-      S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头少等 1 轮；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
+      S('buqu', '志不可夺', 'passive', 0, '强化其他三个技能：衔石伤害变为最大血 17%；填海的石头少等 1 轮，收的钱变为 300/500/700（随物价上涨）；展翅时自家和中立的格子照常结算', { ult: true }, 'a tiny bird defiantly facing a huge ocean wave'),
     ],
     zhulong: [
       S('zhengyan', '睁眼一击', 'buff', 5, `在脚下放一个【烛】；3 回合内攻击和防御各 +${pct([0.08, 0.12, 0.16])}。学会后所有【烛】都有这个特点：烛龙在【烛】前后 2 格内攻击和防御各 +${pct([0.04, 0.08, 0.12])}`, { pv: { candleNear: [0.04, 0.08, 0.12] }, go: (g, k) => { g.candle(); g.buff('atkPct', [0.08, 0.12, 0.16][k], 3); g.buff('def', [0.08, 0.12, 0.16][k], 3); } }, 'a huge glowing eye opening'),
@@ -133,8 +133,8 @@
     C('shisha', '时砂', '随机一个正在冷却的技能马上清零（大招除外）；没有能清的就散掉', 'a small bronze hourglass with glowing golden sand'),
     C('wangchuan', '忘川水', '洗点：收回全部技能点，重新学', 'a small black clay bottle of misty river water'),
     C('jiedu', '解毒草', '清除所有负面状态', 'a sprig of green herb with white flowers'),
-    C('juedou', '决斗帖', '向所有对手下战书：每人马上收到一张应战帖。谁先应战，两人去竞技场打到一方倒下；到你下回合还没人应战，战书作废', 'a red paper challenge letter sealed with a black wax seal and crossed swords'),
-    Object.assign(C('yingzhan', '应战帖', '接下战书：马上和下战书的人去竞技场，打到一方倒下。别人先应战了，它就没了', 'a folded gold paper reply letter with a red seal and a single sword'), { noShop: true }),
+    C('juedou', '决斗帖', '押 1000 金向所有对手下战书（你和至少一名对手都要有 1000 金）：每人马上收到一张应战帖。谁先押 1000 金应战，两人去竞技场打到一方倒下，赢家拿走 2000 金；到你下回合还没人应战，战书作废，钱原数退回', 'a red paper challenge letter sealed with a black wax seal and crossed swords'),
+    Object.assign(C('yingzhan', '应战帖', '押 1000 金接下战书：马上和下战书的人去竞技场，打到一方倒下，赢家拿走 2000 金。别人先应战了，它就没了', 'a folded gold paper reply letter with a red seal and a single sword'), { noShop: true }),
   ];
 
   // 5 阶：神器。只在大型地图的后期宝箱里出现，每个英雄一局最多拿到一次，不占宝物栏
@@ -188,7 +188,7 @@
     huanxing: '九尾狐身形一晃，已经在 3 格之外，还转过了身。技能越高，冷却越短。',
     tianhu: '九尾全开，天下归心。随机得到 3 块无主领地，各建一座 1 级建筑；无主的地不够，每少一块就免费升级一座自家建筑。',
     xianshi: '精卫衔石掷下，每次出手有 10% / 15% / 20% 的机会砸掉对手 9% 的最大血。',
-    tianhai: '精卫在身后连放 3 块石头。敌人停在石头上，石头碎掉，他掉 3% / 6% / 9% 最大血，还要交 3% / 6% / 9% 金币给精卫。石头 9 / 7 / 5 轮后自己沉下去：沉在无主的地上，地归精卫；沉在精卫的地上，建筑升一级；沉在敌人的地上，建筑掉 25% 血。',
+    tianhai: '精卫在身后连放 3 块石头。敌人停在石头上，石头碎掉，他掉 3% / 6% / 9% 最大血，还要交 100 / 200 / 300 金给精卫（学会志不可夺后是 300 / 500 / 700，都随物价上涨）。石头 9 / 7 / 5 轮后自己沉下去：沉在无主的地上，地归精卫；沉在精卫的地上，建筑升一级；沉在敌人的地上，建筑掉 25% 血。',
     zhanchi: '精卫振翅高飞，2 回合内落在哪里都不沾地：不打架、不交过路费，也不买地、不遇异兽。',
     buqu: '精卫填海，志不可夺。衔石砸掉的血变成 17%，填海的石头早 1 轮沉下，展翅时落在自家和中立的格子照常结算。',
     zhengyan: '烛龙一睁眼，天就亮了。在脚下放一支【烛】，3 回合内攻击和防御各 +8% / 12% / 16%。学会后，烛龙在任何【烛】前后 2 格内，攻击和防御各 +4% / 8% / 12%。',

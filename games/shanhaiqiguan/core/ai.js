@@ -46,8 +46,8 @@
           if (id === 'zhuanxiang' && roll() < 0.1) return { a: 'use', i };
           if (id === 'wangchuan' && p.cons.filter((x) => x !== 'yingzhan').length >= 4) return { a: 'use', i }; // 电脑不洗点，栏满了就随手用掉
           // 决斗不全按把握来：觉得打得过就上，打不过也有一定概率一冲动就上
-          if (id === 'yingzhan' && s.duel && (SJ.duelOdds(s, p, s.players[s.duel.from]) > 0.5 || roll() < SJ.AI_RASH.accept)) return { a: 'use', i };
-          if (id === 'juedou' && !s.duel && (s.players.every((q) => !q.alive || q === p || SJ.duelOdds(s, p, q) >= 0.6) || roll() < SJ.AI_RASH.invite)) return { a: 'use', i };
+          if (id === 'yingzhan' && SJ.canAccept(s, p) && (SJ.duelOdds(s, p, s.players[s.duel.from]) > 0.5 || roll() < SJ.AI_RASH.accept)) return { a: 'use', i };
+          if (id === 'juedou' && !s.duel && SJ.canInvite(s, p) && (s.players.every((q) => !q.alive || q === p || SJ.duelOdds(s, p, q) >= 0.6) || roll() < SJ.AI_RASH.invite)) return { a: 'use', i };
         }
         for (let i = 3; i >= 0; i--) {
           if (!SJ.canCast(p, i, s)) continue;

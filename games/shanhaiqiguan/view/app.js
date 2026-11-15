@@ -110,7 +110,7 @@
       <h3>踩到别人的地</h3>
       <ul><li>交过路费，或者开打。</li><li>过路费每轮都会涨。到了后期（大图第 60 轮、中图第 40 轮、小图第 25 轮起），每轮再多涨 2%（利滚利），买地、升级和城邑卖的宝物也一起涨，屏幕上方会显示「物价 ×几」。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li><li>所有战斗都是双方各出手 3 下就收手。打塔的血量都记下来，下回接着打；异兽没被打死就回满血，绕开也要挨它一下。</li></ul>
       <h3>决斗</h3>
-      <ul><li>英雄在路上碰到不会打架。想打，就用消耗品「决斗帖」向所有人下战书：每个对手马上收到一张「应战帖」。</li><li>谁先用应战帖，两人就去竞技场打一场，打到一方倒下为止。有人应战后，别人手里的应战帖就没了。到下战书的人下一回合还没人应战，战书作废。</li><li>竞技场每张地图一座，在最难走的那段山地、冰原、大海上。停在竞技场上，送一张决斗帖；宝铺里也能拿到。打完两人都留在竞技场。</li><li>默认是比试：打完谁都不掉血。在「玩法设置」里关掉英雄比试，就变成真打：掉的血带回棋盘，打死就出局。</li><li>决斗不动金币，只给经验，按对手的等级算：赢家拿 2 倍战斗经验，输家（或者平局）也拿 1 倍。下战书的一方，不管输赢，经验再乘 1.5。</li></ul>
+      <ul><li>英雄在路上碰到不会打架。想打，就用消耗品「决斗帖」向所有人下战书：每个对手马上收到一张「应战帖」。</li><li>谁先用应战帖，两人就去竞技场打一场，打到一方倒下为止。有人应战后，别人手里的应战帖就没了。到下战书的人下一回合还没人应战，战书作废。</li><li>竞技场每张地图一座，在最难走的那段山地、冰原、大海上。停在竞技场上，送一张决斗帖；宝铺里也能拿到。打完两人都留在竞技场。</li><li>默认是比试：打完谁都不掉血。在「玩法设置」里关掉英雄比试，就变成真打：掉的血带回棋盘，打死就出局。</li><li>决斗要押钱：下战书押 1000 金，应战也押 1000 金。只有你和至少一名对手都有 1000 金时，才能下战书。赢家拿走全部 2000 金，平局各自拿回；没人应战，押的钱原数退回。</li><li>决斗双方都涨经验，赢家涨得多，输家也有一些。</li></ul>
       <h3>五种建筑</h3>
       <ul><li><b>驻军</b>：低攻高防，很难打穿。</li><li><b>射手</b>：高攻低防，高等级会杀人。</li><li><b>巫术</b>：给英雄挂负面状态，带回棋盘。</li><li><b>城邑</b>：每回合产金，但没什么战斗力。</li><li><b>学宫</b>：强化自家英雄，被拆就失效。</li></ul>
       <p>英雄 5 级前走路就涨经验，5 级起靠打塔、打异兽和竞技场决斗。别人来打你的塔，你也有经验：守住、被拆、把对方打死，都有。塔的等级、对手的等级越高，经验越多。</p>
@@ -429,7 +429,7 @@
         ${p.buffs.length ? `<p>加持：${p.buffs.map((b) => `${BUFF[b.k] || b.k} ${b.n - 1 > 0 ? `${b.n - 1} 回合` : '本回合'}`).join('、')}</p>` : ''}
         ${Object.keys(p.status).length ? `<p>状态：${Object.entries(p.status).map(([k, n]) => `${SJ.STATUS[k]?.[0] || k} ${n}`).join('、')}</p>` : ''}</div></div>
       <h4>技能</h4><div class="sks">${list.map(skill).join('')}</div>
-      <h4>消耗品 <small>最多 4 个，满了挤掉最早的（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); return c ? `<button class="slot t1" ${act ? `data-a='{"a":"use","i":${i}}'` : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
+      <h4>消耗品 <small>最多 4 个，满了挤掉最早的（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); const no = (id === 'juedou' && !SJ.canInvite(S, p)) || (id === 'yingzhan' && !SJ.canAccept(S, p)); return c ? `<button class="slot t1" ${act && !no ? `data-a='{"a":"use","i":${i}}'` : ''} ${act && no ? 'disabled' : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}${act && no ? `<br><em>${id === 'juedou' ? '要你和至少一名对手都有 1000 金才能用' : '应战要押 1000 金，现在钱不够'}</em>` : ''}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>
       ${p.art ? (() => { const a = SJ.artOf(p.art.id); return `<h4>神器</h4><div class="slots"><div class="slot t5">${img('it_' + a.id)}<b>${a.name}</b><small>${a.desc}${p.art.n != null ? `（还剩 ${p.art.n} 轮）` : p.art.uses ? `（还剩 ${p.art.uses} 次）` : ''}</small></div><div class="artnote"><p class="flavor">${a.flavor}</p><p>神器只在大型地图第 ${SJ.TUNE.artRound} 轮以后的宝箱里才可能开出来。</p><p>每个英雄一局只能得到一件，不占宝物栏；用完或到期就消失，不会再有第二件。</p></div></div>`; })() : ''}
       <h4>宝物 <small>最多装备 4 件${act ? '，点一下卸下' : ''}</small></h4><div class="slots">${p.items.map((id, i) => item(id, `{"a":"unequip","i":${i}}`)).join('')}</div>
       ${p.bag.length ? `<h4>包袱 <small>${act ? '点一下装备' : ''}</small></h4><div class="slots">${p.bag.map((id, i) => item(id, p.items.includes(null) ? `{"a":"equip","i":${i}}` : `{"a":"sell","i":${i}}`)).join('')}</div>${act && !p.items.includes(null) ? '<p class="note">宝物栏满了：先卸下一件，或者点包袱里的宝物卖掉。</p>' : ''}` : ''}
@@ -550,7 +550,7 @@
   async function play(e) {
     switch (e.t) {
       case 'turn': { B.cam.free = 0; placePieces(); renderPlayers(); focusCur(350); const p = S.players[e.pid]; if (p.human) sfx.turn(); if (p.human && S.players.filter((q) => q.human).length > 1) toast(`轮到 ${p.name}`); await wait(420); break; }
-      case 'gold': renderPlayers(); floaty(e.pid, `+${e.n}`, '#ffd76a'); if (e.why) logLine(`${S.players[e.pid].name} ${e.why} +${e.n} 金`); if (S.players[e.pid].human) sfx.coin(); await wait(300); break;
+      case 'gold': { const sg = e.n < 0 ? String(e.n) : `+${e.n}`; renderPlayers(); floaty(e.pid, sg, e.n < 0 ? '#ff8a7a' : '#ffd76a'); if (e.why) logLine(`${S.players[e.pid].name} ${e.why} ${sg} 金`); } if (S.players[e.pid].human) sfx.coin(); await wait(300); break;
       case 'heal': renderPlayers(); floaty(e.pid, `+${e.n}`, '#8ee09a'); sfx.heal(); await wait(240); break;
       case 'hurt': renderPlayers(); floaty(e.pid, `-${e.n}`, '#ff7a66'); sfx.hurt(); await wait(320); break;
       case 'roll': soarSync(); await showDice(e); break;

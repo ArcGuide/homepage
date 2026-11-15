@@ -555,7 +555,7 @@
     headCd(p, res.aSaved);
     // 塔主人也拿经验，后期靠收租的英雄才升得动级：守住 2×，被拆 1×（按塔等级），打死来犯的英雄 6×（按对方等级）
     const guard = async (n) => { if (owner.alive && gainXp(s, owner, n)) await io.ev({ t: 'levelup', pid: owner.id, level: owner.level }); };
-    if (p.hp <= 0) { await guard(6 * SJ.TUNE.fightXp * p.level); await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) { t.hp = Math.max(1, Math.round(res.dHp)); await holdUp(s, io, owner, i); return; } }
+    if (p.hp <= 0) { await guard(SJ.killXp(p.level)); await eliminate(s, io, p, owner, `死在${D.name}前`); if (!p.alive) { t.hp = Math.max(1, Math.round(res.dHp)); await holdUp(s, io, owner, i); return; } }
     t.hp = Math.max(0, Math.round(res.dHp));
     await guard((res.winner === 'a' ? 1 : 2) * SJ.TUNE.fightXp * lv);
     if (res.winner === 'a') {
@@ -666,22 +666,23 @@
       if (q.hp <= 0) { await eliminate(s, io, q, p, `在竞技场被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
       if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `在竞技场被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
     }
-    // 赢家拿走两人押的钱；平局各拿回自己那份。经验：赢家拿当前等级升级所需的 70%，输家（和平局）拿 40%
-    const w = win === 'a' ? p : win === 'd' ? q : null;
+    // 赢家拿走两人押的钱；平局各拿回自己那份。经验按对手开打前的等级：赢家拿击杀对手经验的 70%，输家（和平局）拿 40%
+    const w = win === 'a' ? p : win === 'd' ? q : null, lv = { [p.id]: p.level, [q.id]: q.level };
     if (pot) {
       if (w && w.alive) { gain(s, w, pot); await io.ev({ t: 'gold', pid: w.id, n: pot, why: '决斗赢得' }); await io.ev({ t: 'msg', kind: 'skill', text: `${w.name} 赢走了 ${pot} 金` }); }
       else if (!w) for (const x of [p, q]) if (x.alive) { x.gold += pot / 2; await io.ev({ t: 'gold', pid: x.id, n: pot / 2, why: '平局退回' }); }
     }
-    for (const x of [p, q]) {
+    for (const [x, y] of [[p, q], [q, p]]) {
       if (!x.alive || s.over || x.level >= SJ.TUNE.maxLevel) continue;
-      const n = SJ.duelXp(x === w, x.level);
+      const n = SJ.duelXp(x === w, lv[y.id]);
       const up = gainXp(s, x, n);
       await io.ev({ t: 'msg', text: `${x.name} 在竞技场${x === w ? '得胜' : w ? '落败' : '战平'}，经验 +${n}` });
       if (up) await io.ev({ t: 'levelup', pid: x.id, level: x.level });
     }
   }
-  SJ.DUEL_XP = { win: 0.7, lose: 0.4 }; // 占自己当前等级升级所需经验的比例，不显示给玩家
-  SJ.duelXp = (won, lv) => Math.round(SJ.xpNeed(lv) * (won ? SJ.DUEL_XP.win : SJ.DUEL_XP.lose));
+  SJ.killXp = (lv) => 6 * SJ.TUNE.fightXp * lv; // 打死一个 lv 级英雄给的经验（塔守住打死来犯英雄时用的那个）
+  SJ.DUEL_XP = { win: 0.7, lose: 0.4 }; // 占击杀对手经验的比例，不显示给玩家
+  SJ.duelXp = (won, foeLv) => Math.round(SJ.killXp(foeLv) * (won ? SJ.DUEL_XP.win : SJ.DUEL_XP.lose));
   // 电脑估一下自己打赢 q 的把握：用独立的随机数打几场，不动对局的随机数
   SJ.duelOdds = (s, p, q, n = 6) => {
     let w = 0;

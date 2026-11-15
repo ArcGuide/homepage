@@ -133,8 +133,8 @@
     C('shisha', '时砂', '随机一个正在冷却的技能马上清零（大招除外）；没有能清的就散掉', 'a small bronze hourglass with glowing golden sand'),
     C('wangchuan', '忘川水', '洗点：收回全部技能点，重新学', 'a small black clay bottle of misty river water'),
     C('jiedu', '解毒草', '清除所有负面状态', 'a sprig of green herb with white flowers'),
-    C('juedou', '决斗帖', '押 1000 金向所有对手下战书（你和至少一名对手都要有 1000 金）：每人马上收到一张应战帖。谁先押 1000 金应战，两人去竞技场打到一方倒下，赢家拿走 2000 金；到你下回合还没人应战，战书作废，钱原数退回', 'a red paper challenge letter sealed with a black wax seal and crossed swords'),
-    Object.assign(C('yingzhan', '应战帖', '押 1000 金接下战书：马上和下战书的人去竞技场，打到一方倒下，赢家拿走 2000 金。别人先应战了，它就没了', 'a folded gold paper reply letter with a red seal and a single sword'), { noShop: true }),
+    C('juedou', '决斗帖', '抵押 1000 金向所有对手挑战，有人迎战后赢家拿走 2000 金，无人迎战则 1000 金退还', 'a red paper challenge letter sealed with a black wax seal and crossed swords'),
+    Object.assign(C('yingzhan', '应战帖', '抵押 1000 金迎战，赢家拿走 2000 金', 'a folded gold paper reply letter with a red seal and a single sword'), { noShop: true }),
   ];
 
   // 5 阶：神器。只在大型地图的后期宝箱里出现，每个英雄一局最多拿到一次，不占宝物栏

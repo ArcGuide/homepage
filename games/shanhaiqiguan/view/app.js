@@ -418,6 +418,8 @@
     const live = (k) => {
       const ab = k.id === 'mengzhi' && p.buffs.find((b) => b.k === 'absorb');
       if (ab) { const v = p.store || 0; return `<p class="sk-live">正在吸收：已吸收 ${Math.round(v)} 点伤害，还剩 ${ab.n} 回合，结束时受到 ${Math.round(v * ab.v)} 点</p>`; }
+      const pl = k.id === 'xingyao' && p.buffs.find((b) => b.k === 'pool');
+      if (pl) { const v = Math.round(p.pool || 0); return `<p class="sk-live">血盾还剩 ${v} 点，还能抵 ${Math.floor(v / 2)} 点伤害，还剩 ${pl.n} 回合</p>`; }
       return '';
     };
     const skill = (k, i) => {

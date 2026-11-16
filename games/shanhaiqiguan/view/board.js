@@ -148,10 +148,23 @@
 
   // ---------- 镜头 ----------
   const cam = B.cam = { x: 0, y: 0, z: 1, el: null, wrap: null, free: 0 };
+  // 镜头移动逐帧改 transform，不用 CSS transition：
+  // 手机上（微信 / iOS WebView）整张大地图层在 transition 期间不重新绘制，建筑和棋子会整段消失；手指拖动是逐帧改的，一直正常
+  let shown = null, tween = 0;
+  const put = (e, t) => { e.style.transform = `translate(${Math.round(t.x)}px, ${Math.round(t.y)}px) scale(${t.z})`; shown = t; };
   B.apply = function (ms) {
     const w = cam.wrap, e = cam.el; if (!w || !e) return;
-    e.style.transition = ms ? `transform ${ms}ms linear` : 'none';
-    e.style.transform = `translate(${Math.round(w.clientWidth / 2 - cam.x * cam.z)}px, ${Math.round(w.clientHeight / 2 - cam.y * cam.z)}px) scale(${cam.z})`;
+    e.style.transition = 'none';
+    const to = { x: w.clientWidth / 2 - cam.x * cam.z, y: w.clientHeight / 2 - cam.y * cam.z, z: cam.z };
+    cancelAnimationFrame(tween);
+    if (!ms || !shown) { put(e, to); return; }
+    const from = shown, t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / ms);
+      put(e, { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k, z: from.z + (to.z - from.z) * k });
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
   };
   B.look = function (x, y, ms) { if (Date.now() < cam.free) return; cam.x = x; cam.y = y; B.apply(ms); };
   B.fitAll = function () {

@@ -417,7 +417,7 @@
     // 正在生效的技能，说明下面多一行实时数字（比如刑天猛志吸收了多少）
     const live = (k) => {
       const ab = k.id === 'mengzhi' && p.buffs.find((b) => b.k === 'absorb');
-      if (ab) { const v = p.store || 0; return `<p class="sk-live">正在吸收：已吸收 ${v} 点伤害，还剩 ${ab.n} 回合，结束时受到 ${Math.round(v * ab.v)} 点</p>`; }
+      if (ab) { const v = p.store || 0; return `<p class="sk-live">正在吸收：已吸收 ${Math.round(v)} 点伤害，还剩 ${ab.n} 回合，结束时受到 ${Math.round(v * ab.v)} 点</p>`; }
       return '';
     };
     const skill = (k, i) => {

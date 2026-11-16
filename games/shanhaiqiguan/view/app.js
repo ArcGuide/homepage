@@ -414,10 +414,16 @@
     const H = SJ.HEROES[p.hero], st = SJ.heroStats(S, p), race = SJ.RACES[p.race], list = SJ.SKILLS[p.hero];
     const need = SJ.xpNeed(p.level), maxed = p.level >= SJ.TUNE.maxLevel;
     const dots = (k, l) => (k.ult ? `<i class="on-${l > 0}"></i>` : [1, 2, 3].map((n) => `<i class="on-${l >= n}"></i>`).join(''));
+    // 正在生效的技能，说明下面多一行实时数字（比如刑天猛志吸收了多少）
+    const live = (k) => {
+      const ab = k.id === 'mengzhi' && p.buffs.find((b) => b.k === 'absorb');
+      if (ab) { const v = p.store || 0; return `<p class="sk-live">正在吸收：已吸收 ${v} 点伤害，还剩 ${ab.n} 回合，结束时受到 ${Math.round(v * ab.v)} 点</p>`; }
+      return '';
+    };
     const skill = (k, i) => {
       const l = p.sk[i], learn = act && SJ.canLearn(p, i), cast = act && SJ.canCast(p, i, S), cd = p.cd[i];
       const gate = !act || l >= (k.ult ? 1 : 3) ? '' : k.ult ? (p.level < 6 ? '6 级可学' : '') : (p.level < l * 2 + 1 ? `${l * 2 + 1} 级可升` : '');
-      return `<div class="sk ${l ? '' : 'dim'}">${img('sk_' + k.id)}<div class="sk-b"><b>${k.name}</b> <em>${k.ult ? '大招 · ' : ''}${SJ.SKILL_KIND[k.kind]}${k.cd ? ` · 冷却 ${[].concat(k.cd).join('/')}` : ''}</em><span class="dots">${dots(k, l)}</span><p>${k.say || k.desc}</p></div>
+      return `<div class="sk ${l ? '' : 'dim'}">${img('sk_' + k.id)}<div class="sk-b"><b>${k.name}</b> <em>${k.ult ? '大招 · ' : ''}${SJ.SKILL_KIND[k.kind]}${k.cd ? ` · 冷却 ${[].concat(k.cd).join('/')}` : ''}</em><span class="dots">${dots(k, l)}</span><p>${k.say || k.desc}</p>${live(k)}</div>
         <div class="sk-a">${learn ? `<button class="btn small" data-a='{"a":"learn","i":${i}}'>${l ? '升级' : '学习'}</button>` : ''}${cast ? `<button class="btn small primary" data-a='{"a":"cast","i":${i}}'>释放</button>` : ''}${l && cd > 0 ? `<small>冷却 ${cd}</small>` : ''}${act && l && cd <= 0 && !cast && k.wait ? `<small>${k.wait}</small>` : ''}${gate ? `<small>${gate}</small>` : ''}</div></div>`;
     };
     const item = (id, v) => (id ? `<button class="slot t${SJ.itemOf(id).tier}" ${act ? `data-a='${v}'` : ''} title="${SJ.itemOf(id).name}">${img('it_' + id)}<b>${SJ.itemOf(id).name}</b><small>${TIER[SJ.itemOf(id).tier]} · ${SJ.itemOf(id).desc}</small></button>` : '<div class="slot empty">空</div>');
@@ -439,7 +445,7 @@
     document.body.append(l);
   }
 
-  // 别人的英雄只看得到基础信息：血、钱、装备的宝物名字。技能和宝物效果要自己摸索
+  // 别人的英雄只看得到基础信息：血、钱、装备的宝物名字。技能和宝物效果不显示
   function foePanel(p) {
     const H = SJ.HEROES[p.hero], race = SJ.RACES[p.race];
     const items = p.items.filter(Boolean);
@@ -448,7 +454,6 @@
         <p>血 ${p.hp} / ${p.maxhp} · 金币 ${p.gold} · 领地 ${SJ.lands(S, p)}</p>
         <p class="race" style="color:${shade(race.color, 0.72)}">${race.name}</p></div></div>
       <h4>装备的宝物</h4><div class="slots">${items.length ? items.map((id) => `<div class="slot t${SJ.itemOf(id).tier}">${img('it_' + id)}<b>${SJ.itemOf(id).name}</b></div>`).join('') : '<div class="slot empty">没有</div>'}</div>
-      <p class="note">别人的技能和宝物效果看不到，得在交手里自己摸清。</p>
       <div class="btn-row"><button class="btn primary" id="hp-close">关闭</button></div></div></div>`);
     $('#hp-close', l).onclick = () => { sfx.click(); l.remove(); };
     document.body.append(l);
@@ -944,7 +949,7 @@
     const me = S.players.find((p) => p.human);
     const top = mine
       ? `<img class="ending" src="assets/end_${w.hero}.jpg" alt="" onerror="this.className='big';this.onerror=null;this.src='assets/hero_${w.hero}.webp'"><p class="ending-text">${SJ.ENDINGS[w.hero]}</p><p class="ending-note">已解锁结局 ${endings(w.hero)} / ${ids().length}</p>`
-      : `${w ? img('hero_' + w.hero) : ''}${me ? `<p class="ending-note">用${SJ.HEROES[me.hero].name}赢一局，才能看到${SJ.HEROES[me.hero].name}的结局</p>` : ''}`;
+      : `${w ? img('hero_' + w.hero) : ''}`;
     const l = h(`<div class="layer dim"><div class="result ${mine ? 'won' : ''}"><h2>${w ? `${w.name} 称霸四境` : '同归于尽'}</h2>${top}<p>一共打了 ${S.round} 轮</p>
       ${ranks().map((p, i) => `<div class="rank"><span>第 ${i + 1} 名 ${p.name}${p.human ? '（你）' : ''}</span><span>Lv${p.level}</span></div>`).join('')}
       <div class="btn-row" style="margin-top:14px"><button class="btn primary" id="again">再来一局</button></div></div></div>`);

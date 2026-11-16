@@ -121,7 +121,7 @@
     return {
       kind: 'hero', pid: p.id, heroId: p.hero, name: SJ.HEROES[p.hero].name, hp: p.hp, maxhp: p.maxhp, atk: st.atk, def: st.def, dodge: st.dodge, proc: st.proc, crit: 0.1 + stat(p, 'crit') + pv(p, 'avatar'),
       bloodEdge: pv(p, 'bloodEdge'), rage: pv(p, 'rage'), avatar: hasBuff(p, 'avatar'), fear: pv(p, 'fear'), thornLow: pv(p, 'thornLow'), critLow: pv(p, 'critLow'),
-      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), stack: pv(p, 'stackHit'), nine: hasBuff(p, 'nine'), pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0,
+      fx: { thorns: stat(p, 'thorn') || undefined, lifesteal: stat(p, 'lifesteal') || undefined }, undying: hasBuff(p, 'undying'), poisonHit: hasBuff(p, 'venom'), twin: hasBuff(p, 'twin'), absorb: hasBuff(p, 'absorb'), shield: hasBuff(p, 'pool') ? p.pool || 0 : 0, scorch: pv(p, 'scorch'), stack: pv(p, 'stackHit'), nine: hasBuff(p, 'nine'), pctHit: p.hero === 'jingwei' && p.sk[0] ? (p.sk[3] ? 0.17 : 0.09) : 0, xtLow: p.hero === 'xingtian' ? pv(p, 'lowHp') : 0,
       blind: p.status.blind ? 0.25 : 0, sealed: !!p.status.seal, lowHpAtk: ownFx(s, p, 'lowHpAtk'), lamp: lampTile >= 0 ? lampTile : null,
     };
   }
@@ -444,6 +444,7 @@
 
   async function hurtPlain(s, io, p, n, why) {
     if (hasBuff(p, 'absorb')) { p.store = (p.store || 0) + n; return; }
+    if (p.pool > 0 && hasBuff(p, 'pool')) { const v = Math.min(n, Math.floor(p.pool / 2)); p.pool -= v * 2; n -= v; if (n <= 0) return; } // 形夭血盾：2 点血盾抵 1 点伤害
     p.hp -= n;
     await io.ev({ t: 'hurt', pid: p.id, n, why });
     if (p.hp <= 0) await eliminate(s, io, p, null, why);
@@ -490,6 +491,8 @@
   async function afterFight(s, io, p, absorbed) {
     if (absorbed) p.store = (p.store || 0) + absorbed;
   }
+  // 战斗之后：记下形夭血盾还剩多少
+  const keepShield = (p, v) => { if (p.pool > 0) p.pool = Math.max(0, Math.round(v || 0)); };
 
   function turnAround(s, p) {
     const f = SJ.BOARD[p.pos].adj.filter((x) => x !== p.from);
@@ -548,7 +551,7 @@
     s.stats.fights++;
     if (D.fx.status) applyFxStatus(s, p, D.fx);
     const res = SJ.fight(A, D, s.rng);
-    p.hp = Math.min(p.maxhp, Math.round(res.aHp));
+    p.hp = Math.min(p.maxhp, Math.round(res.aHp)); keepShield(p, res.aShield);
     await io.ev({ t: 'battle', kind: 'tile', a: A, d: D, res, tile: i, forced, pid: p.id });
     await afterFight(s, io, p, res.aAbs);
     if (res.lampUsed) await useLamp(s, io, p, A.lamp);
@@ -662,7 +665,7 @@
     if (win === 'draw') { const ra = res.aHp / A.maxhp, rd = res.dHp / D.maxhp; win = ra > rd ? 'a' : rd > ra ? 'd' : 'draw'; }
     await io.ev({ t: 'battle', kind: 'duel', real, a: A, d: D, res, verdict: win, pid: p.id, qid: q.id });
     if (real) {
-      p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp));
+      p.hp = Math.min(p.maxhp, Math.round(res.aHp)); q.hp = Math.min(q.maxhp, Math.round(res.dHp)); keepShield(p, res.aShield); keepShield(q, res.dShield);
       if (q.hp <= 0) { await eliminate(s, io, q, p, `在竞技场被${p.name}打死`); if (!q.alive) await devour(s, io, p, q.maxhp); }
       if (p.hp <= 0 && p.alive) { await eliminate(s, io, p, q, `在竞技场被${q.name}打死`); if (!p.alive) await devour(s, io, q, p.maxhp); }
     }
@@ -713,7 +716,7 @@
     const A = heroC(s, p), D = foe();
     p.bless = 0;
     const res = SJ.fight(A, D, s.rng);
-    p.hp = Math.min(p.maxhp, Math.round(res.aHp));
+    p.hp = Math.min(p.maxhp, Math.round(res.aHp)); keepShield(p, res.aShield);
     await io.ev({ t: 'battle', kind: 'nest', a: A, d: D, res, pid: p.id });
     await afterFight(s, io, p, res.aAbs);
     if (res.lampUsed) await useLamp(s, io, p, A.lamp);
@@ -1406,11 +1409,6 @@
             if (!again && s.extra > 0) { s.extra--; again = true; }
           }
         }
-      }
-      // 形夭：每回合结束时从存量补到 20%
-      if (p.alive && p.pool > 0 && p.hp < p.maxhp * 0.2) {
-        const v = Math.min(p.pool, Math.round(p.maxhp * 0.2) - p.hp);
-        if (v > 0) { p.hp += v; p.pool -= v; await io.ev({ t: 'heal', pid: p.id, n: v }); }
       }
       // 朱厌：下一个回合过完就失效
       if (s.forced.includes(p.id)) { if ((s.forcedNew || []).includes(p.id)) s.forcedNew = s.forcedNew.filter((x) => x !== p.id); else s.forced = s.forced.filter((x) => x !== p.id); }

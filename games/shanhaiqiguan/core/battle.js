@@ -16,7 +16,7 @@
   SJ.fight = function (A, D, st) {
     const r = () => SJ.rand(st);
     const a = Object.assign({}, A), d = Object.assign({}, D);
-    for (const c of [a, d]) { c.stun = 0; c.dot = 0; c.fx = c.fx || {}; c.saved = false; }
+    for (const c of [a, d]) { c.stun = 0; c.dot = 0; c.fx = c.fx || {}; c.saved = false; c.shield = c.shield || 0; }
     // 断首再战：对手因无首的恐惧，攻击和防御下降
     for (const [c, foe] of [[a, d], [d, a]]) if (c.fear) { foe.atk *= 1 - c.fear; foe.def = (foe.def || 0) * (1 - c.fear); }
     const log = [];
@@ -35,12 +35,16 @@
     const dead = (c) => c.hp <= 0;
     const hurt = (c, dmg, foe) => { // 处理吸收和保命
       if (c.absorb) { c.absorbed = (c.absorbed || 0) + dmg; return; }
+      if (c.shield > 0) { const v = Math.min(dmg, c.shield / 2); c.shield -= v * 2; dmg -= v; if (dmg <= 0) return; } // 形夭血盾：2 点血盾抵 1 点伤害
       c.hp -= dmg;
       if (c.hp <= 0 && c.undying) { c.hp = 1; snap({ t: 'skill', who: side(c), name: '打不死' }); }
       if (c.hp <= 0 && c.lamp != null && !c.lampUsed) {
         c.hp = c.maxhp * 0.3; c.lampUsed = true; snap({ t: 'skill', who: side(c), name: '魂灯' });
       }
     };
+
+    // 焚身：开打先烤对手一下
+    for (const [c, foe] of [[a, d], [d, a]]) if (c.scorch && !dead(foe)) { hurt(foe, c.scorch, c); snap({ t: 'skill', who: side(c), name: '焚身', dmg: c.scorch }); }
 
     const strike = (x, y, mul, label) => {
       const miss = (y.dodge || 0) + (x.blind || 0) + (y.fx.missNow || 0);
@@ -117,6 +121,6 @@
     if (dead(d) && !dead(a)) winner = 'a';
     else if (dead(a)) winner = 'd';
     else { timeout = true; winner = 'draw'; }
-    return { winner, log, aHp: Math.max(0, a.hp), dHp: Math.max(0, d.hp), aAbs: a.absorbed || 0, dAbs: d.absorbed || 0, timeout, charmed: false, lampUsed: !!a.lampUsed, dLampUsed: !!d.lampUsed, aSaved: !!a.saved, dSaved: !!d.saved };
+    return { winner, log, aHp: Math.max(0, a.hp), dHp: Math.max(0, d.hp), aAbs: a.absorbed || 0, dAbs: d.absorbed || 0, aShield: a.shield, dShield: d.shield, timeout, charmed: false, lampUsed: !!a.lampUsed, dLampUsed: !!d.lampUsed, aSaved: !!a.saved, dSaved: !!d.saved };
   };
 })(typeof window !== 'undefined' ? window : globalThis);

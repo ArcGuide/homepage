@@ -437,7 +437,7 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 @keyframes spiritFade { from { opacity: 1; } to { opacity: .8; } }
 .piece .aura i:nth-of-type(1) { animation-delay: -.2s; } .piece .aura i:nth-of-type(2) { animation-delay: -.5s; } .piece .aura i:nth-of-type(3) { animation-delay: -.1s; } .piece .aura i:nth-of-type(4) { animation-delay: -.7s; } .piece .aura i:nth-of-type(5) { animation-delay: -.35s; }
 /* 涿鹿号令期间，自家建筑金光闪闪 */
-.sprite.bld.rally img { filter: drop-shadow(0 0 4px #ffd35a) drop-shadow(0 0 10px #ff9a2a); animation: rally 1s ease-in-out infinite alternate; }
+.sprite.bld.rally img { filter: drop-shadow(0 0 4px #ffd35a) drop-shadow(0 0 10px #ff9a2a); animation: rally 1s ease-in-out infinite alternate, breathe 4s var(--ph, 0s) ease-in-out infinite; }
 @keyframes rally { from { filter: drop-shadow(0 0 3px #ffd35a) drop-shadow(0 0 6px #ff9a2a); } to { filter: drop-shadow(0 0 6px #ffe9a0) drop-shadow(0 0 16px #ffb02e); } }
 
 /* 开局页底栏和玩法设置 */
@@ -508,3 +508,78 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 @keyframes arc-orb { to { transform: scale(1.18); } }
 
 .sk-b p.sk-live { color: #a8321f; font-weight: 600; margin-top: 3px; }
+
+/* ---------- 2026-11-18 方向箭头：脚前贴地，叠在下一格建筑上、人物下 ---------- */
+.head { position: absolute; pointer-events: none; overflow: visible; }
+.head polygon { fill: var(--pc); stroke: #241f1a; stroke-width: 3; stroke-linejoin: round; paint-order: stroke; opacity: .82; }
+.head.cur polygon { opacity: 1; animation: headpulse .7s ease-in-out infinite alternate; }
+@keyframes headpulse { from { opacity: .55; } to { opacity: 1; } }
+
+/* ---------- 小技能加持的小效果：每个加持一层，位置各不相同，叠加不覆盖 ---------- */
+.piece .bfx { position: absolute; left: 50%; bottom: 6px; width: 0; height: 0; pointer-events: none; }
+.bfx > div { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.bfx i { position: absolute; display: block; }
+/* 防御（睁眼一击）：脚下一圈淡蓝光环 */
+.b-def::before { content: ""; position: absolute; left: -27px; top: -10px; width: 54px; height: 18px; border-radius: 50%; border: 2px solid #9ad4ff; box-shadow: 0 0 6px #5ab4ff, inset 0 0 5px #5ab4ff; animation: bf-ring 1.8s ease-in-out infinite alternate; }
+@keyframes bf-ring { from { opacity: .45; scale: .92; } to { opacity: .9; scale: 1.04; } }
+/* 赤足：脚边几簇小火苗 */
+.b-trail i { z-index: 2; top: -12px; width: 7px; height: 12px; border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%; background: radial-gradient(ellipse at 50% 80%, #fff2a0, #ff9a2a 45%, #e0301a00 75%); transform-origin: 50% 100%; animation: bf-flame .34s ease-in-out infinite alternate; }
+.b-trail i:nth-child(1) { left: -22px; } .b-trail i:nth-child(2) { left: -12px; top: -9px; animation-delay: -.15s; } .b-trail i:nth-child(3) { left: 5px; top: -9px; animation-delay: -.25s; } .b-trail i:nth-child(4) { left: 15px; animation-delay: -.08s; }
+@keyframes bf-flame { from { scale: .8 .75; opacity: .75; } to { scale: 1.05 1.2; opacity: 1; } }
+/* 焚身：身体两侧往上飘的热火舌 */
+.b-scorch i { z-index: 2; top: -30px; width: 4px; height: 14px; border-radius: 50%; background: linear-gradient(#ffb04a00, #ff7a2a 50%, #ffe08a); animation: bf-heat 1.1s ease-out infinite; }
+.b-scorch i:nth-child(1) { left: -21px; } .b-scorch i:nth-child(2) { left: 18px; animation-delay: -.55s; } .b-scorch i:nth-child(3) { left: -16px; animation-delay: -.3s; } .b-scorch i:nth-child(4) { left: 13px; animation-delay: -.8s; }
+@keyframes bf-heat { 0% { opacity: 0; translate: 0 6px; } 30% { opacity: .9; } 100% { opacity: 0; translate: 0 -30px; scale: .6 1; } }
+/* 猛志：身前一层琥珀色的护罩轮廓 */
+.b-absorb::before { content: ""; position: absolute; z-index: 2; left: -26px; top: -66px; width: 52px; height: 66px; border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%; border: 2px solid #ffc75a; background: radial-gradient(ellipse at 50% 60%, #ffc75a00 55%, #ffc75a33); box-shadow: 0 0 8px #ffb02e88; animation: bf-shield 1.4s ease-in-out infinite alternate; }
+@keyframes bf-shield { from { opacity: .35; } to { opacity: .8; } }
+/* 闪避（干戚舞）：横着掠过身体的几道白色风痕 */
+.b-dodge i { z-index: 2; left: -22px; width: 18px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #fff0, #fffffff0, #fff0); animation: bf-gust 1.3s linear infinite; }
+.b-dodge i:nth-child(1) { top: -24px; } .b-dodge i:nth-child(2) { top: -40px; animation-delay: -.45s; } .b-dodge i:nth-child(3) { top: -54px; animation-delay: -.9s; }
+@keyframes bf-gust { 0% { opacity: 0; translate: -6px 0; } 30% { opacity: .9; } 100% { opacity: 0; translate: 32px 0; } }
+/* 加攻（干戚舞、睁眼一击）：脚边往上冒的小红光点 */
+.b-atkPct i { z-index: 2; top: -6px; width: 4px; height: 4px; border-radius: 50%; background: #ffd0c0; box-shadow: 0 0 4px 2px #e0301a; animation: bf-up 1.4s ease-out infinite; }
+.b-atkPct i:nth-child(1) { left: -14px; } .b-atkPct i:nth-child(2) { left: 10px; animation-delay: -.35s; } .b-atkPct i:nth-child(3) { left: -6px; animation-delay: -.7s; } .b-atkPct i:nth-child(4) { left: 16px; animation-delay: -1.05s; }
+@keyframes bf-up { 0% { opacity: 0; translate: 0 0; } 25% { opacity: 1; } 100% { opacity: 0; translate: 0 -34px; } }
+/* 振翼：飞过之后加攻，外侧往上冒的小青光点 */
+.b-wingAtk i { z-index: 2; top: -10px; width: 4px; height: 4px; border-radius: 50%; background: #e0fbff; box-shadow: 0 0 4px 2px #3ac0e0; animation: bf-up 1.7s ease-out infinite; }
+.b-wingAtk i:nth-child(1) { left: -25px; } .b-wingAtk i:nth-child(2) { left: 22px; animation-delay: -.42s; } .b-wingAtk i:nth-child(3) { left: -20px; animation-delay: -.85s; } .b-wingAtk i:nth-child(4) { left: 26px; animation-delay: -1.27s; }
+/* 暴击（烛照）：肩头和头边一闪一闪的金色小星 */
+.b-crit i { z-index: 2; width: 9px; height: 9px; background: #ffe58a; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 2px #ffb02e); animation: bf-twinkle 1.6s ease-in-out infinite; }
+.b-crit i:nth-child(1) { left: -20px; top: -52px; } .b-crit i:nth-child(2) { left: 14px; top: -62px; animation-delay: -.4s; } .b-crit i:nth-child(3) { left: 18px; top: -38px; animation-delay: -.8s; } .b-crit i:nth-child(4) { left: -14px; top: -70px; animation-delay: -1.2s; }
+@keyframes bf-twinkle { 0%, 100% { opacity: 0; scale: .3; } 50% { opacity: 1; scale: 1; } }
+/* 噬血：腰间绕身转的小血滴 */
+.b-lifesteal i { z-index: 2; top: -30px; width: 5px; height: 7px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 40% 35%, #ff9a9a, #b0101a); box-shadow: 0 0 3px #ff2a3a; animation: bf-orbit 2.4s linear infinite; }
+.b-lifesteal i:nth-child(2) { animation-delay: -.8s; } .b-lifesteal i:nth-child(3) { animation-delay: -1.6s; }
+@keyframes bf-orbit { 0% { translate: 24px 0; opacity: 1; } 25% { translate: 0 6px; opacity: 1; } 50% { translate: -24px 0; opacity: .6; } 75% { translate: 0 -6px; opacity: .35; } 100% { translate: 24px 0; opacity: 1; } }
+/* 断首再战：头边飘的暗紫色恐惧烟 */
+.b-fear i { z-index: 2; top: -74px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle, #9a5ad0cc, #4a1a6a00 70%); animation: bf-smoke 1.9s ease-out infinite; }
+.b-fear i:nth-child(1) { left: -22px; } .b-fear i:nth-child(2) { left: 14px; animation-delay: -.65s; } .b-fear i:nth-child(3) { left: -4px; top: -82px; animation-delay: -1.3s; }
+@keyframes bf-smoke { 0% { opacity: 0; scale: .5; translate: 0 0; } 30% { opacity: .9; } 100% { opacity: 0; scale: 1.8; translate: 0 -16px; } }
+
+/* ---------- 建筑和异兽的动态：同一张图轻微呼吸，按分支冒一点粒子；不加新图 ---------- */
+.sprite.live img { transform-origin: 50% 100%; animation: breathe 4s var(--ph, 0s) ease-in-out infinite; }
+.sprite.live.mon img { animation-duration: 2.6s; }
+@keyframes breathe { 0%, 100% { scale: 1 1; } 50% { scale: 1.012 1.028; } }
+.sprite .bl { position: absolute; inset: 0; pointer-events: none; --c: #ffd76a; }
+.rc-jiuli .bl { --c: #ff8a5a; } .rc-youdu .bl { --c: #6af0d0; } .rc-qingqiu .bl { --c: #ff9ad8; }
+.bl i { position: absolute; top: 30%; display: block; width: 5px; height: 5px; border-radius: 50%; opacity: 0; }
+.bl i:nth-child(1) { left: 40%; } .bl i:nth-child(2) { left: 58%; animation-delay: -1.1s !important; } .bl i:nth-child(3) { left: 32%; top: 38%; animation-delay: -2.2s !important; } .bl i:nth-child(4) { left: 66%; top: 36%; animation-delay: -3.3s !important; }
+/* 驻军：营里升起的炊烟 */
+.br-garrison .bl i { top: 14%; width: 9px; height: 9px; background: radial-gradient(circle, #e8e2d8cc, #b0a89800 70%); animation: b-smoke 4.4s ease-out infinite; }
+.rc-youdu.br-garrison .bl i { background: radial-gradient(circle, #a8e8d8bb, #5a8a8000 70%); }
+@keyframes b-smoke { 0% { opacity: 0; scale: .5; translate: 0 0; } 25% { opacity: .85; } 100% { opacity: 0; scale: 2.2; translate: 6px -26px; } }
+/* 射手：塔上一闪一闪的锋芒 */
+.br-archer .bl i { top: 10%; width: 8px; height: 8px; border-radius: 0; background: #fff; clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); filter: drop-shadow(0 0 2px var(--c)); animation: bf-twinkle 3.6s ease-in-out infinite; }
+/* 巫术、土府：飘起来的灵火 */
+.br-magic .bl i, .br-tufu .bl i { background: radial-gradient(circle, #fff, var(--c) 45%, #0000 72%); box-shadow: 0 0 6px var(--c); animation: b-wisp 3.4s ease-in-out infinite; }
+.br-tufu .bl { --c: #6af0d0; }
+@keyframes b-wisp { 0% { opacity: 0; translate: 0 6px; } 30% { opacity: 1; } 60% { translate: 5px -12px; } 100% { opacity: 0; translate: -3px -26px; } }
+/* 城邑：慢慢往上冒的金光，表示在产金 */
+.br-city .bl i { width: 4px; height: 4px; background: #fff3b0; box-shadow: 0 0 4px 1px #ffc23a; animation: b-coin 3.8s ease-out infinite; }
+@keyframes b-coin { 0% { opacity: 0; translate: 0 4px; } 20% { opacity: 1; } 100% { opacity: 0; translate: 0 -24px; } }
+/* 学宫：背后一圈柔光，慢慢明暗 */
+.br-academy .bl::before { content: ""; position: absolute; left: 10%; right: 10%; top: 8%; bottom: 25%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%); animation: b-halo 3.2s var(--ph, 0s) ease-in-out infinite alternate; }
+.br-academy .bl i { background: radial-gradient(circle, #fff, var(--c) 50%, #0000 72%); animation: b-coin 4.2s ease-out infinite; }
+@keyframes b-halo { from { opacity: .35; } to { opacity: .9; } }
+@media (prefers-reduced-motion: reduce) { .sprite.live img, .bl i, .bl::before, .bfx * { animation: none !important; } }

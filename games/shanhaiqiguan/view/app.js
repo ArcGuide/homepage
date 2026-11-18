@@ -248,7 +248,7 @@
     st.insertAdjacentHTML('beforeend', B.tilesSvg());
     SJ.BOARD.forEach((_, i) => renderTile(i));
     S.players.forEach((p) => {
-      const e = h(`<div class="piece" style="--pc:${PCOLOR[p.id]}"><div class="aura"><b class="wl"></b><b class="wr"></b><i></i><i></i><i></i><i></i><i></i></div><div class="px" style="background-image:url(assets/px_${p.hero}.png)"></div>${ARTMARK}</div>`);
+      const e = h(`<div class="piece" style="--pc:${PCOLOR[p.id]}"><div class="aura"><b class="wl"></b><b class="wr"></b><i></i><i></i><i></i><i></i><i></i></div><div class="bfx"></div><div class="px" style="background-image:url(assets/px_${p.hero}.png)"></div>${ARTMARK}</div>`);
       pieces[p.id] = e; st.append(e);
     });
     placePieces();
@@ -287,13 +287,13 @@
     if (top) { top.style.fill = t.owner != null ? PCOLOR[t.owner] + '66' : ''; top.style.stroke = t.owner != null ? PCOLOR[t.owner] : ''; top.style.strokeWidth = t.owner != null ? '3.5' : ''; }
     if (t.b) {
       const b = SJ.BUILDINGS[t.b];
-      list.push(h(`<div class="sprite bld ${pop ? 'pop' : ''} ${rally ? 'rally' : ''}" style="left:${x}px;top:${y + 15}px;width:${[0, 74, 88, 104][b.level]}px;height:${[0, 68, 82, 98][b.level]}px;z-index:${Math.round(y)}">${img('b_' + b.id, b.name)}</div>`));
+      list.push(h(`<div class="sprite bld live br-${b.branch} rc-${b.id.split('_')[0]} lv${b.level} ${pop ? 'pop' : ''} ${rally ? 'rally' : ''}" style="left:${x}px;top:${y + 15}px;width:${[0, 74, 88, 104][b.level]}px;height:${[0, 68, 82, 98][b.level]}px;z-index:${Math.round(y)};--ph:${-((i * 0.37) % 1) * 4}s">${img('b_' + b.id, b.name)}<div class="bl">${'<i></i>'.repeat(b.level + 1)}</div></div>`));
       list.push(h(`<div class="lv" style="left:${x - 27}px;top:${y + 8}px;z-index:${Math.round(y) + 1};background:${PCOLOR[t.owner]}">${b.level}</div>`));
       if (t.hp != null) list.push(h(`<div class="bhp" style="left:${x}px;top:${y + 19}px;z-index:${Math.round(y) + 1}"><i style="width:${Math.max(4, t.hp / SJ.tileMaxHp(t) * 100)}%"></i></div>`));
     }
     if (t.m) {
       const mo = SJ.MONSTERS[t.m.k];
-      list.push(h(`<div class="sprite bld" style="left:${x}px;top:${y + 8}px;width:64px;height:60px;z-index:${Math.round(y)}">${img('monster_' + mo.id, mo.name)}</div>`));
+      list.push(h(`<div class="sprite bld live mon" style="left:${x}px;top:${y + 8}px;width:64px;height:60px;z-index:${Math.round(y)};--ph:${-((i * 0.37) % 1) * 4}s">${img('monster_' + mo.id, mo.name)}</div>`));
       if (t.m.hp != null) list.push(h(`<div class="bhp" style="left:${x}px;top:${y + 12}px;z-index:${Math.round(y) + 1}"><i style="width:${Math.max(4, t.m.hp / (mo.hp * t.m.sc) * 100)}%"></i></div>`));
     }
     if (t.s) list.push(h(`<div class="sprite bld" style="left:${x + 16}px;top:${y + 14}px;width:60px;height:56px;z-index:${Math.round(y) + 2}">${img('sm_' + t.s.k)}</div>`));
@@ -333,7 +333,17 @@
     if (S) S.players.forEach((p) => {
       const e = pieces[p.id]; if (!e) return;
       for (const [c, f] of Object.entries(FORMS)) e.classList.toggle(c, p.alive && !!f(p));
+      buffFx(e, p);
     });
+  }
+  // 小技能加持时身上的小效果：每个加持一层，各占一个位置（脚下、身侧、绕身、头旁），叠在一起互不覆盖；都比大招造型小
+  const BUFFFX = { def: 0, trail: 4, scorch: 4, absorb: 0, dodge: 3, atkPct: 4, wingAtk: 4, crit: 4, lifesteal: 3, fear: 3 };
+  function buffFx(e, p) {
+    const box = e.querySelector('.bfx'); if (!box) return;
+    const on = p.alive ? Object.keys(BUFFFX).filter((k) => has(p, k)) : [], key = on.join(',');
+    if (box.dataset.k === key) return;
+    box.dataset.k = key;
+    box.innerHTML = on.map((k) => `<div class="b-${k}">${'<i></i>'.repeat(BUFFFX[k])}</div>`).join('');
   }
 
   function placePieces() {
@@ -349,7 +359,29 @@
       setPiece(e, x + (k - (g.length - 1) / 2) * 26, y + 6);
       e.classList.toggle('active', p.id === S.cur);
     });
+    drawHeads();
     const m = $('#mini'); if (m) B.drawMini(m, S, PCOLOR);
+  }
+  // 站着时看得出下一步往哪走：脚前朝每条可走的路画一个贴地箭头（岔路口每条路一个），人物也转向第一条路
+  // 箭头叠在下一格的建筑上面、人物下面；当前回合的英雄箭头会闪；走路时这个英雄的箭头先收起来
+  let heads = [];
+  function drawHeads() {
+    const st = $('#stage'); if (!st || !S) return;
+    heads.forEach((x) => x.remove()); heads = [];
+    const T = B.map.tiles;
+    S.players.forEach((p) => {
+      const pc = pieces[p.id];
+      if (!p.alive || !pc || pc.classList.contains('walk') || pc.classList.contains('soar')) return;
+      const t = T[p.pos], c = iso(p.pos);
+      let o = t.adj.filter((j) => j !== p.from); if (!o.length && p.from != null) o = [p.from];
+      o.forEach((j, n) => {
+        const dx = Math.sign(T[j].x - t.x), dy = Math.sign(T[j].y - t.y); if (!dx && !dy) return;
+        if (n === 0 && dx !== dy) pc.classList.toggle('flip', dx - dy < 0);
+        const P = (a, b) => { const gx = dx * a - dy * b, gy = dy * a + dx * b; return `${((gx - gy) * 48 + 60).toFixed(1)},${((gx + gy) * 24 + 40).toFixed(1)}`; };
+        const q = iso(j), e = h(`<svg class="head${p.id === S.cur ? ' cur' : ''}" viewBox="0 0 120 80" width="120" height="80" style="--pc:${PCOLOR[p.id]};left:${c.x - 60}px;top:${c.y - 40}px;z-index:${Math.round(Math.max(q.y, c.y)) + 5}"><polygon points="${P(1.02, 0)} ${P(0.7, 0.34)} ${P(0.7, 0.14)} ${P(0.42, 0.14)} ${P(0.42, -0.14)} ${P(0.7, -0.14)} ${P(0.7, -0.34)}"/></svg>`);
+        st.append(e); heads.push(e);
+      });
+    });
   }
   function setPiece(e, x, y) {
     const old = parseFloat(e.style.left);
@@ -567,7 +599,7 @@
         const D = DASH[e.dash], yf = pc.classList.contains('yifu');
         if (D && D.blink) { await blink(pc, e.path); p.pos = end; placePieces(); break; }
         const ms = D ? D.ms : yf ? 190 : 230, cls = D ? ['dash', `dash-${e.dash}`] : [];
-        pc.classList.add('walk', ...cls);
+        pc.classList.add('walk', ...cls); drawHeads();
         pc.style.setProperty('--step', `${ms / speed}ms`);
         if (D) sfx.whoosh();
         let k = 0;

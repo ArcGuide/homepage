@@ -583,3 +583,14 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .br-academy .bl i { background: radial-gradient(circle, #fff, var(--c) 50%, #0000 72%); animation: b-coin 4.2s ease-out infinite; }
 @keyframes b-halo { from { opacity: .35; } to { opacity: .9; } }
 @media (prefers-reduced-motion: reduce) { .sprite.live img, .bl i, .bl::before, .bfx * { animation: none !important; } }
+
+/* 路线偏好按钮和选单 */
+.routebtn { min-width: 0; font-size: 15px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; padding-left: 12px; padding-right: 12px; }
+.routebtn small { font-size: 11.5px; opacity: .8; font-weight: 600; }
+.route-pick p { font-size: 13.5px; color: var(--ink2); margin: 0 0 10px; }
+.route-pick .opts { display: grid; gap: 6px; }
+.route-pick .opt { cursor: pointer; }
+.route-pick .opt b { display: block; font: 800 15px var(--serif); }
+.route-pick .opt span { display: block; font-size: 13px; color: var(--ink2); }
+.route-pick .opt.sel { border-color: var(--cinnabar); background: #fff1dc; }
+@media (max-width: 420px) { #dock .bigbtn:not(.routebtn) { min-width: 104px; } }

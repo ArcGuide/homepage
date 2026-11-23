@@ -106,7 +106,7 @@
   function help() {
     const l = h(`<div class="layer dim"><div class="help">
       <h2>怎么玩</h2>
-      <p>这是一局大富翁。选一位上古英雄，在山海大地图上走，买地、盖建筑、收过路费。起点和朝向是随机的，到岔路随机选方向（可以在「玩法设置」里改成自己选）。英雄阵亡就出局，活到最后的人赢。</p>
+      <p>这是一局大富翁。选一位上古英雄，在山海大地图上走，买地、盖建筑、收过路费。起点和朝向是随机的，到岔路往哪走，由掷骰旁的「路线」按钮决定：全随机、捡宝箱、买空地、升自家、抽道具、打别人，设一次一直有效。英雄阵亡就出局，活到最后的人赢。</p>
       <h3>踩到别人的地</h3>
       <ul><li>交过路费，或者开打。</li><li>过路费每轮都会涨。到了后期（大图第 60 轮、中图第 40 轮、小图第 25 轮起），每轮再多涨 2%（利滚利），买地、升级和城邑卖的宝物也一起涨，屏幕上方会显示「物价 ×几」。</li><li>当场拆掉：地归你。没拆掉：只付半价过路费。</li><li>钱不够时必须开打，付不起的部分用血抵，破产也会死。</li><li>所有战斗都是双方各出手 3 下就收手。打塔的血量都记下来，下回接着打；异兽没被打死就回满血，绕开也要挨它一下。</li></ul>
       <h3>决斗</h3>
@@ -137,7 +137,6 @@
     const o = loadOpts();
     const row = (k, title, on, off, tip) => `<label class="opt-row"><input type="checkbox" data-o="${k}" ${o[k] ? 'checked' : ''}><div><b>${title}</b><span>开：${on}</span><span>关：${off}</span><em>${tip}</em></div></label>`;
     const l = h(`<div class="layer dim"><div class="help settings"><h2>玩法设置</h2>
-      ${row('autoPath', '自动选路', '到岔路随机选方向，一路走到底。', '每到岔路都停下来，由你点地图选方向。', '为了游戏流畅、好玩，建议开启。喜欢自己谋划路线、精打细算的玩家可以关掉。')}
       ${row('spar', '英雄比试', '竞技场决斗只是比试，打完血量不变，只拿经验。', '竞技场决斗真刀真枪地打，掉的血带回棋盘，打死就出局。', '为了对局能持续下去、更有娱乐性，建议开启。关掉后，游戏可能在早期就结束。')}
       <div class="btn-row" style="margin-top:12px"><button class="btn primary">好了</button></div></div></div>`);
     $('button', l).onclick = () => {
@@ -156,7 +155,7 @@
     let picking = false, on = 0, mapId = 'random';
     const KIND = { human: '真人', ai: '电脑', off: '空位' };
     const mapName = () => mapId === 'random' ? '随机' : SJ.MAPS[mapId].name;
-    const optNote = () => { const o = loadOpts(); return [o.autoPath ? '' : '手动选路', o.spar ? '' : '英雄真打'].filter(Boolean).join('、'); };
+    const optNote = () => { const o = loadOpts(); return [o.spar ? '' : '英雄真打'].filter(Boolean).join('、'); };
     function draw() {
       const used = seats.filter((x) => x.kind === 'human').map((x) => x.hero);
       // 选英雄是主页面；地图可选，不选就随机
@@ -537,6 +536,17 @@
   }
   const V = (v) => `data-v='${JSON.stringify(v)}'`;
 
+  // 路线偏好：设一次，一直按这个走，直到下次改
+  const routeName = (p) => (SJ.ROUTES.find((r) => r[0] === (p.route || 'rand')) || SJ.ROUTES[0])[1];
+  function routePanel(p, done) {
+    const cur = p.route || 'rand';
+    const l = h(`<div class="layer dim"><div class="help settings route-pick"><h2>路线</h2><p>到岔路口往哪边走。设一次就一直这样走，直到你再改。</p>
+      <div class="opts">${SJ.ROUTES.map(([k, name, desc]) => `<button class="opt ${k === cur ? 'sel' : ''}" data-r="${k}"><div><b>${name}${k === cur ? '（当前）' : ''}</b><span>${desc}</span></div></button>`).join('')}</div></div></div>`);
+    l.querySelectorAll('[data-r]').forEach((b) => { b.onclick = (ev) => { ev.stopPropagation(); sfx.click(); p.route = b.dataset.r; store.set(SAVE, JSON.stringify(S)); l.remove(); done(); }; });
+    l.onclick = (ev) => { if (ev.target === l) l.remove(); };
+    document.body.append(l);
+  }
+
   let reopen = false;
   function askHuman(kind, c) {
     const p = c.p;
@@ -547,11 +557,12 @@
         const can = SJ.SKILLS[p.hero].some((_, i) => SJ.canLearn(p, i));
         const ready = SJ.SKILLS[p.hero].filter((_, i) => SJ.canCast(p, i, S)).length;
         const cons = (p.cons || []).map((id, i) => { const c = SJ.consOf(id); return `<button class="consbtn" data-u="${i}" title="${c.name}：${c.desc}">${img('it_' + id)}<small>${c.name}</small></button>`; }).join('');
-        const pnl = panel(`${cons ? `<div class="consbar">${cons}</div>` : ''}<div class="btn-row"><button class="btn primary bigbtn herobtn ${can ? 'hot' : ''}" id="b-hero">英雄${can ? `<i class="badge">${p.pts}</i>` : ready ? `<i class="badge g">${ready}</i>` : ''}</button><button class="btn primary bigbtn" id="b-roll">掷骰</button></div>`);
+        const pnl = panel(`${cons ? `<div class="consbar">${cons}</div>` : ''}<div class="btn-row"><button class="btn primary bigbtn herobtn ${can ? 'hot' : ''}" id="b-hero">英雄${can ? `<i class="badge">${p.pts}</i>` : ready ? `<i class="badge g">${ready}</i>` : ''}</button><button class="btn bigbtn routebtn" id="b-route">路线<small>${routeName(p)}</small></button><button class="btn primary bigbtn" id="b-roll">掷骰</button></div>`);
         const act = (a) => { const again = a.a !== 'cast' && a.a !== 'use'; reopen = again; $('#dock').innerHTML = ''; res(a); };
         pnl.querySelectorAll('[data-u]').forEach((b) => { b.onclick = () => { sfx.click(); act({ a: 'use', i: +b.dataset.u }); }; });
         $('#b-roll', pnl).onclick = () => { sfx.click(); $('#dock').innerHTML = ''; res(true); };
         $('#b-hero', pnl).onclick = () => { sfx.click(); heroPanel(p, act); };
+        $('#b-route', pnl).onclick = () => { sfx.click(); routePanel(p, () => { $('small', $('#b-route', pnl)).textContent = routeName(p); }); };
         if (reopen) { reopen = false; heroPanel(p, act); }
       });
       case 'buy': return choose(`<h4>${SJ.BOARD[c.tile].name}</h4><p>无主领地，价格 ${c.price} 金，买下后免费建一座 1 级建筑，分支自己选。你有 ${p.gold} 金。</p><div class="btn-row"><button class="btn primary" ${V(true)}>买下</button><button class="btn" ${V(false)}>不买</button></div>`);

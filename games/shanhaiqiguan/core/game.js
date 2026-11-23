@@ -48,6 +48,8 @@
       }
       used.push(best); p.pos = best; p.from = SJ.BOARD[best].adj[ri(s, 2)];
     }
+    // 真人默认全随机；电脑开局随机定一种偏好（另起随机数，不打乱对局的随机序列）
+    for (const p of s.players) p.route = p.human ? 'rand' : SJ.ROUTES[1 + Math.floor(SJ.rand({ v: seed * 17 + p.id * 7919 + 1 }) * (SJ.ROUTES.length - 1))][0];
     SJ._s = s;
     return s;
   };
@@ -1046,7 +1048,51 @@
     }
   }
 
-  // 沿路走。自动选路（默认）时岔路随机选方向，关掉就问玩家。c.n 记走了多少格
+  // 路线偏好：岔路口按偏好挑方向。全随机就是原来的走法
+  SJ.ROUTES = [
+    ['rand', '全随机', '岔路随机选方向'],
+    ['chest', '捡宝箱', '朝最近的天降宝箱走，路过就能捡'],
+    ['land', '买空地', '朝没人占的空地走'],
+    ['up', '升自家', '朝自己的建筑走，停下能修能升级'],
+    ['func', '抽道具', '朝奇遇、宝铺、竞技场走'],
+    ['fight', '打别人', '朝别人的建筑走'],
+  ];
+  const routeGoal = (s, p, k) => ({
+    chest: (i) => !!s.tiles[i].chest,
+    land: (i) => SJ.BOARD[i].type === 'land' && s.tiles[i].owner == null,
+    up: (i) => { const t = s.tiles[i]; return t.owner === p.id && (t.hp != null || SJ.tileLevel(t) < 3); },
+    func: (i) => ['event', 'shop', 'arena'].includes(SJ.BOARD[i].type),
+    fight: (i) => { const t = s.tiles[i]; return t.owner != null && t.owner !== p.id && s.players[t.owner].alive; },
+  })[k];
+  const nexts = (pos, from) => { const o = SJ.BOARD[pos].adj.filter((x) => x !== from); return o.length ? o : [from]; };
+  // 返回最合适的几个方向：先看剩下的步数能不能刚好停在目标上（宝箱路过就算，只看远近），再看哪边离目标近。找不到目标就返回 null，照旧随机
+  function routePick(s, p, opts, left, fly) {
+    const goal = routeGoal(s, p, p.route); if (!goal) return null;
+    const cost = (i) => (fly ? 1 : SJ.TERRAIN[SJ.BOARD[i].terrain].cost || 1);
+    const lands = (pos, from, l, budget) => { // 从 from 走进 pos，还剩 l 步
+      if (budget.n-- <= 0) return false;
+      l -= cost(pos); if (l <= 0) return goal(pos);
+      return nexts(pos, from).some((j) => lands(j, pos, l, budget));
+    };
+    const dist = (start) => { // 有方向的广搜：不能掉头
+      const seen = new Set([start + ',' + p.pos]); let q = [[start, p.pos]];
+      for (let d = 0; d < 80 && q.length; d++) {
+        const nq = [];
+        for (const [i, f] of q) { if (goal(i)) return d; for (const j of nexts(i, f)) { const k = j + ',' + i; if (!seen.has(k)) { seen.add(k); nq.push([j, i]); } } }
+        q = nq;
+      }
+      return Infinity;
+    };
+    if (p.route !== 'chest') {
+      const hit = opts.filter((i) => lands(i, p.pos, left, { n: 3000 }));
+      if (hit.length) return hit;
+    }
+    const ds = opts.map(dist), m = Math.min(...ds);
+    return m === Infinity ? null : opts.filter((_, k) => ds[k] === m);
+  }
+  SJ._routePick = (...x) => routePick(...x); // 测试用
+
+  // 沿路走。岔路按路线偏好选方向，c.n 记走了多少格
   async function move(s, io, p, steps, back, fly, c) {
     fly = fly || hasBuff(p, 'fly') || hasBuff(p, 'soar');
     const dry = false; // 逐日也照常结算路上的东西
@@ -1065,11 +1111,7 @@
       let opts = SJ.BOARD[p.pos].adj.filter((x) => x !== p.from);
       if (!opts.length) opts = [p.from]; // 死路掉头
       let nx = opts[ri(s, opts.length)];
-      if (opts.length > 1 && s.opts && s.opts.autoPath === false) {
-        await flush(false); if (!p.alive || s.over) return;
-        const pick = await io.ask('way', { p, options: opts, left });
-        if (opts.includes(pick)) nx = pick;
-      }
+      if (opts.length > 1 && p.route && p.route !== 'rand') { const best = routePick(s, p, opts, left, fly); if (best && !best.includes(nx)) nx = best[ri(s, best.length)]; }
       p.from = p.pos; p.pos = nx; seg.push(nx);
       if (c) c.n++;
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;

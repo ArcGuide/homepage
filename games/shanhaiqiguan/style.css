@@ -594,3 +594,15 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .route-pick .opt span { display: block; font-size: 13px; color: var(--ink2); }
 .route-pick .opt.sel { border-color: var(--cinnabar); background: #fff1dc; }
 @media (max-width: 420px) { #dock .bigbtn:not(.routebtn) { min-width: 104px; } }
+
+/* 向死而生：身后一团骨白青绿的魂火（窫窳本身是红的，不用红焰），脚下红土圈里泛绿，骨屑和绿芽往上飘；余效 2 回合里变淡 */
+.piece.rite .aura { display: block; }
+.piece.rite .px { scale: 1.12; transform-origin: 50% 100%; filter: drop-shadow(0 0 2px #fff6e0) drop-shadow(0 0 8px #4ae08a); }
+.piece.rite .aura::before { content: ""; position: absolute; left: -54px; top: -24px; width: 108px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse, #7a1a1000 35%, #d8452acc 55%, #6aff8a88 66%, #6aff8a00 74%); animation: buquWave 2s ease-out infinite; }
+.piece.rite .aura::after { content: ""; position: absolute; left: -54px; top: -128px; width: 108px; height: 134px; border-radius: 50% 50% 40% 40% / 65% 65% 35% 35%; background: radial-gradient(ellipse at 50% 80%, #fff6dce6, #9affb8cc 30%, #1f9a5a88 54%, #0a4a2a00 72%); animation: glow 1.2s ease-in-out infinite alternate; }
+.piece.rite .aura i { display: block; top: -14px; width: 5px; background: #fff0d8; border-radius: 50%; box-shadow: 0 0 6px 2px #ffd8a0; animation: ember 1.6s ease-out infinite; }
+.piece.rite .aura i:nth-of-type(n) { height: 5px; }
+.piece.rite .aura i:nth-of-type(even) { background: #c8ffd0; box-shadow: 0 0 6px 2px #3ac85a; }
+.piece.rite .aura i::after { display: none; }
+.piece.riteend .aura { opacity: .5; }
+.piece.riteend .px { scale: 1; }

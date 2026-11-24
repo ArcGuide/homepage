@@ -130,8 +130,8 @@
 
   SJ.tileMaxHp = (t) => { const b = SJ.bdef(t); return b ? SJ.BRANCHES[b.branch].hp * SJ.LEVEL_MUL[b.level] * SJ.TUNE.towerHp : 30; };
 
-  // 玄虎：塔是攻击随回合涨、血不涨，玄虎反过来，攻击固定、血随回合涨（和塔攻击同一个系数），哪一轮打都一样
-  SJ.tigerHp = (s) => Math.round(SJ.TIGER.hp * (1 + s.round * SJ.TUNE.towerGrow * (SJ.MAP.grow || 1)));
+  // 玄虎：攻击固定；不看伤害，挨满 20 下就倒（hp 记的是还能挨几下）
+  SJ.tigerHp = () => SJ.TIGER.hits;
   SJ.tigerAtk = () => SJ.TIGER.atk;
 
   function buildingC(s, i, foe) {
@@ -1296,12 +1296,12 @@
   async function tickBeasts(s, io) {
     s.beasts = s.beasts || []; s.phantoms = s.phantoms || [];
     for (const b of s.beasts.slice()) {
-      { const m = SJ.tigerHp(s); if (b.maxhp !== m) { b.hp = Math.max(1, Math.round(b.hp * m / b.maxhp)); b.maxhp = m; } } // 血上限随回合涨，按比例带着当前血一起涨
+      { const m = SJ.tigerHp(s); if (b.maxhp !== m) { b.hp = Math.max(1, Math.round(b.hp * m / b.maxhp)); b.maxhp = m; } } // 老存档里还是血量，按比例换成剩余下数
       const i = step1(s, b);
       await io.ev({ t: 'beasts', move: true });
       const t = s.tiles[i];
       if (!t.b || t.owner == null) continue;
-      const A = { kind: 'monster', name: SJ.TIGER.name, id: 'xuanhu', hp: b.hp, maxhp: b.maxhp, atk: SJ.tigerAtk(s), def: 0, fx: {} };
+      const A = { kind: 'monster', name: SJ.TIGER.name, id: 'xuanhu', hp: b.hp, maxhp: b.maxhp, byHits: true, atk: SJ.tigerAtk(s), def: 0, fx: {} };
       const D = buildingC(s, i, A);
       const res = SJ.fight(A, D, s.rng);
       await io.ev({ t: 'battle', kind: 'beast', a: A, d: D, res, tile: i, pid: null });

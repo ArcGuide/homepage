@@ -33,7 +33,8 @@
     }
 
     const dead = (c) => c.hp <= 0;
-    const hurt = (c, dmg, foe) => { // 处理吸收和保命
+    const hurt = (c, dmg, foe, hit) => { // 处理吸收和保命
+      if (c.byHits) { if (hit) c.hp -= 1; return; } // 玄虎：不看伤害，只数挨了几下；反伤、毒这些不算
       if (c.absorb) { c.absorbed = (c.absorbed || 0) + dmg; return; }
       if (c.shield > 0) { const v = Math.min(dmg, c.shield / 2); c.shield -= v * 2; dmg -= v; if (dmg <= 0) return; } // 形夭血盾：2 点血盾抵 1 点伤害
       c.hp -= dmg;
@@ -63,10 +64,10 @@
       if (x.fx.bigHit && r() < x.fx.bigHit) { dmg *= 8; big = true; }
       dmg *= 1 - Math.min(0.8, y.def || 0);
       if (x.stack) { x.hits = (x.hits || 0) + 1; dmg += x.stack * x.hits * (x.hits + 1) / 2; } // 第 N 下额外 stack×(1+…+N)
-      hurt(y, dmg, x);
-      snap({ t: 'hit', who: side(x), dmg: Math.max(1, Math.round(dmg)), crit: crit || big, label });
+      hurt(y, dmg, x, true);
+      snap({ t: 'hit', who: side(x), dmg: y.byHits ? 1 : Math.max(1, Math.round(dmg)), crit: crit || big, label });
       const th = (y.fx.thorns || 0) + (y.thornLow ? y.thornLow * (1 - Math.max(0, y.hp) / y.maxhp) : 0); // 干戚舞：血越少反弹越多
-      if (th > 0) { hurt(x, dmg * th, y); snap({ t: 'thorn', who: side(y), dmg: Math.round(dmg * th) }); }
+      if (th > 0 && !x.byHits) { hurt(x, dmg * th, y); snap({ t: 'thorn', who: side(y), dmg: Math.round(dmg * th) }); }
       if (x.heroId === 'huangdi' && !dead(y) && r() < procOf(x, y)) { const v = y.hp * 0.5; hurt(y, v, x); snap({ t: 'skill', who: side(x), name: '指南车', dmg: Math.round(v) }); }
       if (x.pctHit && !dead(y) && r() < procOf(x, y)) { const v = y.maxhp * x.pctHit; hurt(y, v, x); snap({ t: 'skill', who: side(x), name: '衔石', dmg: Math.round(v) }); }
       if (x.fx.lifesteal) { x.hp = Math.min(x.maxhp, x.hp + dmg * x.fx.lifesteal); snap({ t: 'heal', who: side(x), amt: Math.round(dmg * x.fx.lifesteal) }); }

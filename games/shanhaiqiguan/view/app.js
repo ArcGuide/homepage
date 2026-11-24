@@ -326,6 +326,8 @@
     spirit: (p) => has(p, 'pool'),
     sunrun: (p) => p.bonusTurns > 0,
     hydra: (p) => has(p, 'nine'),
+    rite: (p) => has(p, 'deathRite') || has(p, 'riteAfter'), // 向死而生：献祭 5 回合 + 余效 2 回合
+    riteend: (p) => has(p, 'riteAfter') && !has(p, 'deathRite'),
     buqu: (p) => p.hero === 'jingwei' && p.sk[3] > 0,
   };
   function soarSync() {
@@ -428,7 +430,7 @@
     }
     if (t.s) { const sm = SJ.SUMMONS[t.s.k]; txt += `<br>${S.players[t.s.o].name} 的${sm.name}，${t.s.perm ? '一直都在' : `还有 ${t.s.n} 轮`}。`; }
     if (t.chest) txt += '<br>这里有天降宝箱，走过就能捡。';
-    for (const bt of S.beasts || []) if (bt.pos === i) { pic = 'monster_xuanhu'; txt += `<br>玄虎在这里，血 ${Math.round(bt.hp)} / ${bt.maxhp}，攻击 ${bt.atk}。每轮走一格，停在建筑上就打。`; }
+    for (const bt of S.beasts || []) if (bt.pos === i) { pic = 'monster_xuanhu'; txt += `<br>玄虎在这里，还能挨 ${Math.round(bt.hp)} 下（共 ${bt.maxhp} 下），攻击 ${SJ.tigerAtk()}。每轮走一格，停在建筑上就打。`; }
     for (const ph of S.phantoms || []) if (ph.pos === i) txt += `<br>${S.players[ph.o].name}的虚影在这里，身上还有 ${ph.gold} 金。`;
     $('#wrap').append(h(`<div class="info">${pic ? img(pic) : ''}<div><b>${name}</b><p>${txt}</p></div></div>`));
   }
@@ -538,11 +540,13 @@
 
   // 路线偏好：设一次，一直按这个走，直到下次改
   const routeName = (p) => (SJ.ROUTES.find((r) => r[0] === (p.route || 'rand')) || SJ.ROUTES[0])[1];
+  // 存档只在回合开头存；这里只补上路线，不能存整局，否则重新进来会把回合开头的收入再领一遍
+  const saveRoute = (p) => { try { const o = JSON.parse(store.get(SAVE)); o.players[p.id].route = p.route; store.set(SAVE, JSON.stringify(o)); } catch (e) { /* 没有存档 */ } };
   function routePanel(p, done) {
     const cur = p.route || 'rand';
     const l = h(`<div class="layer dim"><div class="help settings route-pick"><h2>路线</h2><p>到岔路口往哪边走。设一次就一直这样走，直到你再改。</p>
       <div class="opts">${SJ.ROUTES.map(([k, name, desc]) => `<button class="opt ${k === cur ? 'sel' : ''}" data-r="${k}"><div><b>${name}${k === cur ? '（当前）' : ''}</b><span>${desc}</span></div></button>`).join('')}</div></div></div>`);
-    l.querySelectorAll('[data-r]').forEach((b) => { b.onclick = (ev) => { ev.stopPropagation(); sfx.click(); p.route = b.dataset.r; store.set(SAVE, JSON.stringify(S)); l.remove(); done(); }; });
+    l.querySelectorAll('[data-r]').forEach((b) => { b.onclick = (ev) => { ev.stopPropagation(); sfx.click(); p.route = b.dataset.r; saveRoute(p); l.remove(); done(); }; });
     l.onclick = (ev) => { if (ev.target === l) l.remove(); };
     document.body.append(l);
   }
@@ -887,7 +891,7 @@
       const fx = particles(cv);
       const setHp = (ah, dh) => {
         $('#ha', b).style.width = `${Math.max(0, ah / a.maxhp * 100)}%`; $('#hd', b).style.width = `${Math.max(0, dh / d.maxhp * 100)}%`;
-        $('#na', b).textContent = `${Math.round(Math.max(0, ah))} / ${Math.round(a.maxhp)}`; $('#nd', b).textContent = `${Math.round(Math.max(0, dh))} / ${Math.round(d.maxhp)}`;
+        $('#na', b).textContent = a.byHits ? `还能挨 ${Math.round(Math.max(0, ah))} / ${a.maxhp} 下` : `${Math.round(Math.max(0, ah))} / ${Math.round(a.maxhp)}`; $('#nd', b).textContent = `${Math.round(Math.max(0, dh))} / ${Math.round(d.maxhp)}`;
       };
       setHp(a.hp, d.hp);
       let skip = false, finished = false;

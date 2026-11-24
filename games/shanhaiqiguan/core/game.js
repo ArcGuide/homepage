@@ -264,11 +264,15 @@
         const c = { n: 0 };
         p._dash = k.id; // 画面按技能放位移动画
         if (o.vary) n += ri(s, 2 * o.vary + 1) - o.vary; // 步数上下浮动
+        if (o.bloodGold) { // 还魂疾走：血剩 5%–15% 里随机一个数时停下，算不准会停在哪格、剩多少血
+          const r = p.hp / p.maxhp, stop = 0.05 + rnd(s) * Math.max(0, Math.min(0.1, r - 0.05));
+          c.bleed = Math.round(Math.max(0, r - stop) * p.maxhp); c.max = Math.max(1, Math.ceil((r - stop) / o.bloodGold[0] - 1e-9));
+        }
         try { await move(s, io, p, n, false, fly, c); } finally { delete p._dash; }
         if (!p.alive || s.over) return;
         if (o.heal) { const v = heal(p, Math.round(p.maxhp * o.heal * c.n)); if (v) await io.ev({ t: 'heal', pid: p.id, n: v }); }
         if (o.bloodGold) {
-          const lost = Math.min(p.hp - 1, Math.round(p.maxhp * o.bloodGold[0] * c.n)), money = o.bloodGold[1] * c.n;
+          const lost = Math.min(p.hp - Math.ceil(p.maxhp * 0.05), c.n >= c.max ? c.bleed : Math.round(p.maxhp * o.bloodGold[0] * c.n)), money = o.bloodGold[1] * c.n;
           if (lost > 0) { p.hp -= lost; await io.ev({ t: 'hurt', pid: p.id, n: lost, why: k.name }); }
           if (money) { gain(s, p, money); await io.ev({ t: 'gold', pid: p.id, n: money, why: k.name }); }
         }
@@ -1107,7 +1111,7 @@
       if (p.alive && hasBuff(p, 'trail')) for (const i of path) if (!s.tiles[i].s) { s.tiles[i].s = { k: 'fire', o: p.id, n: 3, v: 3 }; await io.ev({ t: 'tile', tile: i }); }
       if (p.alive && p._burn) { const v = p._burn; delete p._burn; await hurtPlain(s, io, p, v, '死在火焰里'); }
     };
-    while (left > 0 && p.alive && !s.over) {
+    while (left > 0 && p.alive && !s.over && !(c && c.max && c.n >= c.max)) {
       let opts = SJ.BOARD[p.pos].adj.filter((x) => x !== p.from);
       if (!opts.length) opts = [p.from]; // 死路掉头
       let nx = opts[ri(s, opts.length)];
@@ -1115,6 +1119,7 @@
       p.from = p.pos; p.pos = nx; seg.push(nx);
       if (c) c.n++;
       left -= fly ? 1 : SJ.TERRAIN[SJ.BOARD[nx].terrain].cost || 1;
+      if (c && c.max && c.n >= c.max) left = 0; // 血到头了，这一格就是停下
       const tt = s.tiles[nx];
       if (tt.chest && !dry) { tt.chest = 0; await flush(false); if (!p.alive || s.over) return; await io.ev({ t: 'tile', tile: nx }); await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 捡到天降宝箱！` }); if (artChance(s, p) && rnd(s) < 0.5) await giveArtifact(s, io, p); else await giveTreasure(s, io, p, rnd(s) < 0.6 ? 4 : 3); }
       const phs = (s.phantoms || []).filter((ph) => ph.o === p.id && ph.pos === nx);

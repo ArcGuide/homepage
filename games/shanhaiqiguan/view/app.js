@@ -430,7 +430,7 @@
     }
     if (t.s) { const sm = SJ.SUMMONS[t.s.k]; txt += `<br>${S.players[t.s.o].name} 的${sm.name}，${t.s.perm ? '一直都在' : `还有 ${t.s.n} 轮`}。`; }
     if (t.chest) txt += '<br>这里有天降宝箱，走过就能捡。';
-    for (const bt of S.beasts || []) if (bt.pos === i) { pic = 'monster_xuanhu'; txt += `<br>玄虎在这里，还能挨 ${Math.round(bt.hp)} 下（共 ${bt.maxhp} 下），攻击 ${SJ.tigerAtk()}。每轮走一格，停在建筑上就打。`; }
+    for (const bt of S.beasts || []) if (bt.pos === i) { pic = 'monster_xuanhu'; txt += `<br>玄虎在这里，攻击 ${SJ.tigerAtk()}。每轮走一格，停在建筑上就打。`; }
     for (const ph of S.phantoms || []) if (ph.pos === i) txt += `<br>${S.players[ph.o].name}的虚影在这里，身上还有 ${ph.gold} 金。`;
     $('#wrap').append(h(`<div class="info">${pic ? img(pic) : ''}<div><b>${name}</b><p>${txt}</p></div></div>`));
   }
@@ -883,7 +883,7 @@
       const human = (e.pid != null && S.players[e.pid].human) || (e.qid != null && S.players[e.qid].human);
       const b = h(`<div class="battle"><canvas class="fx"></canvas><div class="bt-head">${head}</div>
         <div class="bt-field">
-          <div class="fighter" id="fa"><div class="pic">${img(fighterImg(a), a.name)}</div><h3>${a.name}</h3><div class="bigbar"><i id="ha"></i></div><small id="na"></small></div>
+          <div class="fighter" id="fa"><div class="pic">${img(fighterImg(a), a.name)}</div><h3>${a.name}</h3><div class="bigbar" ${a.byHits ? 'style="visibility:hidden"' : ''}><i id="ha"></i></div><small id="na"></small></div>
           <div class="fighter" id="fd"><div class="pic">${img(fighterImg(d), d.name)}</div><h3>${d.name}</h3><div class="bigbar"><i id="hd"></i></div><small id="nd"></small></div>
         </div><div class="bt-foot"><button class="btn" id="skip">跳过</button></div></div>`);
       document.body.append(b);
@@ -891,7 +891,7 @@
       const fx = particles(cv);
       const setHp = (ah, dh) => {
         $('#ha', b).style.width = `${Math.max(0, ah / a.maxhp * 100)}%`; $('#hd', b).style.width = `${Math.max(0, dh / d.maxhp * 100)}%`;
-        $('#na', b).textContent = a.byHits ? `还能挨 ${Math.round(Math.max(0, ah))} / ${a.maxhp} 下` : `${Math.round(Math.max(0, ah))} / ${Math.round(a.maxhp)}`; $('#nd', b).textContent = `${Math.round(Math.max(0, dh))} / ${Math.round(d.maxhp)}`;
+        $('#na', b).textContent = a.byHits ? '' : `${Math.round(Math.max(0, ah))} / ${Math.round(a.maxhp)}`; $('#nd', b).textContent = `${Math.round(Math.max(0, dh))} / ${Math.round(d.maxhp)}`;
       };
       setHp(a.hp, d.hp);
       let skip = false, finished = false;
@@ -921,7 +921,7 @@
           if (ev.t === 'hit') {
             me.classList.remove('lunge-r', 'lunge-l'); void me.offsetWidth; me.classList.add(lunge);
             foe.classList.add('hurt'); setTimeout(() => foe.classList.remove('hurt'), 90);
-            num(foe, ev.dmg, ev.crit ? 'crit' : '');
+            if (!(ev.who === 'a' ? d : a).byHits) num(foe, ev.dmg, ev.crit ? 'crit' : ''); // 玄虎不看伤害，也不透露还能挨几下
             const [x, y] = center(foe); fx.burst(x, y, ev.crit ? 34 : 14, ev.crit ? '#ffcf4d' : '#f0e2c0');
             if (ev.crit) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); sfx.crit(); } else if ((ev.who === 'a' ? a : d).kind === 'hero') sfx.slash(); else sfx.hit();
             await pause(ev.crit ? 300 : 210);

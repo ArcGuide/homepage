@@ -215,7 +215,9 @@
     if (i === 3) return p.sk[3] === 0 && p.level >= 6;
     return p.sk[i] < 3 && p.level >= p.sk[i] * 2 + 1;
   };
-  SJ.canCast = (p, i, s) => { const k = SJ.SKILLS[p.hero][i]; return !!k.go && p.sk[i] > 0 && (p.cd[i] <= 0 || (p.art && p.art.id === 'xinghupan' && p.art.uses > 0)) && (!k.can || k.can(p, s || SJ._s)); };
+  // 赤地千里期间，除了女魃谁都不能放主动技能。返回放大招的女魃
+  SJ.silencer = (s, p) => s && s.players.find((q) => q !== p && q.alive && hasBuff(q, 'qianli'));
+  SJ.canCast = (p, i, s) => { const k = SJ.SKILLS[p.hero][i]; return !!k.go && !SJ.silencer(s || SJ._s, p) && p.sk[i] > 0 && (p.cd[i] <= 0 || (p.art && p.art.id === 'xinghupan' && p.art.uses > 0)) && (!k.can || k.can(p, s || SJ._s)); };
   // 土府：站在自家建筑上，而且这座还不是土府
   SJ.canTufu = (s, p) => { const t = s.tiles[p.pos]; return t.owner === p.id && !!t.b && SJ.BUILDINGS[t.b].branch !== 'tufu'; };
 
@@ -529,17 +531,18 @@
   }
 
   // 付钱时看附近有没有土伯的幽魂：有就被劫走，交给土伯，幽魂消失。返回钱最终给了谁
-  async function ghostRob(s, io, p, i, n) {
+  // to 是收钱的玩家，付给系统（买地、升级）时不传。土伯付给别人的钱幽魂会抢回来；别人付给土伯的钱不抢，免得白费幽魂
+  async function ghostRob(s, io, p, i, n, to) {
     if (!n || i == null) return null;
     const seen = new Set([i]); let q = [i];
     for (let d = 0; d <= 2 && q.length; d++) {
       const nx = [];
       for (const k of q) {
         const m = s.tiles[k].s;
-        if (m && m.k === 'ghost' && m.o !== p.id && s.players[m.o].alive) {
+        if (m && m.k === 'ghost' && s.players[m.o].alive && (m.o === p.id ? to && to.id !== p.id : !to || to.id !== m.o)) {
           const o = s.players[m.o]; s.tiles[k].s = null;
           await io.ev({ t: 'tile', tile: k });
-          await io.ev({ t: 'msg', kind: 'skill', text: `幽魂劫走了 ${p.name} 付的 ${n} 金，交给${o.name}` });
+          await io.ev({ t: 'msg', kind: 'skill', text: o === p ? `幽魂把 ${p.name} 付给${to.name}的 ${n} 金劫了回来` : `幽魂劫走了 ${p.name} 付的 ${n} 金，交给${o.name}` });
           return o;
         }
         for (const j of SJ.BOARD[k].adj) if (!seen.has(j)) { seen.add(j); nx.push(j); }
@@ -741,9 +744,8 @@
   // 付钱。付不起的部分按比例扣血，破产也能死人
   async function payOrBleed(s, io, p, to, n, lost, tile) {
     const pay = Math.min(p.gold, n), debt = n - pay;
-    to = (await ghostRob(s, io, p, tile, pay)) || to;
-    p.gold -= pay; gain(s, to, pay);
-    await io.ev({ t: 'toll', pid: p.id, to: to.id, n: pay, lost });
+    to = (await ghostRob(s, io, p, tile, pay, to)) || to;
+    if (to !== p) { p.gold -= pay; gain(s, to, pay); await io.ev({ t: 'toll', pid: p.id, to: to.id, n: pay, lost }); }
     if (debt > 0) await hurtPlain(s, io, p, Math.max(1, Math.round(debt * SJ.TUNE.debtHp)), '欠债被追杀');
   }
 
@@ -989,7 +991,7 @@
     let fight = mustFight;
     if (!mustFight) fight = await io.ask('tollOrFight', { p, tile: i, toll, A: heroC(s, p), D: buildingC(s, i, null) });
     if (fight) await attackTile(s, io, p, i, toll, mustFight);
-    else { const to = (await ghostRob(s, io, p, i, toll)) || owner; p.gold -= toll; gain(s, to, toll); s.stats.tolls++; await io.ev({ t: 'toll', pid: p.id, to: to.id, n: toll }); }
+    else { const to = (await ghostRob(s, io, p, i, toll, owner)) || owner; s.stats.tolls++; if (to !== p) { p.gold -= toll; gain(s, to, toll); await io.ev({ t: 'toll', pid: p.id, to: to.id, n: toll }); } }
   }
 
   const useBuild = (p) => { p.buffs = p.buffs.filter((b) => b.k !== 'buildCut'); };

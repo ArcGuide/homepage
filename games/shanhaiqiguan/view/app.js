@@ -326,6 +326,7 @@
     spirit: (p) => has(p, 'pool'),
     sunrun: (p) => p.bonusTurns > 0,
     hydra: (p) => has(p, 'nine'),
+    zhuolu: (p) => has(p, 'towerAtk'), // 涿鹿号令：和自家建筑一样泛金光
     rite: (p) => has(p, 'deathRite') || has(p, 'riteAfter'), // 向死而生：献祭 5 回合 + 余效 2 回合
     riteend: (p) => has(p, 'riteAfter') && !has(p, 'deathRite'),
     buqu: (p) => p.hero === 'jingwei' && p.sk[3] > 0,
@@ -338,10 +339,10 @@
     });
   }
   // 小技能加持时身上的小效果：每个加持一层，各占一个位置（脚下、身侧、绕身、头旁），叠在一起互不覆盖；都比大招造型小
-  const BUFFFX = { def: 0, trail: 4, scorch: 4, absorb: 0, dodge: 3, atkPct: 4, wingAtk: 4, crit: 4, lifesteal: 3, fear: 3 };
+  const BUFFFX = { def: 0, trail: 4, scorch: 4, absorb: 0, dodge: 3, atkPct: 4, wingAtk: 4, crit: 4, lifesteal: 3, fear: 3, dried: 4 };
   function buffFx(e, p) {
     const box = e.querySelector('.bfx'); if (!box) return;
-    const on = p.alive ? Object.keys(BUFFFX).filter((k) => has(p, k)) : [], key = on.join(',');
+    const on = p.alive ? Object.keys(BUFFFX).filter((k) => (k === 'dried' ? !!SJ.silencer(S, p) : has(p, k))) : [], key = on.join(',');
     if (box.dataset.k === key) return;
     box.dataset.k = key;
     box.innerHTML = on.map((k) => `<div class="b-${k}">${'<i></i>'.repeat(BUFFFX[k])}</div>`).join('');
@@ -459,7 +460,7 @@
       const l = p.sk[i], learn = act && SJ.canLearn(p, i), cast = act && SJ.canCast(p, i, S), cd = p.cd[i];
       const gate = !act || l >= (k.ult ? 1 : 3) ? '' : k.ult ? (p.level < 6 ? '6 级可学' : '') : (p.level < l * 2 + 1 ? `${l * 2 + 1} 级可升` : '');
       return `<div class="sk ${l ? '' : 'dim'}">${img('sk_' + k.id)}<div class="sk-b"><b>${k.name}</b> <em>${k.ult ? '大招 · ' : ''}${SJ.SKILL_KIND[k.kind]}${k.cd ? ` · 冷却 ${[].concat(k.cd).join('/')}` : ''}</em><span class="dots">${dots(k, l)}</span><p>${k.say || k.desc}</p>${live(k)}</div>
-        <div class="sk-a">${learn ? `<button class="btn small" data-a='{"a":"learn","i":${i}}'>${l ? '升级' : '学习'}</button>` : ''}${cast ? `<button class="btn small primary" data-a='{"a":"cast","i":${i}}'>释放</button>` : ''}${l && cd > 0 ? `<small>冷却 ${cd}</small>` : ''}${act && l && cd <= 0 && !cast && k.wait ? `<small>${k.wait}</small>` : ''}${gate ? `<small>${gate}</small>` : ''}</div></div>`;
+        <div class="sk-a">${learn ? `<button class="btn small" data-a='{"a":"learn","i":${i}}'>${l ? '升级' : '学习'}</button>` : ''}${cast ? `<button class="btn small primary" data-a='{"a":"cast","i":${i}}'>释放</button>` : ''}${l && cd > 0 ? `<small>冷却 ${cd}</small>` : ''}${act && l && k.go && cd <= 0 && !cast ? (SJ.silencer(S, p) ? '<small>沉默中</small>' : k.wait ? `<small>${k.wait}</small>` : '') : ''}${gate ? `<small>${gate}</small>` : ''}</div></div>`;
     };
     const item = (id, v) => (id ? `<button class="slot t${SJ.itemOf(id).tier}" ${act ? `data-a='${v}'` : ''} title="${SJ.itemOf(id).name}">${img('it_' + id)}<b>${SJ.itemOf(id).name}</b><small>${TIER[SJ.itemOf(id).tier]} · ${SJ.itemOf(id).desc}</small></button>` : '<div class="slot empty">空</div>');
     const l = h(`<div class="layer dim hero-layer"><div class="hp">
@@ -468,6 +469,7 @@
         <p>血 ${p.hp} / ${p.maxhp} · 攻 ${st.atk.toFixed(1)} · 防 ${Math.round(st.def * 100)}% · 闪避 ${Math.round(st.dodge * 100)}% · 领地 ${SJ.lands(S, p)}</p>
         <p class="race" style="color:${shade(race.color, 0.72)}">${race.name}（种族）：${race.trait}</p>
         ${p.buffs.length ? `<p>加持：${p.buffs.map((b) => `${BUFF[b.k] || b.k} ${b.n - 1 > 0 ? `${b.n - 1} 回合` : '本回合'}`).join('、')}</p>` : ''}
+        ${(() => { const q = SJ.silencer(S, p); if (!q || !p.alive) return ''; const n = q.buffs.find((b) => b.k === 'qianli').n - (S.cur === q.id ? 1 : 0); return `<p>赤地千里：收入全归${q.name}，不能放主动技能，还剩 ${n} 回合</p>`; })()}
         ${Object.keys(p.status).length ? `<p>状态：${Object.entries(p.status).map(([k, n]) => `${SJ.STATUS[k]?.[0] || k} ${n}`).join('、')}</p>` : ''}</div></div>
       <h4>技能</h4><div class="sks">${list.map(skill).join('')}</div>
       <h4>消耗品 <small>最多 4 个，满了挤掉最早的（应战帖不算）${act ? '，点一下马上用掉' : ''}</small></h4><div class="slots">${[...Array(Math.max(4, (p.cons || []).length)).keys()].map((i) => { const id = (p.cons || [])[i], c = id && SJ.consOf(id); const no = (id === 'juedou' && !SJ.canInvite(S, p)) || (id === 'yingzhan' && !SJ.canAccept(S, p)); return c ? `<button class="slot t1" ${act && !no ? `data-a='{"a":"use","i":${i}}'` : ''} ${act && no ? 'disabled' : ''}>${img('it_' + id)}<b>${c.name}</b><small>${c.desc}${act && no ? `<br><em>${id === 'juedou' ? '要你和至少一名对手都有 1000 金才能用' : '应战要押 1000 金，现在钱不够'}</em>` : ''}</small></button>` : '<div class="slot empty">空</div>'; }).join('')}</div>

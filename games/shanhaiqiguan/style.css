@@ -606,3 +606,13 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .piece.rite .aura i::after { display: none; }
 .piece.riteend .aura { opacity: .5; }
 .piece.riteend .px { scale: 1; }
+
+/* 涿鹿号令：黄帝身上和自家建筑一样泛金光 */
+.piece.zhuolu .px { filter: drop-shadow(0 0 3px #ffd35a) drop-shadow(0 0 8px #ff9a2a); animation: px-idle .9s steps(2) infinite, rally 1s ease-in-out infinite alternate; }
+.piece.zhuolu.walk .px { animation: px-walk .46s steps(4) infinite, rally 1s ease-in-out infinite alternate; }
+/* 赤地千里：落在别人身上，脚下龟裂的黄土圈，黄沙落下，头旁一个禁声的小标 */
+.b-dried::before { content: ""; position: absolute; left: -31px; top: -12px; width: 62px; height: 22px; border-radius: 50%; border: 2px dashed #c8762a; background: radial-gradient(ellipse, #e08a3a44, #a0521a22 60%, #a0521a00 75%); animation: bf-ring 1.6s ease-in-out infinite alternate; }
+.b-dried::after { content: ""; position: absolute; z-index: 3; left: 18px; top: -84px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #d8401e; box-sizing: border-box; background: linear-gradient(45deg, #0000 42%, #d8401e 42% 58%, #0000 58%), #fff3dc; box-shadow: 0 0 5px #7a1a0a88; animation: bf-ring 1.2s ease-in-out infinite alternate; }
+.b-dried i { z-index: 2; top: -58px; width: 4px; height: 4px; border-radius: 50%; background: #f0c078; box-shadow: 0 0 4px 1px #d8802a; animation: bf-sand 1.6s linear infinite; }
+.b-dried i:nth-child(1) { left: -20px; } .b-dried i:nth-child(2) { left: 12px; animation-delay: -.4s; } .b-dried i:nth-child(3) { left: -7px; animation-delay: -.8s; } .b-dried i:nth-child(4) { left: 20px; animation-delay: -1.2s; }
+@keyframes bf-sand { 0% { opacity: 0; translate: 0 0; } 25% { opacity: 1; } 100% { opacity: 0; translate: -8px 50px; } }

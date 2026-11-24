@@ -978,12 +978,13 @@
     const owner = s.players[t.owner];
     if (hasArt(p, 'xinghuzhui')) { await io.ev({ t: 'msg', kind: 'skill', text: `${p.name} 带着星弧吊坠，免交过路费` }); return; }
     const lit = pv(p, 'candleToll') && nearCandle(s, i, p.id) ? pv(p, 'candleToll') : 0;
-    const toll = Math.round(SJ.toll(s, i) * Math.max(0, 1 - pv(p, 'tollCut') - lit));
+    const toll = Math.round(SJ.toll(s, i) * Math.max(0, 1 - pv(p, 'tollCut') - lit) * (1 + pv(p, 'tollMore'))); // 干戚舞的代价：过路费 +50%
     if (s.peace > 0) {
       await payOrBleed(s, io, p, owner, toll, false, i);
       return;
     }
-    const mustFight = p.gold < toll || s.forced.includes(p.id);
+    const proud = pv(p, 'proud') > 0; // 猛志的代价：停在别人的建筑上必须开打
+    const mustFight = proud || p.gold < toll || s.forced.includes(p.id);
     s.forced = s.forced.filter((x) => x !== p.id);
     let fight = mustFight;
     if (!mustFight) fight = await io.ask('tollOrFight', { p, tile: i, toll, A: heroC(s, p), D: buildingC(s, i, null) });
@@ -1356,6 +1357,7 @@
     bonus += stat(p, 'steps');
     if (p.status.slow) bonus -= 2;
     if (hasBuff(p, 'stepMul')) { bonus += steps; }
+    if (pv(p, 'headless')) bonus -= 2 + ri(s, 2); // 断首再战的代价：每次掷骰少走 2–3 格
     steps = Math.max(1, steps + bonus);
     const back = p.status.confuse && rnd(s) < 0.5;
     await io.ev({ t: 'roll', pid: p.id, d1, d2, bonus, back });

@@ -94,11 +94,10 @@ function showMap(){B=null;const a=ACTS[R.act];setBg(a.bg);R.intro=R.intro||{};sa
   <div class="opts">${opts.map(k=>{const n=NODE[k],nm=k==='boss'?ENEMIES[a.boss[0]].name:n[1];return `<div class="node ${k}" data-node="${k}"><div class="ic">${n[0]}</div><b>${nm}</b><span>${n[2]}</span></div>`;}).join('')}</div></div>`;}
 function enterNode(k){sfx('ui');if(k==='battle'||k==='elite'||k==='boss')startBattle(k);else if(k==='rest')showRest();else if(k==='shop')showShop();else showEvent();}
 function nextStep(){R.step++;if(R.step>=R.steps.length){R.step=0;R.slot++;showFork();return;}showMap();}
-// 每一回开头二选一：走哪一段故事
+// 每一回开头随机定走哪一段故事（不让玩家选）
 function showFork(){B=null;setBg('cover');R.fork=1;
   if(R.slot===3&&R.deck.some(c=>c.id===113)){R.deck=R.deck.filter(c=>c.id!==113);R.will=1;save();app.innerHTML=topBar()+`<div class="panel story"><h2>晁天王归天</h2><p>晁天王亲自领兵下山，面上中了一支药箭，抬回山寨，当夜便去了。<br>临终只留下一句话：「下一仗，谁亲手拿下敌酋，谁便是梁山泊主。」<br><br>晁盖从名册里去掉了。下一回亲手击倒首领的那位好汉，会得到操练，并且永久少花 1 点义气。</p><button class="btn big" data-act="fork">举哀，再议出兵</button></div>`;return;}
-  save();const l=ACTS.map((a,i)=>[a,i]).filter(x=>x[0].slot===R.slot);
-  app.innerHTML=`<div class="top"><span class="ttl">梁山泊</span><span class="sp"></span><span class="hp">山寨 ${R.hp} / ${R.maxhp}</span><span class="gd">${R.gold} 文</span><button class="btn" data-act="deck">山寨名册（${R.deck.length}）</button><button class="btn" data-act="roster">图鉴</button></div><div class="map"><h2>${R.slot?'接下来打哪一处？':'故事从哪里说起？'}</h2><div class="opts">${l.map(([a,i])=>`<div class="node fork" data-fork="${i}"><div class="pic2">${imgTag('enemy',a.boss[0])}</div><b>${a.name.replace(' · ','<br>')}</b><span>${a.hint}</span><span class="bn">首领：${ENEMIES[a.boss[0]].name}</span></div>`).join('')}</div></div>`;}
+  const l=ACTS.map((a,i)=>i).filter(i=>ACTS[i].slot===R.slot);pickFork(l[Math.floor(Math.random()*l.length)]);}
 function pickFork(i){sfx('ui');R.act=i;R.step=0;R.fork=0;R.steps=genSteps();showMap();}
 
 // ---- 战斗 ----

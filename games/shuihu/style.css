@@ -143,3 +143,8 @@ button{font-family:inherit;cursor:pointer}
 .panel.story p{font-size:18px;line-height:2;max-width:700px;text-align:left;text-indent:2em;padding:16px 26px}.outro{color:#f2d27a}
 .card .ds.lg{font-size:.86em;line-height:1.3}.card .ds.xl{font-size:.76em;line-height:1.25}
 .choice{flex:1;display:flex;flex-direction:column;gap:18px;justify-content:center;max-width:640px}.choice .btn{white-space:normal;line-height:1.6;letter-spacing:1px;font-size:18px;padding:18px 24px}
+.tok{position:relative}.tok b{position:absolute;left:0;right:0;bottom:0;text-align:center;background:rgba(0,0,0,.68);color:#f2d27a;font:bold 12px/15px sans-serif}.tok.trap{border-style:dashed;border-color:#8fc48f}
+.st.x i{font:bold 13px serif;font-style:normal;color:#f2d27a;padding:0 2px 0 8px}
+.node.fork{width:300px;padding:16px}.node.fork .pic2{width:150px;height:150px;margin:0 auto 10px;border-radius:50%;overflow:hidden;border:3px solid #c9a13b;box-shadow:0 4px 12px #000}.node.fork .pic2 img{width:100%;height:150%;object-fit:cover;object-position:50% 10%;display:block}
+.node.fork b{display:block;font-size:18px;line-height:1.5;margin-bottom:6px}.node.fork span{display:block}.node.fork .bn{margin-top:8px;color:#e0a85a}
+.port .node.fork{width:44vw;padding:10px 8px}.port .node.fork .pic2{width:84px;height:84px}.port .node.fork b{font-size:14px}

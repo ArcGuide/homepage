@@ -156,3 +156,40 @@ button{font-family:inherit;cursor:pointer}
 @keyframes hot{0%{box-shadow:0 0 5px 1px #ffb300}100%{box-shadow:0 0 22px 7px #ffe27a,0 0 5px 2px #fff}}
 .card.hot::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 12% 9%,#fff 0 .12em,#ffe27a88 .2em,transparent .42em),radial-gradient(circle at 88% 30%,#fff 0 .1em,#ffe27a88 .18em,transparent .36em),radial-gradient(circle at 20% 62%,#fff 0 .09em,#ffe27a88 .16em,transparent .32em),radial-gradient(circle at 82% 86%,#fff 0 .12em,#ffe27a88 .2em,transparent .42em),radial-gradient(circle at 52% 3%,#fff 0 .08em,#ffe27a88 .15em,transparent .3em);animation:twinkle 1.4s ease-in-out infinite alternate}
 @keyframes twinkle{0%{opacity:.15}100%{opacity:1}}
+/* ---- 特效层（fx.js）---- */
+#fxl{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}#fxl canvas{position:absolute;inset:0;width:100%;height:100%;z-index:45}
+#fxl .fx-tint{position:absolute;inset:0;z-index:41}#fxl .fxi{position:absolute;z-index:43;mix-blend-mode:screen;max-width:none;will-change:transform,opacity}
+#fxl .fx-ring{position:absolute;z-index:44;border:4px solid #fff;border-radius:50%}
+#fxl .fx-line{position:absolute;z-index:44;transform-origin:0 50%;border-radius:99px}
+#fxl .fx-shot{position:absolute;z-index:46}
+#fxl .fx-word{position:absolute;z-index:48;font-family:"Kaiti SC","STKaiti",KaiTi,"Songti SC",serif;font-weight:bold;white-space:nowrap;text-shadow:0 0 18px currentColor,0 4px 0 #000,0 0 6px #000,0 0 3px #000;letter-spacing:.06em}
+#fxl .fx-thumb{position:absolute;z-index:47;border-radius:10px;overflow:hidden;border:3px solid var(--c);box-shadow:0 0 22px var(--c),0 8px 20px #000;background:#2a1c10;aspect-ratio:.72}
+#fxl .fx-thumb img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block}
+#fxl .fx-thumb b{position:absolute;left:0;right:0;bottom:0;text-align:center;background:#000b;color:#ffe9a8;font:bold 14px/1.6 "Kaiti SC",KaiTi,serif;letter-spacing:.1em}
+#fxl .fx-thumb i{position:absolute;left:0;top:0;font:bold 12px/1.5 sans-serif;font-style:normal;background:var(--c);color:#201408;padding:0 6px;border-radius:0 0 8px 0}
+#fxl .fx-cut{position:absolute;inset:0;z-index:49;display:flex;align-items:center}
+#fxl .fx-cut .band{width:100%;height:min(34vh,250px);background:linear-gradient(90deg,#000e,color-mix(in srgb,var(--c) 55%,#000) 40%,#000d);border-top:4px solid var(--c);border-bottom:4px solid var(--c);box-shadow:0 0 50px var(--c);display:flex;align-items:center;justify-content:center;gap:4vw;overflow:hidden}
+#fxl .fx-cut img{height:150%;max-width:38vw;aspect-ratio:.8;object-fit:cover;object-position:50% 8%;transform:skewX(12deg);border-left:4px solid var(--c);border-right:4px solid var(--c);filter:brightness(1.15) contrast(1.05)}
+#fxl .fx-cut .tx{transform:skewX(12deg);color:#fff;font-family:"Kaiti SC","STKaiti",KaiTi,"Songti SC",serif;text-shadow:0 3px 0 #000,0 0 16px var(--c);text-align:left}
+#fxl .fx-cut small{display:block;font-size:min(3.4vh,26px,4.2vw);color:var(--c);letter-spacing:.3em}#fxl .fx-cut b{display:block;font-size:min(11vh,84px,11vw);white-space:nowrap;line-height:1.05;letter-spacing:.12em}#fxl .fx-cut em{display:block;font-style:normal;font-size:min(4.4vh,34px,4.6vw);white-space:nowrap;color:#ffe9a8;letter-spacing:.2em;margin-top:.2em}
+#fxl .fx-bagua{position:absolute;z-index:42;border-radius:50%;border:3px solid #b79cff;box-shadow:0 0 40px #8a5cff,inset 0 0 60px #8a5cff66}
+#fxl .fx-bagua span{position:absolute;left:50%;top:50%;width:0;height:0;display:flex;align-items:center;justify-content:center;font-size:min(7vh,52px);color:#e9dcff;text-shadow:0 0 14px #b79cff}
+#fxl .fx-bagua u{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:min(22vh,170px);color:#e9dcff;opacity:.55;text-shadow:0 0 30px #b79cff}
+#fxl .fx-fire{position:absolute;right:0;top:0;width:45%;height:60%;z-index:42;background:radial-gradient(ellipse at 85% 30%,#ff7a1e88,#ff3a0033 40%,transparent 70%);animation:twinkle .25s ease-in-out infinite alternate}
+#fxl .fx-plaque{position:absolute;z-index:47;padding:.25em .7em;font:bold 30px/1.5 "Kaiti SC",KaiTi,serif;letter-spacing:.25em;color:#ffe27a;background:linear-gradient(#3a2a4a,#1c1426);border:3px solid #c9a13b;border-radius:6px;box-shadow:0 0 24px #d6a6ff}
+#fxl .fx-jab{position:absolute;z-index:46;border-radius:8px;overflow:hidden;border:2px solid #ffd34d;box-shadow:0 0 14px #ffd34d,0 6px 14px #000;aspect-ratio:.72}#fxl .fx-jab img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block}
+/* 打击形态：不同兵器不同的一下 */
+.float.heavy{font-size:46px;color:#ffe27a}.float.sum{color:#ffd34d;font-size:24px}
+.vfx.slash.k-spear::before,.vfx.slash.k-arrow::before,.vfx.slash.k-knife::before{height:5px;margin-top:-2px;background:linear-gradient(90deg,transparent,#bfe6ff 40%,#fff 96%,transparent);box-shadow:0 0 12px #bfe6ff}
+.vfx.slash.k-arrow::before{height:3px;box-shadow:0 0 10px #fff,12px 0 0 -1px #ff5a4a}.vfx.slash.k-knife::before{width:90%;left:5%;background:linear-gradient(90deg,transparent,#9fc4ff,#fff,transparent)}
+.vfx.slash.k-spear2::before{height:5px;box-shadow:0 0 12px #ffb3d1}.vfx.slash.k-spear2::after{content:"";position:absolute;left:-25%;top:50%;width:150%;height:5px;background:linear-gradient(90deg,transparent,#fff 30%,#fff 70%,transparent);box-shadow:0 0 12px #ffb3d1;transform:rotate(calc(180deg - var(--r,-38deg)));animation:vflash .3s both;animation-delay:inherit}
+.vfx.slash.k-axe::before{height:16px;margin-top:-8px;background:linear-gradient(90deg,transparent,#ff8a6a 25%,#fff 50%,#ff8a6a 75%,transparent);box-shadow:0 0 18px #ff3b2e,0 0 40px #ff3b2e}
+.vfx.slash.k-staff::before{height:13px;margin-top:-6px;background:linear-gradient(90deg,transparent,#ffe9a8 30%,#fff 60%,transparent);box-shadow:0 0 16px #ffd34d;transform:rotate(82deg) scaleX(0);animation-name:cutv}@keyframes cutv{0%{transform:rotate(82deg) scaleX(0)}60%{transform:rotate(82deg) scaleX(1);opacity:1}100%{transform:rotate(82deg) scaleX(1);opacity:0}}
+.vfx.slash.k-claw::before{height:5px;box-shadow:0 -16px 0 #fff,0 16px 0 #fff,0 0 14px #ffb347,0 -16px 14px #ffb347,0 16px 14px #ffb347}
+.vfx.slash.k-fist{background:radial-gradient(rgba(255,190,80,.75),transparent 62%)}.vfx.slash.k-fist::before,.vfx.slash.k-stone::before{left:50%;top:50%;width:70%;height:auto;aspect-ratio:1;margin:-35% 0 0 -35%;border-radius:50%;background:none;border:6px solid #fff;box-shadow:0 0 18px #ffd34d,inset 0 0 18px #ffd34d;transform:scale(0);animation-name:pop3}
+.vfx.slash.k-stone{background:radial-gradient(rgba(220,230,220,.7),transparent 40%)}.vfx.slash.k-stone::before{width:34%;margin:-17% 0 0 -17%;border-width:4px;box-shadow:0 0 12px #cfe}
+@keyframes pop3{0%{transform:scale(0);opacity:1}70%{opacity:1}100%{transform:scale(1.25);opacity:0}}
+.vfx.slash.k-fire{background:radial-gradient(rgba(255,120,30,.9),rgba(255,60,0,.4) 45%,transparent 72%)}.vfx.slash.k-fire::before{background:linear-gradient(90deg,transparent,#ffb347 30%,#fff3c0 60%,transparent);box-shadow:0 0 18px #ff6a00,0 0 40px #ff3a00}
+.vfx.slash.k-wave{background:radial-gradient(rgba(60,200,255,.7),transparent 70%)}.vfx.slash.k-wave::before{height:18px;margin-top:-9px;border-radius:50%;background:linear-gradient(90deg,transparent,#8fe6ff 30%,#fff 60%,transparent);box-shadow:0 0 20px #3cc8ff}
+.vfx.slash.k-bolt{background:radial-gradient(rgba(190,150,255,.8),transparent 70%)}.vfx.slash.k-bolt::before{left:35%;top:-10%;width:30%;height:120%;margin:0;background:#fff;box-shadow:none;filter:drop-shadow(0 0 10px #b79cff);clip-path:polygon(55% 0,30% 42%,52% 42%,22% 100%,78% 34%,54% 34%,80% 0);transform:none;animation-name:vflash}
+.vfx.slash.k-hook::before{left:10%;top:15%;width:70%;height:70%;margin:0;background:none;border:6px solid transparent;border-top-color:#ffe27a;border-right-color:#ffe27a;border-radius:50%;box-shadow:none;filter:drop-shadow(0 0 10px #ffd34d);transform:rotate(-60deg);animation-name:hook}@keyframes hook{0%{transform:rotate(-160deg);opacity:0}40%{opacity:1}100%{transform:rotate(40deg);opacity:0}}

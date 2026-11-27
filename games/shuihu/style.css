@@ -148,3 +148,11 @@ button{font-family:inherit;cursor:pointer}
 .node.fork{width:300px;padding:16px}.node.fork .pic2{width:150px;height:150px;margin:0 auto 10px;border-radius:50%;overflow:hidden;border:3px solid #c9a13b;box-shadow:0 4px 12px #000}.node.fork .pic2 img{width:100%;height:150%;object-fit:cover;object-position:50% 10%;display:block}
 .node.fork b{display:block;font-size:18px;line-height:1.5;margin-bottom:6px}.node.fork span{display:block}.node.fork .bn{margin-top:8px;color:#e0a85a}
 .port .node.fork{width:44vw;padding:10px 8px}.port .node.fork .pic2{width:84px;height:84px}.port .node.fork b{font-size:14px}
+/* 手牌实时伤害、条件成立时的金边 */
+.card .now{position:absolute;left:.35em;top:calc(13em / var(--ar-l,.8) / 1.2 - 1.9em);font:bold 1.2em/1.5 sans-serif;color:#fff;background:#000b;border:1px solid #f2d27a;border-radius:.5em;padding:0 .45em;text-shadow:0 1px 2px #000}
+.card .now.up{color:#ffe27a}.card .now.dn{color:#ff9d8c}
+.card.hot{border-color:#ffd34d;animation:hot 1s ease-in-out infinite alternate}
+.hand .card.hot.sel{animation:hot 1s ease-in-out infinite alternate}
+@keyframes hot{0%{box-shadow:0 0 5px 1px #ffb300}100%{box-shadow:0 0 22px 7px #ffe27a,0 0 5px 2px #fff}}
+.card.hot::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 12% 9%,#fff 0 .12em,#ffe27a88 .2em,transparent .42em),radial-gradient(circle at 88% 30%,#fff 0 .1em,#ffe27a88 .18em,transparent .36em),radial-gradient(circle at 20% 62%,#fff 0 .09em,#ffe27a88 .16em,transparent .32em),radial-gradient(circle at 82% 86%,#fff 0 .12em,#ffe27a88 .2em,transparent .42em),radial-gradient(circle at 52% 3%,#fff 0 .08em,#ffe27a88 .15em,transparent .3em);animation:twinkle 1.4s ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.15}100%{opacity:1}}

@@ -39,8 +39,8 @@ const clearSave=()=>{try{localStorage.removeItem(KEY);}catch(e){}};
 function newRun(){R={hp:75,maxhp:75,gold:40,act:0,slot:0,step:0,seen:[],fights:0,deck:[1,23,6,113,82,83,92,106].map(id=>({id}))};showFork();}
 
 const def=c=>CARDS[c.id],fxOf=c=>c.up?def(c).up:def(c).fx;
-function cardHTML(c,o){o=o||{};const d=def(c),cost=d.cost==='X'?'X':o.battle?costOf(c):Math.max(0,d.cost-(c.cut||0)),cheap=cost<d.cost,txt=c.up?d.descUp:d.desc;
-  return `<div class="card f-${d.fac} ${o.cls||''}" style="${o.style||''}" data-i="${o.i==null?'':o.i}" data-id="${c.id}"><div class="art">${imgTag('liangshan',c.id)}</div><div class="cost ${cheap?'cheap':''}" data-tip="${d.unplayable?'这张牌打不出去':cheap?'有减费生效（结义或这张牌自己的条件）':'打出这张牌要花的义气'}">${d.unplayable?'✕':cost}</div><div class="fac" data-tip="阵营：${FAC[d.fac]}。有些好汉会因同阵营的人先出手而变强">${FAC[d.fac]}</div><div class="no">${d.id<=108?p3(d.id):''}</div><div class="nm"><span class="nick">${d.nick}</span>${d.name}${c.up?'<b>＋</b>':''}</div><div class="ds ${txt.length>52?'xl':txt.length>36?'lg':''}">${txt}</div>${d.bond.length?`<div class="bd ${cheap?'on':''}" data-tip="结义：同一回合里先打出过其中任何一位，这张牌少花 2 点义气">结义 ${d.bond.map(b=>CARDS[b].name).join('·')}</div>`:''}</div>`;}
+function cardHTML(c,o){o=o||{};const d=def(c),cost=d.cost==='X'?'X':o.battle?costOf(c):Math.max(0,d.cost-(c.cut||0)),cheap=cost<d.cost,txt=c.up?d.descUp:d.desc,now=o.battle&&B&&!B.over?cardNow(c):null,hot=now&&now.hot&&!d.unplayable&&costOf(c)<=B.energy;
+  return `<div class="card f-${d.fac} ${o.cls||''} ${hot?'hot':''}" style="${o.style||''}" data-i="${o.i==null?'':o.i}" data-id="${c.id}"><div class="art">${imgTag('liangshan',c.id)}</div><div class="cost ${cheap?'cheap':''}" data-tip="${d.unplayable?'这张牌打不出去':cheap?'有减费生效（结义或这张牌自己的条件）':'打出这张牌要花的义气'}">${d.unplayable?'✕':cost}</div><div class="fac" data-tip="阵营：${FAC[d.fac]}。有些好汉会因同阵营的人先出手而变强">${FAC[d.fac]}</div>${now&&now.dm?`<div class="now ${now.dm.cls}" data-tip="现在打出去：${now.dm.sum?"几下合计 ":now.dm.tms>1?now.dm.tms+" 下，每下 ":""}${now.dm.lo===now.dm.hi?now.dm.hi:now.dm.lo+" 到 "+now.dm.hi} 点${now.dm.lo===now.dm.hi?"":"（看打哪个敌人）"}。已算上蓄力、状态和敌人的破绽，护甲另算。">⚔ ${now.dm.txt}</div>`:""}<div class="no">${d.id<=108?p3(d.id):''}</div><div class="nm"><span class="nick">${d.nick}</span>${d.name}${c.up?'<b>＋</b>':''}</div><div class="ds ${txt.length>52?'xl':txt.length>36?'lg':''}">${txt}</div>${d.bond.length?`<div class="bd ${cheap?'on':''}" data-tip="结义：同一回合里先打出过其中任何一位，这张牌少花 2 点义气">结义 ${d.bond.map(b=>CARDS[b].name).join('·')}</div>`:''}</div>`;}
 function topBar(extra){const a=ACTS[R.act];return `<div class="top"><span class="ttl">${a.name}</span><span class="sp"></span>${extra||''}<span class="hp">山寨 ${R.hp} / ${R.maxhp}</span><span class="gd">${R.gold} 文</span><button class="btn" data-act="deck">山寨名册（${R.deck.length}）</button><button class="btn" data-act="roster">图鉴</button></div>`;}
 function setBg(name){app.dataset.bg=name;app.style.backgroundImage=`url(${LOCAL['scene/'+name]||ART.scene+name+'.jpg'})`;}
 const owned=()=>new Set(R.deck.map(c=>c.id));
@@ -128,10 +128,28 @@ const enemyDmg=(e,n)=>{let d=Math.max(0,n+e.str);if(e.weak>0)d=Math.floor(d*.75)
 function fxAt(who,txt,cls,anim){B.fx.push({who,txt,cls,anim});}
 function hitEnemy(e,n,pierce){if(e.dead)return 0;let d=Math.max(0,n+B.str+B.tstr);if(e.vuln>0)d=Math.floor(d*1.5);if(B.weak>0)d=Math.floor(d*.75);let dealt=d;if(!pierce){const ab=Math.min(e.block,d);e.block-=ab;dealt=d-ab;}
   e.hp-=dealt;fxAt(B.enemies.indexOf(e),dealt?'-'+dealt:'挡住',dealt?'':'g',dealt?'slash':'guard');if(e.hp<=0){e.hp=0;e.dead=true;e.killer=B.cur;}return dealt;}
+// 一条效果的「若…」条件现在成不成立。pre：这张牌还在手里（只用于显示）
+function condMet(f,c,ctx,pre){const k=f.cond;if(!k)return true;
+  if(k==='combo')return B.count>0;if(k==='low')return R.hp<R.maxhp/2;if(k==='eatk')return anyOr(ctx,intentAtk);if(k==='ebuff')return anyOr(ctx,e=>intentK(e,'buff'));if(k==='eblk')return anyOr(ctx,e=>intentK(e,'blk'));if(k==='ko')return anyOr(ctx,e=>e.stun>0);
+  if(k==='full')return (c.kept||0)>=3;if(k==='re')return (c.re||0)>=2;if(k==='drunk')return B.drunk>=3;if(k==='alone')return B.hand.length<=(pre?1:0);return true;}
+// 手牌上的实时预览：现在打出去每下多少点（按最吃亏的敌人算，护甲另算），以及有没有条件已经成立（hot，金边）。只读，不改任何状态
+function cardNow(c){const d=def(c),en=alive(),ctx={card:c},x=d.cost==='X'?B.energy:1;let hot=false,chg=false,nodm=false,vb=B.block,vv=false,vw=B.weak>0;const parts=[];
+  for(const f of fxOf(c)){if(f.t==='choose'||passive(f))continue;if(f.cond){if(!condMet(f,c,ctx,1))continue;if(f.t!=='execute')hot=true;}
+    if(f.t==='execute'){if(en.some(e=>e.hp<=f.n))hot=true;continue;}if(f.t==='block')vb+=f.n;if(f.t==='apply'&&f.s==='vuln')vv=true;if(f.t==='cleanse')vw=false;if(f.t!=='dmg')continue;const kept=c.kept||0;
+    let base=f.blockVal?vb:f.n*(f.perEnergy?x:1);if(f.grow)base+=c.grow||0;if(f.store)base+=f.store*kept;if(f.drunk)base+=f.drunk*B.drunk;if(f.wealth)base+=f.wealth*Math.min(6,Math.floor(R.gold/50));
+    if(f.lowHp&&R.hp<R.maxhp/2){base=f.lowHp;hot=true;}if(f.vanguard&&B.count===0){base+=f.vanguard;hot=true;}if(f.combo){base+=f.combo*B.count;if(B.count>0)hot=true;}if(f.perHand)base+=f.perHand*Math.max(0,B.hand.length-(B.hand.includes(c)?1:0));
+    if(f.sameFac){const k=[...B.played].filter(id=>CARDS[id].fac===d.fac).length;base+=f.sameFac*k;if(k)hot=true;}
+    if((f.store||f.storeTimes)&&kept>=3)hot=true;if((f.drunk||f.drunkTimes)&&B.drunk>0)hot=true;
+    let best=0,low=1e9,rep=1;for(const t of en){let v=base+(f.judo?Math.min(30,nextHit(t)):0);if(f.poisonX)v+=f.poisonX*t.poison;if(f.half&&t.hp<t.maxhp/2){v+=f.half;hot=true;}if(f.x2IfAtk&&intentAtk(t)){v*=2;hot=true;}
+      v=Math.max(0,v+B.str+B.tstr);if(t.vuln>0||vv)v=Math.floor(v*1.5);if(vw)v=Math.floor(v*.75);if(f.repeatIfVuln&&(t.vuln>0||vv)){hot=true;rep=2;}if(v>best)best=v;if(v<low)low=v;}
+    if(f.dice||!en.length){nodm=true;continue;}const t0=f.times||1,tms=(t0+(f.storeTimes?f.storeTimes*kept:0)+(f.drunkTimes?Math.floor(B.drunk/f.drunkTimes):0))*rep;
+    if(best!==f.n||low!==f.n||tms!==t0||f.store||f.storeTimes)chg=true;parts.push({lo:low,hi:best,tms,was:f.n*t0});}
+  let dm=null;if(chg&&!nodm&&parts.length){const one=parts.length===1,p=parts[0],lo=one?p.lo:parts.reduce((a,p)=>a+p.lo*p.tms,0),hi=one?p.hi:parts.reduce((a,p)=>a+p.hi*p.tms,0),tms=one?p.tms:1,was=parts.reduce((a,p)=>a+p.was,0);
+    dm={lo,hi,tms,sum:!one,txt:(lo===hi?hi:lo+'~'+hi)+(tms>1?'×'+tms:''),cls:hi*tms>was?'up':hi*tms<was?'dn':''};}
+  return {hot,dm};}
 // 执行一条效果。ctx：card 这张牌，target 选中的敌人，x 耗尽的义气（X 费牌），auto 驻场触发（没有目标时随机打）
 function execFx(f,ctx){const c=ctx.card,cd=def(c);
-  if(f.cond==='combo'&&B.count===0)return;if(f.cond==='low'&&R.hp>=R.maxhp/2)return;if(f.cond==='eatk'&&!anyOr(ctx,intentAtk))return;if(f.cond==='ebuff'&&!anyOr(ctx,e=>intentK(e,'buff')))return;if(f.cond==='eblk'&&!anyOr(ctx,e=>intentK(e,'blk')))return;if(f.cond==='ko'&&!anyOr(ctx,e=>e.stun>0))return;
-  if(f.cond==='full'&&!((c.kept||0)>=3))return;if(f.cond==='re'&&!((c.re||0)>=2))return;if(f.cond==='drunk'&&B.drunk<3)return;if(f.cond==='alone'&&B.hand.length>0)return;
+  if(!condMet(f,c,ctx))return;
   const T=()=>ctx.target&&!ctx.target.dead?ctx.target:(ctx.auto?pick(alive()):alive()[0]),n=f.n*(f.perEnergy?ctx.x:1);
   if(f.t==='dmg'){let base=f.blockVal?B.block:n;if(f.grow)base+=c.grow||0;if(f.store)base+=f.store*(c.kept||0);if(f.drunk)base+=f.drunk*B.drunk;if(f.wealth)base+=f.wealth*Math.min(6,Math.floor(R.gold/50));if(f.dice){const r=1+rnd(f.dice);base*=r;fxAt('me','掷出 '+r+' 点','g','spark');}if(f.lowHp&&R.hp<R.maxhp/2)base=f.lowHp;if(f.vanguard&&B.count===0)base+=f.vanguard;if(f.combo)base+=f.combo*B.count;if(f.perHand)base+=f.perHand*B.hand.length;
     if(f.sameFac)base+=f.sameFac*[...B.played].filter(id=>CARDS[id].fac===cd.fac).length;let total=0;const fixed=f.random||f.aoe?null:T();
@@ -327,5 +345,5 @@ app.addEventListener('click',e=>{if(!AC){try{AC=new(window.AudioContext||window.
 });
 addEventListener('keydown',e=>{if(!B||B.busy)return;if(e.key==='e'||e.key==='E'||e.key===' '){e.preventDefault();endTurn();}else if(e.key>='1'&&e.key<='9')clickCard(+e.key-1);else if(e.key==='0')clickCard(9);else if(e.key==='Escape'){B.sel=null;B.opt=null;render();}});
 showTitle();
-window.__sh={mountFiles,unmount,LOCAL,get R(){return R;},get B(){return B;},play,endTurn,startBattle,showMap,showShop,showRest,showEvent,nextStep,clickCard};
+window.__sh={mountFiles,unmount,LOCAL,get R(){return R;},get B(){return B;},play,endTurn,startBattle,showMap,showShop,showRest,showEvent,nextStep,clickCard,render,cardNow};
 })();
